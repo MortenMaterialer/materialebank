@@ -1,0 +1,297 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mortens Materialebank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: forside = portal med fire store fagfliser; hvert fag = egen side (#matematik osv.) med klassetrinsfilter og materialeliste */
+:root {
+  --bg: #f3f6f7;
+  --surface: #ffffff;
+  --fg: #16232a;
+  --muted: #5a6b73;
+  --line: #d6e0e4;
+  --accent: #1f5fd1;
+  --accent-fg: #ffffff;
+  --mat: #1f5fd1;
+  --eng: #c2410c;
+  --tek: #7c3aed;
+  --nat: #15803d;
+  --chip: #e6edf0;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171b; --surface: #17232a; --fg: #e5eef1; --muted: #93a6ae; --line: #2a3a42;
+    --accent: #6b9dff; --accent-fg: #0b1420; --mat: #6b9dff; --eng: #fb8b54; --tek: #b794ff; --nat: #4ade80; --chip: #1f2e36;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171b; --surface: #17232a; --fg: #e5eef1; --muted: #93a6ae; --line: #2a3a42;
+  --accent: #6b9dff; --accent-fg: #0b1420; --mat: #6b9dff; --eng: #fb8b54; --tek: #b794ff; --nat: #4ade80; --chip: #1f2e36;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 48px; display: grid; gap: 28px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-weight: 800; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.04; letter-spacing: -0.01em; }
+h2 { font-weight: 800; font-size: clamp(1.35rem, 3vw, 1.75rem); line-height: 1.1; }
+.lead { margin: 0; color: var(--muted); max-width: 62ch; font-size: 1.05rem; }
+
+/* Forside */
+.hero { display: grid; gap: 10px; padding-block: 8px 4px; }
+.subjects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.subject-tile {
+  display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: start;
+  padding: 22px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line);
+  text-decoration: none; color: var(--fg); position: relative; overflow: hidden;
+}
+.subject-tile::after { content: ""; position: absolute; inset: auto 0 0 0; height: 6px; background: var(--c); }
+.subject-tile .ico { grid-row: span 3; width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; background: var(--chip); }
+.subject-tile .ico svg { width: 32px; height: 32px; fill: none; stroke: var(--c); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.subject-tile h2 { font-size: 1.45rem; }
+.subject-tile p { margin: 0; color: var(--muted); font-size: .95rem; }
+.subject-tile .go { color: var(--c); font-weight: 700; font-size: .92rem; }
+.subject-tile:hover { border-color: var(--c); }
+.pupil-bar {
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-radius: 14px; background: var(--chip);
+}
+.pupil-bar strong { font-family: var(--font-display); font-size: 1.1rem; }
+.pupil-bar a { font-weight: 700; text-decoration: none; }
+.recent { display: grid; gap: 12px; }
+
+/* Fagside */
+.back { justify-self: start; text-decoration: none; font-weight: 700; }
+.subject-head { display: grid; gap: 8px; padding-bottom: 18px; border-bottom: 6px solid var(--c); }
+.subject-head h1 { color: var(--fg); }
+.filters { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: end; }
+.group { display: grid; gap: 8px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: inherit; font-size: .95rem; border: 1px solid transparent; background: var(--chip); color: var(--fg);
+  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); font-weight: 700; }
+
+.week { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 14px; }
+.week-head { display: grid; gap: 2px; }
+.week-head p, .week-hint { margin: 0; color: var(--muted); }
+.shapes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.shape-btn {
+  display: grid; justify-items: center; gap: 8px; padding-block: 18px 14px; border-radius: 14px;
+  border: 2px solid var(--line); background: var(--bg); color: var(--fg); text-decoration: none;
+  font-family: var(--font-display); font-weight: 800; font-size: 1.2rem;
+}
+.shape-btn svg { width: 56px; height: 56px; fill: none; stroke: var(--mat); stroke-width: 4; stroke-linejoin: round; }
+.shape-btn:hover { border-color: var(--mat); }
+.past summary { cursor: pointer; font-weight: 700; color: var(--muted); }
+.past ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.past li { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-variant-numeric: tabular-nums; }
+.past li strong { min-width: 5em; }
+.past a { font-weight: 700; text-decoration: none; display: inline-flex; gap: 5px; align-items: center; }
+.past a svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 5; }
+
+.result-bar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.result-bar strong { font-family: var(--font-display); font-size: 1.15rem; }
+.result-bar span { color: var(--muted); font-size: .9rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 14px;
+  display: grid; gap: 10px; align-content: start; border-top: 5px solid var(--c);
+}
+.card .meta { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--muted); }
+.card .subject { color: var(--c); font-weight: 700; }
+.card h3 { font-weight: 600; font-size: 1.15rem; line-height: 1.2; }
+.card p { margin: 0; color: var(--muted); font-size: .92rem; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: .75rem; padding: 2px 8px; border-radius: 6px; background: var(--chip); color: var(--fg); font-variant-numeric: tabular-nums; }
+.tag.ex { background: transparent; border: 1px dashed var(--muted); color: var(--muted); }
+.card a { font-weight: 700; text-decoration: none; justify-self: start; }
+.opens { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.empty { padding: 32px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; }
+footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media (max-width: 640px) {
+  .subjects { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .shape-btn { font-size: 1rem; } .shape-btn svg { width: 44px; height: 44px; }
+  .subject-tile { padding: 18px; }
+  .subject-tile .ico { width: 46px; height: 46px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card, .subject-tile { transition: transform .15s ease, border-color .15s ease; }
+  .card:hover, .subject-tile:hover { transform: translateY(-2px); }
+}
+</style>
+
+<div class="wrap">
+  <main id="view"></main>
+  <footer>Undervisningsmaterialer til 4.-6. klasse i folkeskolen, lavet af Morten. Kort markeret "Eksempel" er pladsholdere.</footer>
+</div>
+
+<script>
+const SUBJECTS = {
+  matematik: { name: "Matematik", color: "var(--mat)", blurb: "Ugentlige opgavesæt, arbejdsark og forløb.",
+    icon: '<path d="M5 12h14M12 5v14"/><path d="M5 5l4 4M9 5L5 9"/><path d="M15 17h4"/>' },
+  engelsk: { name: "Engelsk", color: "var(--eng)", blurb: "Ordforråd, grammatik og skriveopgaver.",
+    icon: '<path d="M4 6h10a3 3 0 013 3v9H7a3 3 0 01-3-3z"/><path d="M8 10h6M8 14h4"/><path d="M17 9h3v9"/>' },
+  teknologi: { name: "Teknologiforståelse", color: "var(--tek)", blurb: "Algoritmer, programmering og digital dannelse.",
+    icon: '<rect x="4" y="5" width="16" height="11" rx="2"/><path d="M9 20h6M12 16v4"/><path d="M9 9l-2 2 2 2M15 9l2 2-2 2"/>' },
+  natur: { name: "Natur/teknologi", color: "var(--nat)", blurb: "Forsøg, naturfænomener og undersøgelser.",
+    icon: '<path d="M10 3h4M11 3v6l-5 9a2 2 0 002 3h8a2 2 0 002-3l-5-9V3"/><path d="M8 15h8"/>' },
+};
+const TYPES = { pdf: "PDF", pres: "Præsentation" };
+
+// Ugentlige opgavesæt i matematik, nyeste først. Kun figurer vises, aldrig niveau.
+const WEEKS = [
+  { year: 2026, week: 41, from: "2026-10-05", to: "2026-10-11", dir: "materialer/matematik/6-klasse/uge-41-2026/" },
+];
+const SHAPES = [
+  { key: "cirkel", name: "Cirkel", svg: '<circle cx="24" cy="24" r="19"/>' },
+  { key: "firkant", name: "Firkant", svg: '<rect x="6" y="6" width="36" height="36" rx="2"/>' },
+  { key: "trekant", name: "Trekant", svg: '<path d="M24 5 L44 41 H4 Z"/>' },
+];
+
+// Eksempler: pladsholdere indtil Mortens egne materialer er lagt ind.
+const MATERIALS = [
+  { title: "To be i nutid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-be-nutid.pdf"], ["Ark B", "materialer/engelsk/to-be-nutid-b.pdf"]], desc: "Sådan bøjer du am, is og are, med udfyldningsopgaver og oversættelse begge veje." },
+  { title: "To be i datid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-be-datid-a.pdf"], ["Ark B", "materialer/engelsk/to-be-datid-b.pdf"]], desc: "Was og were, og ord som yesterday og last week, der viser at det er datid." },
+  { title: "To have i nutid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-have-nutid-a.pdf"], ["Ark B", "materialer/engelsk/to-have-nutid-b.pdf"]], desc: "Hvornår det hedder have, og hvornår det hedder has." },
+  { title: "To have i datid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-have-datid-a.pdf"], ["Ark B", "materialer/engelsk/to-have-datid-b.pdf"]], desc: "Had i datid, uanset hvem der havde noget." },
+  { title: "A eller an", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/a-eller-an-a.pdf"], ["Ark B", "materialer/engelsk/a-eller-an-b.pdf"]], desc: "Vælg a eller an ud fra lyden i starten af det næste ord." },
+  { title: "Brøker med pizza og chokolade", subject: "matematik", grades: [4], type: "pdf", desc: "Arbejdsark om stambrøker og sammenligning af brøker med tegninger.", example: true },
+  { title: "Gangetabellen som spil", subject: "matematik", grades: [4], type: "pdf", desc: "Terningespil og bingoplader til 6-, 7- og 8-tabellen.", example: true },
+  { title: "Areal og omkreds i skolegården", subject: "matematik", grades: [5], type: "pres", desc: "Oplæg og udendørs opgave hvor eleverne måler op med målebånd.", example: true },
+  { title: "Procent i tilbudsaviser", subject: "matematik", grades: [6], type: "pdf", desc: "Regn rabatter og spar-beløb ud fra rigtige tilbud.", example: true },
+  { title: "My Family and Me", subject: "engelsk", grades: [4], type: "pres", desc: "Ordforråd om familie med billedkort og små dialoger.", example: true },
+  { title: "Irregular Verbs Board Game", subject: "engelsk", grades: [5, 6], type: "pdf", desc: "Brætspil til de 30 mest brugte uregelmæssige verber.", example: true },
+  { title: "Write a Postcard from London", subject: "engelsk", grades: [6], type: "pdf", desc: "Skriveskabelon med sætningsstartere og seværdigheder.", example: true },
+  { title: "Algoritmer i hverdagen", subject: "teknologi", grades: [4, 5], type: "pres", desc: "Fra madopskrift til trin-for-trin instruktioner til en robot.", example: true },
+  { title: "Kildekritik på nettet", subject: "teknologi", grades: [6], type: "pdf", desc: "Tjekliste og øvelser i at vurdere en hjemmeside.", example: true },
+  { title: "Vandets kredsløb", subject: "natur", grades: [4], type: "pres", desc: "Fordampning, skyer og nedbør med et lille forsøg i et syltetøjsglas.", example: true },
+  { title: "Byg en elektrisk kreds", subject: "natur", grades: [5], type: "pdf", desc: "Forsøgsvejledning med batteri, pære og kontakt.", example: true },
+  { title: "Solsystemet i målestok", subject: "natur", grades: [6], type: "pdf", desc: "Planeternes afstande lagt ud på en 100 meter lang snor.", example: true },
+];
+
+const MONTHS = ["januar","februar","marts","april","maj","juni","juli","august","september","oktober","november","december"];
+const fmt = (d) => { const [, m, day] = d.split("-").map(Number); return day + ". " + MONTHS[m - 1]; };
+const shapeIcon = (s) => '<svg viewBox="0 0 48 48" aria-hidden="true">' + s.svg + '</svg>';
+const subjIcon = (s) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + s.icon + '</svg>';
+const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const view = document.getElementById("view");
+const filters = { grade: "alle", type: "alle" };
+try { const g = localStorage.getItem("mb-grade"); if (g) filters.grade = g; } catch (e) {}
+
+function tileNote(key) {
+  if (key === "matematik" && WEEKS.length) return "Opgavesæt til uge " + WEEKS[0].week + " er klar";
+  const n = MATERIALS.filter(m => m.subject === key && !m.example).length;
+  return n ? n + (n === 1 ? " materiale" : " materialer") : "Materialer på vej";
+}
+
+function card(m) {
+  const s = SUBJECTS[m.subject];
+  const href = m.file || m.link;
+  return `<article class="card" style="--c:${s.color}">
+    <div class="meta"><span class="subject">${esc(s.name)}</span><span>${TYPES[m.type]}</span></div>
+    <h3>${esc(m.title)}</h3><p>${esc(m.desc)}</p>
+    <div class="tags"><span class="tag">${m.grades.map(g => g + ". kl.").join(" · ")}</span>${m.example ? '<span class="tag ex">Eksempel</span>' : ""}</div>
+    ${m.files ? `<div class="opens">${m.files.map(([l, f]) => `<a href="${esc(f)}" target="_blank" rel="noopener">${esc(l)} →</a>`).join("")}</div>`
+      : href ? `<a href="${esc(href)}" target="_blank" rel="noopener">Åbn →</a>` : ""}
+  </article>`;
+}
+
+function renderHome() {
+  document.title = "Mortens Materialebank";
+  const cur = WEEKS[0];
+  view.innerHTML = `
+    <div style="display:grid;gap:28px">
+      <section class="hero">
+        <span class="label">Folkeskolen · 4.-6. klasse</span>
+        <h1>Mortens Materialebank</h1>
+        <p class="lead">Her samler jeg mit undervisningsmateriale i matematik, engelsk, teknologiforståelse og natur/teknologi. Vælg et fag for at se forløb, arbejdsark og præsentationer.</p>
+      </section>
+      ${cur ? `<div class="pupil-bar"><div><span class="label">Til eleverne</span><br><strong>Ugens matematik, uge ${cur.week}</strong></div><a href="#matematik">Find dit opgavesæt →</a></div>` : ""}
+      <nav class="subjects" aria-label="Fag">
+        ${Object.entries(SUBJECTS).map(([k, s]) => `
+          <a class="subject-tile" href="#${k}" style="--c:${s.color}">
+            <span class="ico">${subjIcon(s)}</span>
+            <h2>${esc(s.name)}</h2>
+            <p>${esc(s.blurb)}</p>
+            <span class="go">${tileNote(k)} →</span>
+          </a>`).join("")}
+      </nav>
+    </div>`;
+}
+
+function weekSection() {
+  if (!WEEKS.length || !(filters.grade === "alle" || filters.grade === "6")) return "";
+  const [cur, ...past] = WEEKS;
+  return `<section class="week" aria-labelledby="week-title">
+    <div class="week-head">
+      <span class="label">Ugentlige opgavesæt · 6. klasse</span>
+      <h2 id="week-title">Uge ${cur.week}</h2>
+      <p>${fmt(cur.from)} til ${fmt(cur.to)}. Vælg den figur, du har fået.</p>
+    </div>
+    <div class="shapes">${SHAPES.map(s => `<a class="shape-btn" href="${cur.dir}${s.key}.pdf" target="_blank" rel="noopener">${shapeIcon(s)}${s.name}</a>`).join("")}</div>
+    ${past.length ? `<details class="past"><summary>Tidligere uger</summary><ul>${past.map(w =>
+      `<li><strong>Uge ${w.week}</strong>${SHAPES.map(s => `<a href="${w.dir}${s.key}.pdf" target="_blank" rel="noopener">${shapeIcon(s)}${s.name}</a>`).join("")}</li>`).join("")}</ul></details>` : ""}
+  </section>`;
+}
+
+function chipRow(id, options, current) {
+  return `<div class="chips" id="${id}">${options.map(([v, l]) =>
+    `<button type="button" class="chip" data-v="${v}" aria-pressed="${v === current}">${l}</button>`).join("")}</div>`;
+}
+
+function renderSubject(key) {
+  const s = SUBJECTS[key];
+  document.title = s.name + " · Mortens Materialebank";
+  const list = MATERIALS.filter(m => m.subject === key &&
+    (filters.grade === "alle" || m.grades.includes(+filters.grade)) &&
+    (filters.type === "alle" || m.type === filters.type));
+  const where = filters.grade === "alle" ? "4.-6. klasse" : filters.grade + ". klasse";
+  view.innerHTML = `
+    <div style="display:grid;gap:24px;--c:${s.color}">
+      <a class="back" href="#">← Alle fag</a>
+      <header class="subject-head">
+        <span class="label">Fag</span>
+        <h1>${esc(s.name)}</h1>
+        <p class="lead">${esc(s.blurb)}</p>
+      </header>
+      <div class="filters">
+        <div class="group"><span class="label">Klassetrin</span>${chipRow("f-grade", [["alle","Alle"],["4","4. klasse"],["5","5. klasse"],["6","6. klasse"]], filters.grade)}</div>
+        <div class="group"><span class="label">Type</span>${chipRow("f-type", [["alle","Alle"], ...Object.entries(TYPES)], filters.type)}</div>
+      </div>
+      ${key === "matematik" ? weekSection() : ""}
+      <div class="result-bar"><strong>${list.length} ${list.length === 1 ? "materiale" : "materialer"} til ${where}</strong></div>
+      <div class="grid">${list.length ? list.map(card).join("") : '<div class="empty">Ingen materialer her endnu. Prøv et andet klassetrin.</div>'}</div>
+    </div>`;
+  view.querySelector("#f-grade").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    filters.grade = b.dataset.v;
+    try { localStorage.setItem("mb-grade", filters.grade); } catch (err) {}
+    renderSubject(key);
+  });
+  view.querySelector("#f-type").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    filters.type = b.dataset.v; renderSubject(key);
+  });
+}
+
+function route() {
+  const key = location.hash.replace("#", "");
+  if (SUBJECTS[key]) renderSubject(key); else renderHome();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+
+</body></html>
