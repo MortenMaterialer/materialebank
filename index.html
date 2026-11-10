@@ -113,6 +113,7 @@ h2 { font-weight: 800; font-size: clamp(1.35rem, 3vw, 1.75rem); line-height: 1.1
 .tag { font-size: .75rem; padding: 2px 8px; border-radius: 6px; background: var(--chip); color: var(--fg); font-variant-numeric: tabular-nums; }
 .tag.ex { background: transparent; border: 1px dashed var(--muted); color: var(--muted); }
 .card a { font-weight: 700; text-decoration: none; justify-self: start; }
+.tag.cat { background: transparent; border: 1px solid var(--line); color: var(--muted); }
 .opens { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .empty { padding: 32px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; }
 footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 14px; }
@@ -151,7 +152,8 @@ const TYPES = { pdf: "PDF", pres: "Præsentation" };
 
 // Ugentlige opgavesæt i matematik, nyeste først. Kun figurer vises, aldrig niveau.
 const WEEKS = [
-  { year: 2026, week: 41, from: "2026-10-05", to: "2026-10-11", dir: "materialer/matematik/6-klasse/uge-41-2026/" },
+  { year: 2026, week: 41, from: "2026-10-05", to: "2026-10-11", dir: "materialer/matematik/6-klasse/uge-41-2026/",
+    grades: [6], tema: "Hverdagsmatematik", categories: ["De fire regnearter", "Decimaltal", "Ligninger", "Faglig læsning", "Hverdagsmatematik"] },
 ];
 const SHAPES = [
   { key: "cirkel", name: "Cirkel", svg: '<circle cx="24" cy="24" r="19"/>' },
@@ -180,13 +182,20 @@ const MATERIALS = [
   { title: "Solsystemet i målestok", subject: "natur", grades: [6], type: "pdf", desc: "Planeternes afstande lagt ud på en 100 meter lang snor.", example: true },
 ];
 
+// Hvert ugesæt er også et almindeligt materialekort. Kategorierne er de samme for alle tre figurer.
+MATERIALS.unshift(...WEEKS.map(w => ({
+  title: "Ugentligt opgavesæt, uge " + w.week, subject: "matematik", grades: w.grades, type: "pdf",
+  files: SHAPES.map(s => [s.name, w.dir + s.key + ".pdf"]), categories: w.categories,
+  desc: "De fire regnearter, ligninger og tekstopgaver om " + w.tema.toLowerCase() + ". Vælg den figur, du har fået.",
+})));
+
 const MONTHS = ["januar","februar","marts","april","maj","juni","juli","august","september","oktober","november","december"];
 const fmt = (d) => { const [, m, day] = d.split("-").map(Number); return day + ". " + MONTHS[m - 1]; };
 const shapeIcon = (s) => '<svg viewBox="0 0 48 48" aria-hidden="true">' + s.svg + '</svg>';
 const subjIcon = (s) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + s.icon + '</svg>';
 const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const view = document.getElementById("view");
-const filters = { grade: "alle", type: "alle" };
+const filters = { grade: "alle", type: "alle", cat: "alle" };
 try { const g = localStorage.getItem("mb-grade"); if (g) filters.grade = g; } catch (e) {}
 
 function tileNote(key) {
@@ -201,7 +210,7 @@ function card(m) {
   return `<article class="card" style="--c:${s.color}">
     <div class="meta"><span class="subject">${esc(s.name)}</span><span>${TYPES[m.type]}</span></div>
     <h3>${esc(m.title)}</h3><p>${esc(m.desc)}</p>
-    <div class="tags"><span class="tag">${m.grades.map(g => g + ". kl.").join(" · ")}</span>${m.example ? '<span class="tag ex">Eksempel</span>' : ""}</div>
+    <div class="tags"><span class="tag">${m.grades.map(g => g + ". kl.").join(" · ")}</span>${(m.categories || []).map(c => `<span class="tag cat">${esc(c)}</span>`).join("")}${m.example ? '<span class="tag ex">Eksempel</span>' : ""}</div>
     ${m.files ? `<div class="opens">${m.files.map(([l, f]) => `<a href="${esc(f)}" target="_blank" rel="noopener">${esc(l)} →</a>`).join("")}</div>`
       : href ? `<a href="${esc(href)}" target="_blank" rel="noopener">Åbn →</a>` : ""}
   </article>`;
@@ -253,9 +262,12 @@ function chipRow(id, options, current) {
 function renderSubject(key) {
   const s = SUBJECTS[key];
   document.title = s.name + " · Mortens Materialebank";
+  const cats = [...new Set(MATERIALS.filter(m => m.subject === key).flatMap(m => m.categories || []))].sort((a, b) => a.localeCompare(b, "da"));
+  if (!cats.includes(filters.cat)) filters.cat = "alle";
   const list = MATERIALS.filter(m => m.subject === key &&
     (filters.grade === "alle" || m.grades.includes(+filters.grade)) &&
-    (filters.type === "alle" || m.type === filters.type));
+    (filters.type === "alle" || m.type === filters.type) &&
+    (filters.cat === "alle" || (m.categories || []).includes(filters.cat)));
   const where = filters.grade === "alle" ? "4.-6. klasse" : filters.grade + ". klasse";
   view.innerHTML = `
     <div style="display:grid;gap:24px;--c:${s.color}">
@@ -268,6 +280,7 @@ function renderSubject(key) {
       <div class="filters">
         <div class="group"><span class="label">Klassetrin</span>${chipRow("f-grade", [["alle","Alle"],["4","4. klasse"],["5","5. klasse"],["6","6. klasse"]], filters.grade)}</div>
         <div class="group"><span class="label">Type</span>${chipRow("f-type", [["alle","Alle"], ...Object.entries(TYPES)], filters.type)}</div>
+        ${cats.length ? `<div class="group"><span class="label">Kategori</span>${chipRow("f-cat", [["alle","Alle"], ...cats.map(c => [c, esc(c)])], filters.cat)}</div>` : ""}
       </div>
       ${key === "matematik" ? weekSection() : ""}
       <div class="result-bar"><strong>${list.length} ${list.length === 1 ? "materiale" : "materialer"} til ${where}</strong></div>
@@ -282,6 +295,10 @@ function renderSubject(key) {
   view.querySelector("#f-type").addEventListener("click", e => {
     const b = e.target.closest(".chip"); if (!b) return;
     filters.type = b.dataset.v; renderSubject(key);
+  });
+  view.querySelector("#f-cat")?.addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    filters.cat = b.dataset.v; renderSubject(key);
   });
 }
 
