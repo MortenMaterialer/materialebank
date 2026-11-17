@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Parkarkitekten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Outfit:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: navy header band like the worksheets; the park map is the stage, a side panel carries the customer order, the shop and the accounts. Single light look matching the printed materials. */
+:root {
+  --navy: #1b1b31; --cream: #f7f4ec; --ink: #1f2233; --muted: #5d6175; --line: #d9d4c6; --white: #ffffff;
+  --husk: #c96f12; --huskbg: #fff8ea; --ok: #2f8a5f; --okbg: #e6f4ec; --bad: #c0443b; --badbg: #fbe9e7;
+  --red: #d9534a; --blue: #2f78bd; --amber: #d4930f; --green: #3a9e78; --teal: #2e8b87; --purple: #7d4fb5;
+  --gold: #f2b632;
+  --display: "Bricolage Grotesque", "Outfit", system-ui, sans-serif;
+  --body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+button { font: inherit; cursor: pointer; color: inherit; }
+button:focus-visible, input:focus-visible, .hd:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { background: var(--navy); color: var(--white); }
+header.top .wrap { padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.kick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b9bccb; display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.shapes { display: inline-flex; gap: 6px; }
+.shapes svg { width: 11px; height: 11px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(26px, 4.4vw, 36px); line-height: 1; margin: 0; }
+.hud { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 6px 13px; font-size: 14px; color: #e6e7ef; display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip b { color: var(--white); font-size: 16px; }
+.chip.money b { color: #9fe0b8; }
+.chip .star { color: var(--gold); }
+
+main { padding-block: 18px 40px; }
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .stage { grid-template-columns: 1fr; } }
+
+.mapcard { background: var(--white); border: 2px solid var(--green); border-radius: 14px; overflow: hidden; box-shadow: 0 3px 0 #b6dcc9; min-width: 0; }
+.mapbar { background: var(--green); color: var(--white); padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 700; flex-wrap: wrap; }
+.mapbar small { font-weight: 500; opacity: .92; font-size: 14px; }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.3); display: block; }
+.dots i.d { background: var(--white); }
+.dots i.n { outline: 2px solid var(--white); outline-offset: 1px; }
+#map { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+.maptools { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #d7eadf; flex-wrap: wrap; align-items: center; background: #f3faf6; }
+.maptools .tip { color: var(--muted); font-size: 14px; flex: 1 1 200px; }
+.decor { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 12px 12px; background: #f3faf6; }
+.ditem { display: flex; align-items: center; gap: 8px; border: 2px solid #b6dcc9; background: var(--white); border-radius: 10px; padding: 5px 10px 5px 6px; font-size: 14px; font-weight: 600; }
+.ditem svg { width: 28px; height: 28px; }
+.ditem small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+.ditem[aria-pressed="true"] { border-color: var(--green); background: #e3f3ea; }
+.ditem:disabled { opacity: .45; cursor: default; }
+
+.panel { --c: var(--blue); border: 2px solid var(--c); border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--c) 7%, var(--white)); box-shadow: 0 3px 0 color-mix(in srgb, var(--c) 35%, var(--white)); min-width: 0; }
+.pbar { background: var(--c); color: var(--white); padding: 8px 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.pbar .t { flex: 1; }
+.pbar .ph { font-size: 13px; font-weight: 600; background: rgba(255,255,255,.22); padding: 2px 9px; border-radius: 999px; }
+.pbody { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.client { display: flex; gap: 10px; align-items: center; }
+.avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: var(--white); font-family: var(--display); font-size: 18px; }
+.client b { display: block; line-height: 1.2; }
+.client small { color: var(--muted); font-size: 13px; }
+.quote { background: var(--white); border: 1.5px solid color-mix(in srgb, var(--c) 35%, var(--white)); border-radius: 4px 12px 12px 12px; padding: 10px 12px; font-size: 16px; }
+.qlbl { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.quote strong { color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
+.read { display: flex; gap: 8px; flex-wrap: wrap; }
+.read span { background: var(--white); border: 1.5px solid color-mix(in srgb, var(--c) 35%, var(--white)); border-radius: 8px; padding: 4px 10px; display: flex; flex-direction: column; min-width: 84px; }
+.read small { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.read b { font-size: 19px; font-variant-numeric: tabular-nums; }
+.howto { font-size: 14px; color: var(--muted); margin: 0; }
+.go { background: var(--navy); color: var(--white); border: 0; border-radius: 10px; padding: 11px 20px; font-weight: 700; font-size: 17px; align-self: flex-start; }
+.go:disabled { opacity: .4; cursor: default; }
+.go.alt { background: var(--white); color: var(--navy); border: 2px solid var(--navy); }
+.go.green { background: var(--green); }
+.fb { border-radius: 10px; padding: 9px 12px; font-weight: 500; font-size: 15px; }
+.fb.ok { background: var(--okbg); color: #1d5e3f; border: 1.5px solid var(--ok); }
+.fb.bad { background: var(--badbg); color: #8a2a23; border: 1.5px solid var(--bad); }
+.husk { display: flex; border: 2px solid var(--husk); border-radius: 10px; overflow: hidden; background: var(--huskbg); }
+.husk .hk { flex: none; width: 92px; background: var(--husk); color: var(--white); display: flex; align-items: center; gap: 4px; padding: 4px 6px; font-weight: 700; line-height: 1.15; font-size: 14px; }
+.husk .hk img { height: 54px; width: auto; }
+.husk .hb { padding: 8px 12px; font-size: 14.5px; display: flex; align-items: center; }
+
+table.shop { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--white); border-radius: 10px; overflow: hidden; border: 1.5px solid color-mix(in srgb, var(--c) 40%, var(--white)); font-size: 15px; }
+.shop td { padding: 7px 8px; border-top: 1px solid color-mix(in srgb, var(--c) 18%, var(--white)); vertical-align: middle; }
+.shop tr:first-child td { border-top: 0; }
+.shop .nm b { display: block; line-height: 1.2; }
+.shop .nm small { color: var(--muted); font-size: 13px; }
+.shop .q { white-space: nowrap; text-align: right; }
+.shop input { width: 64px; font: 600 17px var(--body); padding: 5px 6px; border: 2px solid color-mix(in srgb, var(--c) 45%, var(--white)); border-radius: 7px; text-align: right; font-variant-numeric: tabular-nums; }
+.shop .u { display: inline-block; min-width: 26px; text-align: left; font-weight: 600; margin-left: 3px; }
+.mat { width: 26px; height: 26px; border-radius: 6px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+.shop .sw { width: 34px; }
+
+.acct { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; background: var(--white); border-radius: 10px; overflow: hidden; }
+.acct td { padding: 6px 10px; border-top: 1px solid #ece8de; }
+.acct tr:first-child td { border-top: 0; }
+.acct td:last-child { text-align: right; white-space: nowrap; }
+.acct tr.sum td { font-weight: 700; border-top: 2px solid var(--ink); }
+.acct .neg { color: var(--bad); }
+.calcs { display: flex; flex-direction: column; gap: 6px; }
+.calc { background: var(--white); border-left: 4px solid var(--c); border-radius: 6px; padding: 7px 10px; font-size: 14.5px; }
+.calc b { display: block; }
+.calc.ok { border-left-color: var(--ok); }
+.calc.bad { border-left-color: var(--bad); }
+.bigstars { font-size: 30px; letter-spacing: 3px; color: var(--gold); line-height: 1; }
+.bigstars .off { color: #d8d3c4; }
+.starnote { font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+
+.intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 800px) { .intro { grid-template-columns: 1fr; } }
+.intro h2 { font-family: var(--display); font-size: clamp(22px, 3.4vw, 30px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; }
+.intro p { margin: 0 0 10px; max-width: 62ch; }
+.loop { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.loop li { display: flex; gap: 10px; align-items: flex-start; }
+.loop .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--white); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.topics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tp { display: flex; align-items: center; gap: 8px; border: 2px solid var(--tc); border-radius: 10px; padding: 8px 10px; background: var(--white); font-weight: 600; }
+.tp input { width: 20px; height: 20px; accent-color: var(--tc); }
+.startbtns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.ml { font: 700 13px var(--body); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+.ml.h { fill: var(--husk); }
+.mt { font: 700 11px var(--body); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 3px; }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.newobj { transform-box: fill-box; transform-origin: center; animation: pop .5s cubic-bezier(.3,1.6,.5,1) 1s both; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="kick">
+        <span class="shapes" aria-hidden="true">
+          <svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#d9534a"/></svg>
+          <svg viewBox="0 0 10 10"><rect width="10" height="10" fill="#2f78bd"/></svg>
+          <svg viewBox="0 0 10 10"><polygon points="5,0 10,10 0,10" fill="#d4930f"/></svg>
+        </span>
+        Matematik · 6. klasse · Geometri
+      </div>
+      <h1>Parkarkitekten</h1>
+    </div>
+    <div class="hud">
+      <span class="chip money">Kasse <b id="hMoney">0 kr</b></span>
+      <span class="chip"><span class="star">★</span> <b id="hStars">0</b></span>
+      <span class="chip">Parker åbnet <b id="hParks">0</b></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" lang="da">
+  <!-- START -->
+  <section id="start" class="intro">
+    <div>
+      <h2>Dit eget arkitektfirma</h2>
+      <p>Kommunen har hyret dit firma til at bygge nye parker. Kunderne ringer med ønsker: en terrasse til caféen, en hundeskov, et springvand eller en sandkasse. Du tegner tingen ind på kortet, bestiller præcis de materialer, der skal bruges, og tjener penge på det, du sparer.</p>
+      <ul class="loop">
+        <li><span class="n">1</span><span><b>Tegn</b> det, kunden ønsker, på parkkortet. Træk i figuren og de hvide prikker. Hvert tern er 1 m.</span></li>
+        <li><span class="n">2</span><span><b>Bestil</b> materialer. Fliser købes i m², hegn i m og sand i m³. Bestiller du for lidt, koster ekstra levering dobbelt. Bestiller du for meget, er pengene spildt.</span></li>
+        <li><span class="n">3</span><span><b>Tjen penge</b> og stjerner, og brug pengene på træer, bænke og legeredskaber til parken.</span></li>
+      </ul>
+    </div>
+    <div class="panel" style="--c:var(--green)">
+      <div class="pbar"><span class="t">Hvad må kunderne bestille?</span></div>
+      <div class="pbody">
+        <div class="topics" id="topics"></div>
+        <p class="howto">Mindst én skal være valgt.</p>
+        <div class="startbtns">
+          <button class="go green" id="bStart" type="button">Start nyt firma</button>
+          <button class="go alt" id="bResume" type="button" hidden>Fortsæt</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="stage" hidden>
+    <div class="mapcard">
+      <div class="mapbar"><span id="parkName">Skoleparken</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+      <svg id="map" role="img" aria-label="Parkkort"></svg>
+      <div class="maptools">
+        <span class="tip" id="tip">Træk i figuren for at flytte den. Træk i de hvide prikker for at ændre størrelsen.</span>
+        <button class="go alt" id="bDecor" type="button" style="font-size:15px;padding:8px 14px">Pynt parken</button>
+      </div>
+      <div class="decor" id="decor" hidden></div>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="pbar"><span class="t" id="pTitle">Ny opgave</span><span class="ph" id="pPhase">1 · Tegn</span></div>
+      <div class="pbody" id="pBody"></div>
+    </div>
+  </section>
+</main>
+
+<template id="tHusk">
+  <div class="husk"><div class="hk"><img src="data:image/png;base64,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" alt=""><span>Husk dette!</span></div><div class="hb"></div></div>
+</template>
+
+<script>
+(() => {
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const r1 = x => Math.round(x * 10) / 10, r2 = x => Math.round(x * 100) / 100;
+const fmt = x => String(r2(x)).replace('.', ',');
+const kr = x => Math.round(x).toLocaleString('da-DK') + ' kr';
+const PI = 3.14;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ceilN = x => Math.ceil(r2(x) - 1e-9);
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem('parkarkitekt2') || 'null'); } catch (e) { return null; } },
+  set(v) { try { localStorage.setItem('parkarkitekt2', JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ================= world ================= */
+const MW = 20, MH = 12, CS = 34, PADM = 0;
+const VW = MW * CS, VH = MH * CS;
+const PARKS = [
+  { name: 'Skoleparken', trees: [[2, 2], [17.5, 1.5], [18.5, 10.5], [9.5, 10.5]], blocks: [{ x: 0, y: 7, w: 12, h: 1, kind: 'sti' }, { x: 11, y: 0, w: 1, h: 7, kind: 'sti' }] },
+  { name: 'Byparken', trees: [[1.5, 10.5], [6, 1.5], [14.5, 6], [18.5, 2]], blocks: [{ x: 0, y: 4, w: 20, h: 1, kind: 'sti' }, { x: 15, y: 9, w: 5, h: 3, kind: 'sø' }] },
+  { name: 'Havneparken', trees: [[4.5, 4.5], [12, 10.5], [18.5, 7]], blocks: [{ x: 0, y: 0, w: 20, h: 2, kind: 'havn' }, { x: 8, y: 2, w: 1, h: 10, kind: 'sti' }] },
+];
+const TOPICS = [
+  { id: 'firkant', name: 'Firkanter', c: '#2f78bd' },
+  { id: 'trekant', name: 'Trekanter', c: '#d9534a' },
+  { id: 'cirkel', name: 'Cirkler', c: '#3a9e78' },
+  { id: 'rumfang', name: 'Rumfang', c: '#7d4fb5' },
+];
+const TC = Object.fromEntries(TOPICS.map(t => [t.id, t.c]));
+const MISSIONS_PER_PARK = 6;
+
+/* materials: unit, price (kr per unit), fill colour */
+const MATS = {
+  fliser:   { name: 'Fliser', unit: 'm²', price: 200, col: '#c9c3b6', d: 'Til terrasser og pladser' },
+  graes:    { name: 'Rullegræs', unit: 'm²', price: 60, col: '#6fbf5a', d: 'Færdig græsplæne på rulle' },
+  asfalt:   { name: 'Asfalt', unit: 'm²', price: 150, col: '#6d6f78', d: 'Til stier og parkering' },
+  grus:     { name: 'Grus', unit: 'm²', price: 40, col: '#d8c7a4', d: 'Lægges ud i ét lag' },
+  kantsten: { name: 'Kantsten', unit: 'm', price: 120, col: '#9aa0ab', d: 'Sættes hele vejen rundt' },
+  hegn:     { name: 'Hegn', unit: 'm', price: 250, col: '#a0703e', d: 'Sættes hele vejen rundt' },
+  sand:     { name: 'Sand', unit: 'm³', price: 300, col: '#f0d27a', d: 'Leveres med lastbil' },
+  muld:     { name: 'Muldjord', unit: 'm³', price: 350, col: '#7a5a3c', d: 'Til bede og højbede' },
+  vand:     { name: 'Vand', unit: 'm³', price: 50, col: '#5aa9e6', d: 'Fra vandværket' },
+  planter:  { name: 'Planter', unit: 'stk', price: 45, col: '#e07aa8', d: 'Der skal være 1 plante pr. m²' },
+};
+
+/* ================= geometry (map units, y down) ================= */
+function poly(o) {
+  switch (o.shape) {
+    case 'rect': return [[o.x, o.y], [o.x + o.l, o.y], [o.x + o.l, o.y - o.b], [o.x, o.y - o.b]];
+    case 'rtri': return [[o.x, o.y], [o.x + o.a, o.y], [o.x, o.y - o.b]];
+    case 'tri': return [[o.x, o.y], [o.x + o.g, o.y], [o.x + o.o, o.y - o.h]];
+    case 'para': return [[o.x, o.y], [o.x + o.g, o.y], [o.x + o.g + o.off, o.y - o.h], [o.x + o.off, o.y - o.h]];
+  }
+  return null;
+}
+const hyp = (a, b) => Math.hypot(a, b);
+function area(o) {
+  switch (o.shape) {
+    case 'rect': return o.l * o.b;
+    case 'rtri': return o.a * o.b / 2;
+    case 'tri': return o.g * o.h / 2;
+    case 'para': return o.g * o.h;
+    case 'circ': return r2(PI * o.r * o.r);
+  }
+}
+function sides(o) { // lengths shown to the student (rounded to 1 decimal like a tape measure)
+  switch (o.shape) {
+    case 'rect': return [o.l, o.b, o.l, o.b];
+    case 'rtri': return [o.a, o.b, r1(hyp(o.a, o.b))];
+    case 'tri': return [o.g, r1(hyp(o.g - o.o, o.h)), r1(hyp(o.o, o.h))];
+    case 'para': { const s = r1(hyp(o.off, o.h)); return [o.g, s, o.g, s]; }
+  }
+  return [];
+}
+function perim(o) { return o.shape === 'circ' ? r2(PI * 2 * o.r) : r1(sides(o).reduce((a, b) => a + b, 0)); }
+function inPoly(p, P) {
+  let c = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+    if (((P[i][1] > p[1]) !== (P[j][1] > p[1])) && (p[0] < (P[j][0] - P[i][0]) * (p[1] - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0])) c = !c;
+  }
+  return c;
+}
+function inside(o, p) {
+  if (o.shape === 'circ') return hyp(p[0] - o.x, p[1] - o.y) < o.r;
+  if (o.shape === 'tree') return hyp(p[0] - o.x, p[1] - o.y) < 0.75;
+  if (o.shape === 'block') return p[0] > o.x && p[0] < o.x + o.w && p[1] > o.y && p[1] < o.y + o.h;
+  if (o.shape === 'decor') return p[0] > o.x && p[0] < o.x + 1 && p[1] > o.y && p[1] < o.y + 1;
+  return inPoly(p, poly(o));
+}
+function bbox(o) {
+  if (o.shape === 'circ') return [o.x - o.r, o.y - o.r, o.x + o.r, o.y + o.r];
+  const P = poly(o); const xs = P.map(p => p[0]), ys = P.map(p => p[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+function inBounds(o) { const b = bbox(o); return b[0] >= 0 && b[1] >= 0 && b[2] <= MW && b[3] <= MH; }
+function obstacles() {
+  const pk = PARKS[S.park % PARKS.length];
+  return [].concat(pk.trees.map(t => ({ shape: 'tree', x: t[0], y: t[1] })), pk.blocks.map(b => Object.assign({ shape: 'block' }, b)), S.objects, S.decor.map(d => ({ shape: 'decor', x: d.x, y: d.y })));
+}
+function collides(o) {
+  const obs = obstacles();
+  const b = bbox(o);
+  for (let x = Math.floor(b[0]) + 0.25; x < b[2]; x += 0.5) for (let y = Math.floor(b[1]) + 0.25; y < b[3]; y += 0.5) {
+    if (!inside(o, [x, y])) continue;
+    if (obs.some(q => inside(q, [x, y]))) return true;
+  }
+  return false;
+}
+
+/* ================= state ================= */
+let S = null; // saved game
+let M = null; // current mission
+let phase = 'draw', drawTries = 0;
+function fresh(topics) { return { money: 0, stars: 0, parks: 0, park: 0, mission: 0, objects: [], decor: [], topics, skill: {}, recent: [] }; }
+function skill(t) { return S.skill[t] ?? 0; }
+function trin(t) { const s = skill(t); return s <= 1 ? 0 : s <= 3 ? 1 : 2; }
+function save() { store.set(S); }
+
+/* ================= customers & orders ================= */
+const CLIENTS = {
+  cafe: { name: 'Caféen ved parken', who: 'Café', col: '#c96f12' },
+  bh: { name: 'Børnehaven Mælkebøtten', who: 'Børnehave', col: '#d9534a' },
+  hund: { name: 'Hundeklubben', who: 'Forening', col: '#a0703e' },
+  idraet: { name: 'Idrætsforeningen', who: 'Forening', col: '#2f78bd' },
+  spejd: { name: 'Spejderne', who: 'Forening', col: '#3a9e78' },
+  gartner: { name: 'Kommunens gartner', who: 'Kommunen', col: '#2e8b87' },
+  skole: { name: 'Skolens elevråd', who: 'Skolen', col: '#7d4fb5' },
+};
+function pickArea(lo, hi, maxX, maxY) {
+  for (let i = 0; i < 300; i++) { const A = rnd(lo, hi); let n = 0; for (let x = 2; x <= maxX; x++) if (A % x === 0 && A / x >= 2 && A / x <= maxY) n++; if (n >= 2) return A; }
+  return 24;
+}
+function pickEvenArea(lo, hi) { // for triangles: g*h = 2A must factor nicely
+  for (let i = 0; i < 300; i++) { const A = rnd(lo, hi); const D = 2 * A; let n = 0; for (let x = 2; x <= 10; x++) if (D % x === 0 && D / x >= 2 && D / x <= 8) n++; if (n >= 2) return A; }
+  return 12;
+}
+/* need: [{mat, kind:'area'|'perim'|'vol'|'plants'}] ; spec: {k:'area'|'minarea'|'perim'|'d', v} */
+const ORDERS = {
+  firkant: [
+    t => { const A = pickArea([6, 16, 24][t], [16, 30, 48][t], 10, 7); return { client: 'cafe', title: 'Caféterrasse', shape: 'rect', spec: { k: 'area', v: A }, text: `Vi vil gerne have en terrasse med fliser til vores borde. Den skal være på præcis <strong>${A} m²</strong>.`, need: [{ mat: 'fliser', kind: 'area' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'fliser' }; },
+    t => { const A = [12, 20, 30][t]; return { client: 'hund', title: 'Hundeskov', shape: 'rect', spec: { k: 'minarea', v: A }, text: `Vi drømmer om en hundeskov. Den skal være på <strong>mindst ${A} m²</strong>, og der skal være hegn hele vejen rundt. Du bestemmer selv formen.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'graes' }; },
+    t => { const P = 2 * rnd([6, 9, 11][t], [10, 13, 16][t]); return { client: 'idraet', title: 'Boldbane', shape: 'rect', spec: { k: 'perim', v: P }, text: `Vi har ${P} m kridtstreg til at male en ny boldbane. Banens <strong>omkreds skal være præcis ${P} m</strong>. Hele banen skal have rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes' }; },
+    t => { const A = pickArea([8, 12, 20][t], [18, 30, 42][t], 9, 6); return { client: 'skole', title: 'Cykelparkering', shape: 'para', spec: { k: 'area', v: A }, text: `Cyklerne skal stå skråt, så parkeringen skal være et <strong>parallelogram</strong> på præcis <strong>${A} m²</strong>. Den skal have asfalt.`, need: [{ mat: 'asfalt', kind: 'area' }], look: 'asfalt' }; },
+  ],
+  trekant: [
+    t => { const A = pickEvenArea([3, 6, 10][t], [8, 15, 24][t]); return { client: 'gartner', title: 'Blomsterbed', shape: 'rtri', spec: { k: 'area', v: A }, text: `Jeg vil have et trekantet blomsterbed med en ret vinkel. Det skal være på præcis <strong>${A} m²</strong>, og der skal være 1 plante pr. m².`.concat(t >= 1 ? ' Der skal også kantsten hele vejen rundt.' : ''), need: [{ mat: 'planter', kind: 'plants' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'planter' }; },
+    t => { const A = pickEvenArea([4, 8, 12][t], [10, 18, 28][t]); return { client: 'spejd', title: 'Teltplads', shape: 'tri', spec: { k: 'area', v: A }, text: `Vores nye teltplads skal være en trekant på præcis <strong>${A} m²</strong>, og den skal dækkes med rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes' }; },
+  ],
+  cirkel: [
+    t => { const r = rnd(2, 3); return { client: 'gartner', title: 'Springvand', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Parken skal have et rundt springvand med en <strong>diameter på ${2 * r} m</strong>. Der skal kantsten hele vejen rundt.`.concat(t >= 1 ? ' Bunden skal have fliser.' : ''), need: [{ mat: 'kantsten', kind: 'perim' }].concat(t >= 1 ? [{ mat: 'fliser', kind: 'area' }] : []), look: 'vand' }; },
+    t => { const r = rnd(1, 3); return { client: 'spejd', title: 'Bålplads', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Vi skal have en rund bålplads med en <strong>diameter på ${2 * r} m</strong>. Hele bålpladsen skal dækkes med grus.`, need: [{ mat: 'grus', kind: 'area' }], look: 'grus' }; },
+  ],
+  rumfang: [
+    t => { const dep = [1, 0.5, 0.4][t]; const A = t === 2 ? pick([10, 15, 20, 25]) : pickArea([4, 8, 12][t], [12, 20, 30][t], 8, 6); return { client: 'bh', title: 'Sandkasse', shape: 'rect', depth: dep, spec: { k: 'area', v: A }, text: `Vi ønsker os en sandkasse på præcis <strong>${A} m²</strong>. Sandet skal være <strong>${fmt(dep)} m dybt</strong>.`.concat(t >= 1 ? ' Der skal kantsten hele vejen rundt.' : ''), need: [{ mat: 'sand', kind: 'vol' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'sand' }; },
+    t => { const hgt = [1, 0.5, 0.5][t]; const A = pickArea([4, 6, 10][t], [10, 16, 24][t], 8, 4); return { client: 'skole', title: 'Højbed', shape: 'rect', depth: hgt, spec: { k: 'area', v: A }, text: `Elevrådet vil dyrke grøntsager. Vi skal have et højbed på <strong>${A} m²</strong>, og det skal fyldes med muldjord <strong>${fmt(hgt)} m op</strong>.`, need: [{ mat: 'muld', kind: 'vol' }], look: 'muld' }; },
+    t => { const r = rnd(1, 3), dep = t === 0 ? 1 : 0.5; return { client: 'bh', title: 'Soppebassin', shape: 'circ', depth: dep, spec: { k: 'd', v: 2 * r }, text: `Børnene vil have et rundt soppebassin med en <strong>diameter på ${2 * r} m</strong>. Vandet skal være <strong>${fmt(dep)} m dybt</strong>.`, need: [{ mat: 'vand', kind: 'vol' }], look: 'vand' }; },
+  ],
+};
+const HINTS = {
+  rect: { area: 'Areal af et rektangel = længde · bredde.', perim: 'Omkreds = alle fire sider lagt sammen.' },
+  para: { area: 'Areal af et parallelogram = grundlinje · højde. Brug den stiplede højde, ikke den skrå side.' },
+  rtri: { area: 'Areal af en trekant = ½ · grundlinje · højde. I en retvinklet trekant er de to sider ved den rette vinkel grundlinje og højde.' },
+  tri: { area: 'Areal af en trekant = ½ · grundlinje · højde. Det er kun grundlinjen og den stiplede højde, der tæller.' },
+  circ: { d: 'Diameteren er 2 · radius. Du trækker i radius.' },
+};
+
+function newMission() {
+  const topics = TOPICS.map(t => t.id).filter(id => S.topics[id]);
+  let topic, gen, guard = 0, key;
+  do { topic = pick(topics); const i = rnd(0, ORDERS[topic].length - 1); gen = ORDERS[topic][i]; key = topic + i; guard++; } while (guard < 30 && S.recent.includes(key));
+  S.recent.push(key); if (S.recent.length > 3) S.recent.shift();
+  M = gen(trin(topic));
+  for (let tries = 0; tries < 12 && !solvable(M); tries++) { topic = pick(topics); M = pick(ORDERS[topic])(Math.max(0, trin(topic) - (tries > 5 ? 1 : 0))); }
+  M.topic = topic; M.color = TC[topic];
+  M.obj = startShape(M.shape);
+  phase = 'draw'; drawTries = 0;
+  renderAll();
+}
+function solvable(m) {
+  const R = { rect: { l: [1, 12], b: [1, 8] }, rtri: { a: [1, 12], b: [1, 8] }, tri: { g: [1, 12], o: [0, 0], h: [1, 8] }, para: { g: [1, 10], off: [0, 0], h: [1, 8] }, circ: { r: [1, 5] } }[m.shape];
+  const keys = Object.keys(R), cands = [];
+  const rec = (i, cur) => {
+    if (i === keys.length) { const c = Object.assign({ shape: m.shape, x: 0, y: 0 }, cur); const save = M; M = m; const ok = specOK(c); M = save; if (ok) cands.push(c); return; }
+    for (let v = R[keys[i]][0]; v <= R[keys[i]][1]; v++) rec(i + 1, Object.assign({}, cur, { [keys[i]]: v }));
+  };
+  rec(0, {});
+  for (const c of cands) for (let y = 1; y <= MH; y++) for (let x = 0; x < MW; x++) { c.x = x; c.y = y; if (inBounds(c) && !collides(c)) return true; }
+  return false;
+}
+function startShape(shape) {
+  const base = { rect: { l: 2, b: 2 }, rtri: { a: 2, b: 2 }, tri: { g: 3, o: 1, h: 2 }, para: { g: 3, off: 1, h: 2 }, circ: { r: 1 } }[shape];
+  for (let y = 3; y <= MH; y++) for (let x = 0; x <= MW - 3; x++) {
+    const o = Object.assign({ shape, x: shape === 'circ' ? x + 1 : x, y: shape === 'circ' ? y - 1 : y }, base);
+    if (inBounds(o) && !collides(o)) return o;
+  }
+  return Object.assign({ shape, x: 1, y: 3 }, base);
+}
+
+/* ================= handles ================= */
+function handles(o) {
+  switch (o.shape) {
+    case 'rect': return [{ pos: o => [o.x + o.l, o.y - o.b], move: (o, x, y) => { o.l = clamp(Math.round(x - o.x), 1, MW - o.x); o.b = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'rtri': return [
+      { pos: o => [o.x + o.a, o.y], move: (o, x) => { o.a = clamp(Math.round(x - o.x), 1, MW - o.x); } },
+      { pos: o => [o.x, o.y - o.b], move: (o, x, y) => { o.b = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'tri': return [
+      { pos: o => [o.x + o.g, o.y], move: (o, x) => { o.g = clamp(Math.round(x - o.x), 1, MW - o.x); o.o = Math.min(o.o, o.g); } },
+      { pos: o => [o.x + o.o, o.y - o.h], move: (o, x, y) => { o.o = clamp(Math.round(x - o.x), 0, o.g); o.h = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'para': return [
+      { pos: o => [o.x + o.g, o.y], move: (o, x) => { o.g = clamp(Math.round(x - o.x), 1, MW - o.x - o.off); } },
+      { pos: o => [o.x + o.off, o.y - o.h], move: (o, x, y) => { o.off = clamp(Math.round(x - o.x), 0, MW - o.x - o.g); o.h = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'circ': return [{ pos: o => [o.x + o.r, o.y], move: (o, x) => { o.r = clamp(Math.round(x - o.x), 1, Math.min(5, MW - o.x, o.x, o.y, MH - o.y)); } }];
+  }
+}
+function moveBody(o, dx, dy) {
+  const n = Object.assign({}, o, { x: o.x + dx, y: o.y + dy });
+  if (inBounds(n)) { o.x = n.x; o.y = n.y; }
+}
+
+/* ================= drawing ================= */
+const P = p => [p[0] * CS, p[1] * CS];
+function shapeSVG(o, fill, stroke, extra = '') {
+  if (o.shape === 'circ') { const c = P([o.x, o.y]); return `<circle cx="${c[0]}" cy="${c[1]}" r="${o.r * CS}" fill="${fill}" stroke="${stroke}" stroke-width="3" ${extra}/>`; }
+  return `<polygon points="${poly(o).map(p => P(p).join(',')).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" ${extra}/>`;
+}
+function edgeLbl(a, b, c, t) {
+  a = P(a); b = P(b); c = P(c);
+  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+  let nx = -(b[1] - a[1]), ny = b[0] - a[0]; const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
+  if ((mx - c[0]) * nx + (my - c[1]) * ny < 0) { nx = -nx; ny = -ny; }
+  return `<text class="ml" x="${mx + nx * 13}" y="${my + ny * 13 + 4}" text-anchor="middle">${t}</text>`;
+}
+function dimLabels(o) {
+  if (o.shape === 'circ') { const c = P([o.x, o.y]); return `<line x1="${c[0]}" y1="${c[1]}" x2="${c[0] + o.r * CS}" y2="${c[1]}" stroke="#1f2233" stroke-width="2.5"/><circle cx="${c[0]}" cy="${c[1]}" r="3.5" fill="#1f2233"/><text class="ml" x="${c[0] + o.r * CS / 2}" y="${c[1] - 8}" text-anchor="middle">r = ${o.r} m</text>`; }
+  const pts = poly(o), s = sides(o);
+  const cen = [pts.reduce((a, p) => a + p[0], 0) / pts.length, pts.reduce((a, p) => a + p[1], 0) / pts.length];
+  let g = '';
+  if (o.shape === 'rect') { g += edgeLbl(pts[0], pts[1], cen, o.l + ' m') + edgeLbl(pts[1], pts[2], cen, o.b + ' m'); }
+  else if (o.shape === 'rtri') { g += edgeLbl(pts[0], pts[1], cen, o.a + ' m') + edgeLbl(pts[2], pts[0], cen, o.b + ' m') + edgeLbl(pts[1], pts[2], cen, fmt(s[2]) + ' m'); const c = P(pts[0]); g += `<path d="M${c[0] + 9} ${c[1]} V${c[1] - 9} H${c[0]}" fill="none" stroke="#1f2233" stroke-width="1.5"/>`; }
+  else if (o.shape === 'tri' || o.shape === 'para') {
+    g += edgeLbl(pts[0], pts[1], cen, o.g + ' m');
+    if (o.shape === 'tri') g += edgeLbl(pts[1], pts[2], cen, fmt(s[1]) + ' m') + edgeLbl(pts[2], pts[0], cen, fmt(s[2]) + ' m');
+    else g += edgeLbl(pts[1], pts[2], cen, fmt(s[1]) + ' m');
+    const top = o.shape === 'tri' ? [o.x + o.o, o.y - o.h] : [o.x + o.off, o.y - o.h];
+    const T = P(top), F = P([top[0], o.y]);
+    g += `<line x1="${T[0]}" y1="${T[1]}" x2="${F[0]}" y2="${F[1]}" stroke="#c96f12" stroke-width="2.5" stroke-dasharray="6 4"/><text class="ml h" x="${T[0] + 6}" y="${(T[1] + F[1]) / 2 + 4}">${o.h} m</text>`;
+  }
+  return g;
+}
+const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+const anim = s => REDUCED ? '' : s;
+function patterns() {
+  const wave = (id, base, line, dur) => `<pattern id="${id}" width="24" height="12" patternUnits="userSpaceOnUse"><rect width="24" height="12" fill="${base}"/><path d="M0 6 q6 -4 12 0 t12 0" stroke="${line}" stroke-width="1.6" fill="none" stroke-linecap="round"/>${anim(`<animateTransform attributeName="patternTransform" type="translate" from="0 0" to="24 0" dur="${dur}" repeatCount="indefinite"/>`)}</pattern>`;
+  return `<defs>
+  <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#1f3a1a" flood-opacity=".28"/></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+  <radialGradient id="gTree" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#6cbf5d"/><stop offset=".6" stop-color="#3f9450"/><stop offset="1" stop-color="#2a6e38"/></radialGradient>
+  <radialGradient id="gTree2" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#9fd06b"/><stop offset=".6" stop-color="#5fa84a"/><stop offset="1" stop-color="#3d7f35"/></radialGradient>
+  <radialGradient id="gVig" cx="50%" cy="50%" r="75%"><stop offset=".65" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#1d3d16" stop-opacity=".18"/></radialGradient>
+  <pattern id="pGrass" width="34" height="34" patternUnits="userSpaceOnUse"><rect width="34" height="34" fill="#a8d68c"/><path d="M5 9 l2 -5 M20 26 l2 -5 M27 12 l1 -4 M11 30 l1 -4 M30 30 l-1 -4" stroke="#90c674" stroke-width="2" stroke-linecap="round"/></pattern>
+  <pattern id="pPatch" width="238" height="204" patternUnits="userSpaceOnUse"><ellipse cx="60" cy="50" rx="55" ry="30" fill="#bfe3a0" opacity=".45"/><ellipse cx="180" cy="150" rx="60" ry="34" fill="#93c977" opacity=".35"/><circle cx="150" cy="40" r="2.5" fill="#fff"/><circle cx="156" cy="44" r="2.5" fill="#f2d14a"/><circle cx="40" cy="160" r="2.5" fill="#e88bb6"/><circle cx="46" cy="156" r="2.5" fill="#fff"/><circle cx="210" cy="90" r="2.5" fill="#f2d14a"/></pattern>
+  <pattern id="pfliser" width="17" height="17" patternUnits="userSpaceOnUse"><rect width="17" height="17" fill="#ddd6c6"/><rect x="1" y="1" width="15" height="15" rx="1.5" fill="#e8e2d4"/><path d="M1 16 H16 V1" stroke="#c9c1ae" stroke-width="1.2" fill="none"/></pattern>
+  <pattern id="pgraes" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="12" height="24" fill="#7ccb64"/><rect x="12" width="12" height="24" fill="#6dbb56"/></pattern>
+  <pattern id="pasfalt" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#5f626b"/><circle cx="2" cy="3" r=".9" fill="#757883"/><circle cx="6" cy="6" r=".8" fill="#50535b"/></pattern>
+  <pattern id="pgrus" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#dccba6"/><circle cx="2" cy="2" r="1.3" fill="#c2ae86"/><circle cx="7" cy="6" r="1.2" fill="#ece0c4"/><circle cx="4" cy="8" r=".9" fill="#b9a47c"/></pattern>
+  <pattern id="psand" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#f1d47e"/><circle cx="3" cy="3" r="1" fill="#d9b85c"/><circle cx="8" cy="8" r="1" fill="#e6c467"/><circle cx="9" cy="2" r=".7" fill="#fbe6a6"/></pattern>
+  <pattern id="pmuld" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#6e4f33"/><circle cx="3" cy="4" r="1" fill="#5a3f28"/><circle cx="9" cy="9" r="1" fill="#82603f"/></pattern>
+  ${wave('pvand', '#5aa9e6', '#9bd0f5', '3s')}
+  ${wave('psø', '#79b6df', '#acd4ef', '5s')}
+  ${wave('phavn', '#356f9e', '#5b93c2', '4s')}
+  <pattern id="pplanter" width="17" height="17" patternUnits="userSpaceOnUse"><rect width="17" height="17" fill="#6e4f33"/><circle cx="5" cy="5" r="3.2" fill="#e07aa8"/><circle cx="5" cy="5" r="1.2" fill="#fff4b0"/><circle cx="13" cy="12" r="3.2" fill="#f2b632"/><circle cx="13" cy="12" r="1.2" fill="#fff"/><circle cx="12" cy="4" r="1.8" fill="#4f9a43"/><circle cx="4" cy="13" r="1.8" fill="#4f9a43"/></pattern>
+  <pattern id="psti" width="17" height="17" patternUnits="userSpaceOnUse"><rect width="17" height="17" fill="#e3d4b0"/><rect x="1" y="1" width="7" height="7" rx="2" fill="#ece0c3"/><rect x="9.5" y="1" width="6.5" height="7" rx="2" fill="#e8dab8"/><rect x="1" y="9.5" width="15" height="6.5" rx="2" fill="#efe4ca"/></pattern>
+  </defs>`;
+}
+function treeSVG(c, big = 1, alt = false) {
+  const r = 23 * big;
+  return `<g filter="url(#sh)"><circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="url(#${alt ? 'gTree2' : 'gTree'})"/>` +
+    `<circle cx="${c[0] - r * .45}" cy="${c[1] - r * .1}" r="${r * .55}" fill="url(#${alt ? 'gTree2' : 'gTree'})"/><circle cx="${c[0] + r * .35}" cy="${c[1] - r * .4}" r="${r * .5}" fill="url(#${alt ? 'gTree2' : 'gTree'})"/>` +
+    `<circle cx="${c[0] - r * .3}" cy="${c[1] - r * .45}" r="${r * .22}" fill="#ffffff" opacity=".18"/></g>`;
+}
+function insidePts(o, step) {
+  const b = bbox(o), out = [];
+  for (let x = b[0] + step / 2; x < b[2]; x += step) for (let y = b[1] + step / 2; y < b[3]; y += step) {
+    if (inside(o, [x, y]) && inside(o, [x - .45, y]) && inside(o, [x + .45, y]) && inside(o, [x, y - .45]) && inside(o, [x, y + .45])) out.push([x, y]);
+  }
+  return out;
+}
+function centroid(o) { if (o.shape === 'circ') return [o.x, o.y]; const p = poly(o); return [p.reduce((a, q) => a + q[0], 0) / p.length, p.reduce((a, q) => a + q[1], 0) / p.length]; }
+function outlineSVG(o, attrs) {
+  if (o.shape === 'circ') { const c = P([o.x, o.y]); return `<circle cx="${c[0]}" cy="${c[1]}" r="${o.r * CS}" fill="none" ${attrs}/>`; }
+  return `<polygon points="${poly(o).map(p => P(p).join(',')).join(' ')}" fill="none" stroke-linejoin="round" ${attrs}/>`;
+}
+function postsSVG(o) {
+  let g = '';
+  const pts = o.shape === 'circ' ? Array.from({ length: Math.round(2 * Math.PI * o.r) }, (_, i) => { const a = i / Math.round(2 * Math.PI * o.r) * Math.PI * 2; return [o.x + o.r * Math.cos(a), o.y + o.r * Math.sin(a)]; }) : (() => {
+    const P0 = poly(o), r = [];
+    P0.forEach((a, i) => { const b = P0[(i + 1) % P0.length]; const L = hyp(b[0] - a[0], b[1] - a[1]); const n = Math.max(1, Math.round(L)); for (let k = 0; k < n; k++) r.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); });
+    return r;
+  })();
+  pts.forEach(p => { const q = P(p); g += `<rect x="${q[0] - 3.5}" y="${q[1] - 3.5}" width="7" height="7" rx="1" fill="#7c5430"/>`; });
+  return g;
+}
+function objectSVG(o, i, isNew) {
+  const id = 'cl' + i;
+  const C = P(centroid(o)), b = bbox(o);
+  let g = `<clipPath id="${id}">${shapeSVG(o, '#000', 'none')}</clipPath>`;
+  g += `<g filter="url(#sh)">${shapeSVG(o, `url(#p${o.look})`, 'none')}</g>`;
+  let deco = '';
+  const t = o.title;
+  if (t === 'Boldbane') {
+    const x0 = b[0] * CS, x1 = b[2] * CS, y0 = b[1] * CS, y1 = b[3] * CS, mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    const hor = (x1 - x0) >= (y1 - y0);
+    deco += `<g stroke="#ffffff" stroke-width="2" fill="none" opacity=".9"><rect x="${x0 + 4}" y="${y0 + 4}" width="${x1 - x0 - 8}" height="${y1 - y0 - 8}"/>` + (hor ? `<line x1="${mx}" y1="${y0 + 4}" x2="${mx}" y2="${y1 - 4}"/>` : `<line x1="${x0 + 4}" y1="${my}" x2="${x1 - 4}" y2="${my}"/>`) + `<circle cx="${mx}" cy="${my}" r="${Math.min(x1 - x0, y1 - y0) / 5}"/></g>`;
+    deco += hor ? `<rect x="${x0 + 1}" y="${my - 10}" width="5" height="20" fill="#fff"/><rect x="${x1 - 6}" y="${my - 10}" width="5" height="20" fill="#fff"/>` : `<rect x="${mx - 10}" y="${y0 + 1}" width="20" height="5" fill="#fff"/><rect x="${mx - 10}" y="${y1 - 6}" width="20" height="5" fill="#fff"/>`;
+    deco += `<circle cx="${mx + 9}" cy="${my - 6}" r="4" fill="#fff" stroke="#1f2233" stroke-width="1"/>`;
+  } else if (t === 'Cykelparkering') {
+    for (let x = b[0] * CS - VH; x < b[2] * CS + VH; x += 14) deco += `<line x1="${x}" y1="${b[3] * CS}" x2="${x + (b[3] - b[1]) * CS * .6}" y2="${b[1] * CS}" stroke="#fff" stroke-width="1.6" opacity=".8"/>`;
+    insidePts(o, 1.4).slice(0, 6).forEach(p => { const q = P(p); deco += `<g transform="translate(${q[0]},${q[1]}) rotate(-30)"><circle cx="-7" r="4.5" fill="none" stroke="#1f2233" stroke-width="1.6"/><circle cx="7" r="4.5" fill="none" stroke="#1f2233" stroke-width="1.6"/><path d="M-7 0 L0 -5 L7 0 M0 -5 L-2 0" stroke="#d9534a" stroke-width="2" fill="none"/></g>`; });
+  } else if (t === 'Caféterrasse') {
+    insidePts(o, 1.6).slice(0, 5).forEach((p, k) => { const q = P(p); deco += `<circle cx="${q[0] + 2}" cy="${q[1] + 3}" r="11" fill="#000" opacity=".12"/><circle cx="${q[0]}" cy="${q[1]}" r="11" fill="${['#d9534a', '#2f78bd', '#f2b632'][k % 3]}"/><path d="M${q[0] - 11} ${q[1]} H${q[0] + 11} M${q[0]} ${q[1] - 11} V${q[1] + 11}" stroke="#fff" stroke-width="1.2" opacity=".7"/><circle cx="${q[0]}" cy="${q[1]}" r="2" fill="#fff"/>`; });
+  } else if (t === 'Teltplads') {
+    deco += `<g transform="translate(${C[0]},${C[1] + 4})" filter="url(#sh)"><polygon points="0,-16 15,10 -15,10" fill="#e07a2f"/><polygon points="0,-16 15,10 0,10" fill="#c96f12"/><polygon points="0,-2 5,10 -5,10" fill="#5a3a1a"/></g>`;
+  } else if (t === 'Blomsterbed') {
+    insidePts(o, 1).slice(0, 12).forEach((p, k) => { const q = P(p); const c = ['#e07aa8', '#f2b632', '#d9534a', '#ffffff'][k % 4]; deco += `<g transform="translate(${q[0]},${q[1]})">${[0, 72, 144, 216, 288].map(a => `<circle cx="${5 * Math.cos(a * Math.PI / 180)}" cy="${5 * Math.sin(a * Math.PI / 180)}" r="3.6" fill="${c}"/>`).join('')}<circle r="2.6" fill="#f7d34a"/></g>`; });
+  } else if (t === 'Springvand') {
+    const r = o.r * CS;
+    deco += `<circle cx="${C[0]}" cy="${C[1]}" r="${Math.max(8, r * .28)}" fill="#c9c3b6" stroke="#9aa0ab" stroke-width="3"/>`;
+    deco += `<circle cx="${C[0]}" cy="${C[1]}" r="6" fill="#d8efff"/>`;
+    if (!REDUCED) [0, 1, 2].forEach(k => { deco += `<circle cx="${C[0]}" cy="${C[1]}" r="6" fill="none" stroke="#ffffff" stroke-width="2" opacity=".8"><animate attributeName="r" from="6" to="${r * .9}" dur="2.4s" begin="${k * .8}s" repeatCount="indefinite"/><animate attributeName="opacity" from=".9" to="0" dur="2.4s" begin="${k * .8}s" repeatCount="indefinite"/></circle>`; });
+  } else if (t === 'Bålplads') {
+    const rr = Math.max(14, o.r * CS * .35);
+    for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; deco += `<circle cx="${C[0] + rr * Math.cos(a)}" cy="${C[1] + rr * Math.sin(a)}" r="4.5" fill="#8d8f97" stroke="#6d6f78" stroke-width="1"/>`; }
+    deco += `<path d="M${C[0] - 9} ${C[1] + 4} L${C[0] + 9} ${C[1] - 4} M${C[0] - 9} ${C[1] - 4} L${C[0] + 9} ${C[1] + 4}" stroke="#6e4527" stroke-width="4" stroke-linecap="round"/>`;
+    deco += `<g transform="translate(${C[0]},${C[1]})"><path d="M0 -12 C7 -4 7 4 0 6 C-7 4 -7 -4 0 -12z" fill="#f2862a">${anim('<animateTransform attributeName="transform" type="scale" values="1;1.15;.92;1" dur=".9s" repeatCount="indefinite"/>')}</path><path d="M0 -5 C3 -1 3 3 0 4 C-3 3 -3 -1 0 -5z" fill="#ffd34d"/></g>`;
+  } else if (t === 'Sandkasse') {
+    const ps = insidePts(o, 1);
+    if (ps.length) { const q = P(ps[0]); deco += `<g transform="translate(${q[0]},${q[1]})"><path d="M-6 -5 h12 l-2 11 h-8z" fill="#d9534a"/><rect x="-7" y="-7" width="14" height="3" rx="1" fill="#b8423a"/></g>`; }
+    if (ps.length > 2) { const q = P(ps[ps.length - 1]); deco += `<g transform="translate(${q[0]},${q[1]}) rotate(35)"><rect x="-1.5" y="-10" width="3" height="12" fill="#2f78bd"/><path d="M-5 2 h10 l-2 8 h-6z" fill="#2f78bd"/></g>`; }
+    if (ps.length > 4) { const q = P(ps[Math.floor(ps.length / 2)]); deco += `<path d="M${q[0] - 9} ${q[1] + 5} q9 -16 18 0z" fill="#e2bd5a"/>`; }
+  } else if (t === 'Højbed') {
+    insidePts(o, 0.8).forEach((p, k) => { const q = P(p); deco += k % 3 === 0 ? `<circle cx="${q[0]}" cy="${q[1]}" r="5" fill="#5fae4b"/><circle cx="${q[0] + 2}" cy="${q[1] - 2}" r="2" fill="#86cf6c"/>` : k % 3 === 1 ? `<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="#4c9a3d"/><circle cx="${q[0]}" cy="${q[1]}" r="2" fill="#e8533f"/>` : `<path d="M${q[0]} ${q[1] + 4} l-3 -8 M${q[0]} ${q[1] + 4} l3 -8 M${q[0]} ${q[1] + 4} v-9" stroke="#5fae4b" stroke-width="2"/>`; });
+  } else if (t === 'Soppebassin') {
+    deco += `<g transform="translate(${C[0]},${C[1]})">${anim(`<animateTransform attributeName="transform" type="translate" values="${C[0] - 6},${C[1]};${C[0] + 6},${C[1] + 3};${C[0] - 6},${C[1]}" dur="4s" repeatCount="indefinite"/>`)}<ellipse rx="7" ry="5.5" fill="#f7d34a"/><circle cx="5" cy="-4" r="3.6" fill="#f7d34a"/><path d="M8 -4 l4 1 l-4 1z" fill="#e8822a"/><circle cx="6" cy="-5" r=".8" fill="#1f2233"/></g>`;
+  } else if (t === 'Hundeskov') {
+    insidePts(o, 2).slice(0, 2).forEach((p, k) => { const q = P(p); deco += `<g transform="translate(${q[0]},${q[1]})">${k === 0 ? `<ellipse rx="9" ry="5" fill="#a0703e"/><circle cx="9" cy="-2" r="4.5" fill="#8a5d31"/><ellipse cx="11" cy="-5" rx="1.8" ry="3" fill="#5c3c1f"/><path d="M-9 0 q-5 -4 -6 -8" stroke="#a0703e" stroke-width="2.5" fill="none" stroke-linecap="round"/>` : `<circle r="4" fill="#d9534a"/><path d="M-3 -1 h6" stroke="#fff" stroke-width="1"/>`}</g>`; });
+  }
+  g += `<g clip-path="url(#${id})">${deco}</g>`;
+  // borders
+  if (o.border === 'hegn') g += outlineSVG(o, 'stroke="#a0703e" stroke-width="2.5"') + postsSVG(o);
+  else if (o.border === 'kantsten') g += outlineSVG(o, 'stroke="#a7acb6" stroke-width="6" stroke-dasharray="11 2"');
+  else if (o.look === 'sand' || o.look === 'muld') g += outlineSVG(o, 'stroke="#a0703e" stroke-width="6"');
+  else if (o.look === 'vand') g += outlineSVG(o, 'stroke="#c9c3b6" stroke-width="5"');
+  else g += outlineSVG(o, 'stroke="#ffffff" stroke-opacity=".6" stroke-width="2"');
+  if (t === 'Hundeskov' || t === 'Teltplads' || t === 'Springvand' || t === 'Bålplads' || t === 'Soppebassin') { /* decoration inside clip is enough */ }
+  // name tag
+  const tw = t.length * 6.2 + 14, tx = clamp((b[0] + b[2]) / 2 * CS, tw / 2 + 2, VW - tw / 2 - 2), ty = clamp(b[1] * CS + 2, 11, VH - 11);
+  g += `<g class="tag"><rect x="${tx - tw / 2}" y="${ty - 8}" width="${tw}" height="16" rx="8" fill="#ffffff" opacity=".92"/><text class="mt" x="${tx}" y="${ty + 4}" text-anchor="middle" style="stroke:none">${t}</text></g>`;
+  return `<g class="obj${isNew ? ' newobj' : ''}">${g}</g>`;
+}
+const DECOR = [
+  { id: 'trae', name: 'Træ', price: 300, svg: (x, y) => treeSVG([x, y], .62, true) },
+  { id: 'baenk', name: 'Bænk', price: 400, svg: (x, y) => `<g filter="url(#sh)"><rect x="${x - 14}" y="${y - 6}" width="28" height="11" rx="2" fill="#b07a45"/><path d="M${x - 14} ${y - 2} h28 M${x - 14} ${y + 2} h28" stroke="#8a5d31" stroke-width="1.2"/><rect x="${x - 14}" y="${y - 11}" width="28" height="4" rx="1.5" fill="#7c5430"/></g>` },
+  { id: 'lampe', name: 'Lygtepæl', price: 250, svg: (x, y) => `<circle cx="${x}" cy="${y}" r="14" fill="#ffe08a" opacity=".35"/><g filter="url(#sh)"><circle cx="${x}" cy="${y}" r="6" fill="#2b2e3f"/><circle cx="${x}" cy="${y}" r="3" fill="#ffe08a"/></g>` },
+  { id: 'blomst', name: 'Blomster', price: 150, svg: (x, y) => `<circle cx="${x}" cy="${y}" r="12" fill="#4f9a43"/>${[[-5, -4, '#e07aa8'], [6, -2, '#f2b632'], [0, 6, '#ffffff'], [-6, 5, '#d9534a']].map(f => `<circle cx="${x + f[0]}" cy="${y + f[1]}" r="3.6" fill="${f[2]}"/><circle cx="${x + f[0]}" cy="${y + f[1]}" r="1.2" fill="#f7d34a"/>`).join('')}` },
+  { id: 'gynge', name: 'Gynge', price: 1200, svg: (x, y) => `<g filter="url(#sh)"><rect x="${x - 16}" y="${y - 13}" width="32" height="5" rx="2" fill="#d9534a"/><rect x="${x - 16}" y="${y - 14}" width="4" height="26" fill="#b8423a"/><rect x="${x + 12}" y="${y - 14}" width="4" height="26" fill="#b8423a"/></g><g>${anim(`<animateTransform attributeName="transform" type="translate" values="0 -3;0 4;0 -3" dur="1.6s" repeatCount="indefinite"/>`)}<line x1="${x - 5}" y1="${y - 8}" x2="${x - 5}" y2="${y + 4}" stroke="#1f2233" stroke-width="1.2"/><line x1="${x + 5}" y1="${y - 8}" x2="${x + 5}" y2="${y + 4}" stroke="#1f2233" stroke-width="1.2"/><rect x="${x - 8}" y="${y + 3}" width="16" height="5" rx="1.5" fill="#2f78bd"/></g>` },
+  { id: 'is', name: 'Isbod', price: 2000, svg: (x, y) => `<g filter="url(#sh)"><rect x="${x - 14}" y="${y - 8}" width="28" height="20" rx="3" fill="#ffffff"/><path d="M${x - 16} ${y - 8} h32 l-3 -7 h-26z" fill="#d9534a"/><path d="M${x - 10} ${y - 15} l-1.5 7 M${x - 3} ${y - 15} l-.5 7 M${x + 4} ${y - 15} l.5 7 M${x + 11} ${y - 15} l1.5 7" stroke="#fff" stroke-width="2.5"/><circle cx="${x - 5}" cy="${y + 3}" r="4" fill="#f2b632"/><circle cx="${x + 5}" cy="${y + 3}" r="4" fill="#e07aa8"/></g>` },
+];
+function lifeSVG() {
+  const pk = PARKS[S.park % PARKS.length];
+  let g = '';
+  if (REDUCED) return g;
+  // water life
+  pk.blocks.filter(b => b.kind === 'sø').forEach(b => {
+    [0, 1].forEach(k => { const x0 = (b.x + 1 + k) * CS, y0 = (b.y + 1 + k * .8) * CS, x1 = (b.x + b.w - 1) * CS; g += `<g><animateTransform attributeName="transform" type="translate" values="0 0;${x1 - x0} 6;0 0" dur="${14 + k * 5}s" repeatCount="indefinite"/><ellipse cx="${x0}" cy="${y0}" rx="7" ry="5" fill="${k ? '#ffffff' : '#7a5a3c'}"/><circle cx="${x0 + 5}" cy="${y0 - 3}" r="3.4" fill="${k ? '#ffffff' : '#2f7a3f'}"/><path d="M${x0 + 8} ${y0 - 3} l3 1 l-3 1z" fill="#e8822a"/></g>`; });
+  });
+  pk.blocks.filter(b => b.kind === 'havn').forEach(b => {
+    const y0 = (b.y + b.h / 2) * CS;
+    g += `<g><animateTransform attributeName="transform" type="translate" values="-60 0;${VW + 60} 0" dur="26s" repeatCount="indefinite"/><path d="M0 ${y0 - 7} h34 l-6 14 h-24z" fill="#ffffff"/><rect x="10" y="${y0 - 14}" width="12" height="8" rx="2" fill="#d9534a"/></g>`;
+  });
+  // visitors walk on the paths: more built things, more visitors
+  const paths = pk.blocks.filter(b => b.kind === 'sti');
+  const n = Math.min(14, S.objects.length * 2 + Math.floor(S.decor.length / 2) + (S.mission >= MISSIONS_PER_PARK ? 4 : 0));
+  const shirts = ['#d9534a', '#2f78bd', '#f2b632', '#7d4fb5', '#3a9e78', '#e07aa8', '#ffffff'];
+  for (let i = 0; i < n && paths.length; i++) {
+    const b = paths[i % paths.length];
+    const hor = b.w >= b.h;
+    const off = ((i * 37) % 10) / 10 * .6 + .2;
+    const a = hor ? [(b.x + .3) * CS, (b.y + off) * CS] : [(b.x + off) * CS, (b.y + .3) * CS];
+    const e = hor ? [(b.x + b.w - .3) * CS, a[1]] : [a[0], (b.y + b.h - .3) * CS];
+    const dur = 12 + (i * 7) % 11, beg = -((i * 5) % dur);
+    const dx = e[0] - a[0], dy = e[1] - a[1];
+    const dog = i % 5 === 3;
+    g += `<g><animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${dy};0 0" dur="${dur}s" begin="${beg}s" repeatCount="indefinite"/>` +
+      (dog ? `<ellipse cx="${a[0]}" cy="${a[1]}" rx="5" ry="3" fill="#8a5d31"/><circle cx="${a[0] + 4}" cy="${a[1] - 1}" r="2.4" fill="#6e4527"/>`
+        : `<ellipse cx="${a[0]}" cy="${a[1]}" rx="6" ry="4.5" fill="${shirts[i % shirts.length]}" stroke="#00000022"/><circle cx="${a[0]}" cy="${a[1]}" r="3.2" fill="${['#f1c7a0', '#c98d63', '#8a5a3c', '#f6dcc0'][i % 4]}"/><circle cx="${a[0]}" cy="${a[1] - .5}" r="2.2" fill="${['#3b2a1a', '#e8c35a', '#1f1a14', '#a0522d'][i % 4]}"/>`) + `</g>`;
+  }
+  return g;
+}
+function truckSVG(o) {
+  if (REDUCED) return '';
+  const b = bbox(o);
+  const cx = clamp((b[0] + b[2]) / 2 * CS - 30, 10, VW - 70);
+  const y = clamp(b[3] * CS + 16, 20, VH - 16);
+  const col = { fliser: '#c9c3b6', graes: '#6fbf5a', asfalt: '#5f626b', grus: '#dccba6', sand: '#f0d27a', muld: '#6e4f33', vand: '#5aa9e6', planter: '#e07aa8' }[o.look] || '#c9c3b6';
+  return `<g opacity="0"><animate attributeName="opacity" values="1;1;1;0" keyTimes="0;.85;.95;1" dur="2.8s" fill="freeze"/><animateTransform attributeName="transform" type="translate" values="-90 0;${cx} 0;${cx} 0;${VW + 90} 0" keyTimes="0;.35;.6;1" dur="2.8s" fill="freeze"/>
+    <g filter="url(#sh)"><rect x="0" y="${y - 11}" width="38" height="22" rx="3" fill="${col}" stroke="#4a4d5a" stroke-width="2"/><rect x="38" y="${y - 9}" width="17" height="18" rx="3" fill="#f2b632" stroke="#4a4d5a" stroke-width="2"/><rect x="46" y="${y - 6}" width="6" height="12" rx="1" fill="#bfe1f7"/></g></g>`;
+}
+function confettiSVG() {
+  if (REDUCED) return '';
+  let g = '';
+  const cols = ['#d9534a', '#2f78bd', '#f2b632', '#3a9e78', '#7d4fb5', '#e07aa8'];
+  for (let i = 0; i < 60; i++) { const x = (i * 97) % VW, d = 2.5 + (i % 7) * .4, w = 5 + (i % 3) * 2; g += `<rect x="${x}" y="-12" width="${w}" height="${w * 1.6}" fill="${cols[i % 6]}" transform="rotate(${(i * 47) % 360} ${x} -12)"><animate attributeName="y" from="-20" to="${VH + 20}" dur="${d}s" begin="${(i % 10) * .25}s" repeatCount="3"/></rect>`; }
+  return g;
+}
+function activeSVG() {
+  let g = '';
+  if (M && phase === 'shop') g += shapeSVG(M.obj, M.color, M.color, `fill-opacity=".22" stroke-dasharray="8 5"`) + dimLabels(M.obj);
+  if (M && phase === 'draw') {
+    const o = M.obj;
+    g += `<g id="active" style="cursor:move">` + shapeSVG(o, M.color, drawBad ? '#c0443b' : M.color, `fill-opacity=".42"`) + outlineSVG(o, 'stroke="#ffffff" stroke-width="1.5" stroke-dasharray="5 4" opacity=".9"') + `</g>`;
+    g += dimLabels(o);
+    handles(o).forEach((h, i) => { const q = P(h.pos(o)); g += `<g class="hd" data-i="${i}" tabindex="0" role="slider" aria-label="Træk for at ændre størrelsen" style="cursor:grab"><circle cx="${q[0]}" cy="${q[1]}" r="22" fill="transparent"/><circle cx="${q[0]}" cy="${q[1]}" r="10" fill="#ffffff" stroke="${M.color}" stroke-width="4" filter="url(#sh)"/></g>`; });
+  }
+  return g;
+}
+function renderActive() {
+  const L = $('Lactive'); if (!L) return renderMap();
+  const fx = document.activeElement && document.activeElement.closest && document.activeElement.closest('.hd');
+  const fi = fx ? fx.dataset.i : null;
+  L.innerHTML = activeSVG();
+  if (fi != null) { const el = L.querySelector(`.hd[data-i="${fi}"]`); if (el) el.focus({ preventScroll: true }); }
+}
+function renderMap() {
+  const pk = PARKS[S.park % PARKS.length];
+  let g = patterns() + `<rect width="${VW}" height="${VH}" fill="url(#pGrass)"/><rect width="${VW}" height="${VH}" fill="url(#pPatch)"/>`;
+  pk.blocks.forEach(b => {
+    const x = b.x * CS, y = b.y * CS, w = b.w * CS, h = b.h * CS;
+    if (b.kind === 'sti') g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#psti)"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#cdb98d" stroke-width="2"/>`;
+    else g += `<rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="10" fill="#e3d4b0"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="url(#p${b.kind})"/>`;
+    if (b.w * b.h >= 6 && b.kind !== 'sti') g += `<text class="mt" x="${x + w / 2}" y="${y + h / 2 + 4}" text-anchor="middle">${{ sø: 'Sø', havn: 'Havnen' }[b.kind]}</text>`;
+  });
+  for (let x = 1; x < MW; x++) g += `<line x1="${x * CS}" y1="0" x2="${x * CS}" y2="${VH}" stroke="#ffffff" stroke-opacity=".28" stroke-width="1"/>`;
+  for (let y = 1; y < MH; y++) g += `<line x1="0" y1="${y * CS}" x2="${VW}" y2="${y * CS}" stroke="#ffffff" stroke-opacity=".28" stroke-width="1"/>`;
+  S.objects.forEach((o, i) => { g += objectSVG(o, i, i === S.objects.length - 1 && justBuilt); });
+  S.decor.forEach(d => { const it = DECOR.find(x => x.id === d.id); g += it.svg((d.x + .5) * CS, (d.y + .5) * CS); });
+  pk.trees.forEach((t, k) => { g += treeSVG(P(t), 1, k % 2 === 1); });
+  g += `<g id="Llife">${lifeSVG()}</g>`;
+  if (justBuilt && S.objects.length) g += truckSVG(S.objects[S.objects.length - 1]);
+  if (phase === 'parkdone') g += confettiSVG();
+  g += `<rect width="${VW}" height="${VH}" fill="url(#gVig)" pointer-events="none"/>`;
+  g += `<g id="Lactive"></g>`;
+  if (placing) g += `<rect width="${VW}" height="${VH}" fill="transparent" style="cursor:copy"/>`;
+  const svg = $('map');
+  svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
+  svg.innerHTML = g;
+  renderActive();
+}
+
+let justBuilt = false, drawBad = false, placing = null;
+
+/* ================= panel ================= */
+function header() {
+  $('hMoney').textContent = kr(S.money);
+  $('hStars').textContent = S.stars;
+  $('hParks').textContent = S.parks;
+  $('parkName').textContent = PARKS[S.park % PARKS.length].name + (S.park >= PARKS.length ? ' ' + (Math.floor(S.park / PARKS.length) + 1) : '');
+  $('dots').innerHTML = Array.from({ length: MISSIONS_PER_PARK }, (_, i) => `<i class="${i < S.mission ? 'd' : i === S.mission ? 'n' : ''}"></i>`).join('');
+}
+function huskHTML(text) { const t = $('tHusk').content.firstElementChild.cloneNode(true); t.querySelector('.hb').textContent = text; return t.outerHTML; }
+function clientHTML() {
+  const c = CLIENTS[M.client];
+  return `<div class="client"><span class="avatar" style="background:${c.col}">${c.name[0]}</span><span><b>${c.name}</b><small>${c.who} · ringer om: ${M.title.toLowerCase()}</small></span></div><div class="quote"><span class="qlbl">Kundens ønske</span>${M.text}</div>`;
+}
+function readHTML() {
+  const o = M.obj;
+  let rows;
+  if (o.shape === 'rect') rows = [['Længde', o.l + ' m'], ['Bredde', o.b + ' m']];
+  else if (o.shape === 'rtri') rows = [['Grundlinje', o.a + ' m'], ['Højde', o.b + ' m']];
+  else if (o.shape === 'tri' || o.shape === 'para') rows = [['Grundlinje', o.g + ' m'], ['Højde', o.h + ' m']];
+  else rows = [['Radius', o.r + ' m']];
+  return rows.map(r => `<span><small>${r[0]}</small><b>${r[1]}</b></span>`).join('');
+}
+function renderAll() { header(); renderMap(); renderPanel(); }
+function renderPanel() {
+  const panel = $('panel'); panel.style.setProperty('--c', M ? M.color : 'var(--green)');
+  const body = $('pBody');
+  if (phase === 'draw') {
+    $('pTitle').textContent = M.title; $('pPhase').textContent = '1 · Tegn';
+    body.innerHTML = clientHTML() + `<p class="howto">Tegn ${M.title.toLowerCase()} på kortet. Træk i figuren for at flytte den, og træk i de hvide prikker for at ændre størrelsen. Hvert tern er 1 m.</p><div class="read" id="read">${readHTML()}</div><div id="dfb"></div><button class="go" id="bDraw" type="button">Vis tegningen til kunden</button>`;
+  } else if (phase === 'shop') {
+    $('pTitle').textContent = M.title; $('pPhase').textContent = '2 · Bestil';
+    const rows = M.shop.map((id, i) => { const m = MATS[id]; return `<tr><td class="sw"><span class="mat" style="background:${m.col};display:block"></span></td><td class="nm"><b>${m.name}</b><small>${m.price} kr pr. ${m.unit} · ${m.d}</small></td><td class="q"><input id="q${i}" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Antal ${m.unit} ${m.name}"><span class="u">${m.unit}</span></td></tr>`; }).join('');
+    body.innerHTML = clientHTML() + `<p class="howto" style="color:var(--ink)"><b>Kunden har godkendt tegningen.</b> Nu skal du bestille materialer. Bestil kun det, der skal bruges, i hele ${'m, m², m³ eller stk'}.${M.depth ? ` Husk: ${M.look === 'muld' ? 'højden' : 'dybden'} er ${fmt(M.depth)} m.` : ''}</p>
+      <div class="read">${readHTML()}</div>
+      <table class="shop">${rows}</table>
+      <p class="howto">Kommunens budget: <b>${kr(M.budget)}</b>. Det, du ikke bruger, går i din kasse.</p>
+      <div id="sfb"></div>
+      <button class="go" id="bOrder" type="button">Bestil materialer</button>`;
+  } else if (phase === 'result') {
+    $('pTitle').textContent = M.title + ' er bygget'; $('pPhase').textContent = '3 · Regnskab';
+    body.innerHTML = clientHTML() + M.resultHTML;
+  } else if (phase === 'parkdone') {
+    $('pTitle').textContent = 'Parken åbner!'; $('pPhase').textContent = 'Indvielse';
+    body.innerHTML = M.resultHTML;
+  }
+}
+
+/* ================= draw phase ================= */
+function specOK(o) {
+  const s = M.spec;
+  if (s.k === 'area') return Math.abs(area(o) - s.v) < 1e-6;
+  if (s.k === 'minarea') return area(o) >= s.v - 1e-6;
+  if (s.k === 'perim') return Math.abs(perim(o) - s.v) < 1e-6;
+  if (s.k === 'd') return 2 * o.r === s.v;
+}
+function specHint() {
+  const s = M.spec, sh = M.shape;
+  if (s.k === 'perim') return HINTS.rect.perim + ' Prøv fx at gøre den ene side længere og den anden kortere.';
+  if (s.k === 'd') return HINTS.circ.d;
+  if (s.k === 'minarea') return HINTS.rect.area + ` Arealet skal være ${s.v} m² eller mere.`;
+  return HINTS[sh].area;
+}
+function onDrawCheck() {
+  const o = M.obj;
+  if (collides(o)) { drawBad = true; renderMap(); $('dfb').innerHTML = `<div class="fb bad">Der er ikke plads. Figuren rammer et træ, en sti eller noget, du har bygget. Flyt den et andet sted hen.</div>`; return; }
+  if (!specOK(o)) {
+    drawTries++;
+    $('dfb').innerHTML = `<div class="fb bad">Kunden ryster på hovedet: Det passer ikke med det, vi bad om. Prøv igen.</div>` + huskHTML(specHint());
+    return;
+  }
+  drawBad = false;
+  M.drawStar = drawTries === 0;
+  S.skill[M.topic] = clamp(skill(M.topic) + (drawTries === 0 ? 0.5 : -0.5), 0, 4);
+  setupShop();
+  phase = 'shop'; renderAll();
+  setTimeout(() => { try { $('q0').focus({ preventScroll: true }); } catch (e) {} }, 30);
+}
+
+/* ================= shop phase ================= */
+function needOf(n) {
+  const o = M.obj, m = MATS[n.mat];
+  const A = area(o), Pm = perim(o);
+  const shapeA = {
+    rect: `${o.l} · ${o.b} = ${fmt(A)} m²`, para: `${o.g} · ${o.h} = ${fmt(A)} m²`, rtri: `½ · ${o.a} · ${o.b} = ${fmt(A)} m²`,
+    tri: `½ · ${o.g} · ${o.h} = ${fmt(A)} m²`, circ: `3,14 · ${o.r} · ${o.r} = ${fmt(A)} m²`
+  }[o.shape];
+  const shapeP = o.shape === 'circ' ? `3,14 · ${2 * o.r} = ${fmt(Pm)} m` : `${sides(o).map(fmt).join(' + ')} = ${fmt(Pm)} m`;
+  let v, why;
+  if (n.kind === 'area') { v = A; why = `${m.name} dækker arealet: ${shapeA}`; }
+  else if (n.kind === 'plants') { v = A; why = `1 plante pr. m², og arealet er ${shapeA}`; }
+  else if (n.kind === 'perim') { v = Pm; why = `${m.name} går hele vejen rundt, så det er omkredsen: ${shapeP}`; }
+  else { v = r2(A * M.depth); why = `${m.name} fylder rumfanget: arealet er ${shapeA}, og ${fmt(A)} · ${fmt(M.depth)} = ${fmt(v)} m³`; }
+  const buy = ceilN(v);
+  if (Math.abs(buy - v) > 1e-6) why += `. Man kan kun købe hele ${m.unit}, så der skal købes ${buy} ${m.unit}.`;
+  else why += '.';
+  return { mat: n.mat, need: buy, why };
+}
+function setupShop() {
+  M.needs = M.need.map(needOf);
+  const needIds = M.needs.map(n => n.mat);
+  const distract = shuffle(Object.keys(MATS).filter(k => !needIds.includes(k)));
+  // always include a distractor with the "wrong" unit for the same job
+  const n = 4 - needIds.length;
+  M.shop = shuffle(needIds.concat(distract.slice(0, n)));
+  const cost = M.needs.reduce((a, x) => a + x.need * MATS[x.mat].price, 0);
+  M.budget = Math.ceil(cost * 1.4 / 500) * 500;
+}
+function onOrder() {
+  const qty = M.shop.map((id, i) => { const s = $('q' + i).value.trim().replace(',', '.'); return s === '' ? 0 : Number(s); });
+  if (qty.some(q => isNaN(q) || q < 0)) { $('sfb').innerHTML = '<div class="fb bad">Skriv kun tal i felterne, fx 12. Lad feltet stå tomt, hvis du ikke skal bruge varen.</div>'; return; }
+  if (qty.some(q => Math.round(q) !== q)) { $('sfb').innerHTML = '<div class="fb bad">Materialerne sælges kun i hele enheder. Rund op til et helt tal.</div>'; return; }
+  if (qty.every(q => q === 0)) { $('sfb').innerHTML = '<div class="fb bad">Du har ikke bestilt noget endnu.</div>'; return; }
+  let spent = 0, extra = 0, waste = 0, wrongMat = false, exact = true;
+  const lines = [];
+  M.shop.forEach((id, i) => {
+    const m = MATS[id], q = qty[i], nd = M.needs.find(n => n.mat === id);
+    spent += q * m.price;
+    if (!nd) { if (q > 0) { wrongMat = true; exact = false; waste += q * m.price; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} bestilt, men der skulle ikke bruges ${m.name.toLowerCase()}.`, why: 'Pengene er spildt.' }); } return; }
+    if (q === nd.need) lines.push({ ok: true, t: `${m.name}: ${q} ${m.unit}. Præcis rigtigt!`, why: nd.why });
+    else if (q < nd.need) { exact = false; if (q === 0) wrongMat = true; const miss = nd.need - q; extra += miss * m.price * 2; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} var for lidt. Der manglede ${miss} ${m.unit}, og ekstra levering koster dobbelt pris.`, why: nd.why }); }
+    else { exact = false; const over = q - nd.need; waste += over * m.price; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} var for meget. ${over} ${m.unit} blev ikke brugt.`, why: nd.why }); }
+  });
+  const profit = Math.max(0, M.budget - spent - extra);
+  const stars = (M.drawStar ? 1 : 0) + (wrongMat ? 0 : 1) + (exact ? 1 : 0);
+  S.money += profit; S.stars += stars;
+  S.skill[M.topic] = clamp(skill(M.topic) + (exact ? 0.5 : -0.5), 0, 4);
+  // build it
+  const built = Object.assign({}, M.obj, { look: M.look, title: M.title, border: M.need.some(n => n.mat === 'hegn') ? 'hegn' : M.need.some(n => n.mat === 'kantsten') ? 'kantsten' : '' });
+  S.objects.push(built); justBuilt = true;
+  S.mission++;
+  const starHTML = `<div class="bigstars">${'★'.repeat(stars)}<span class="off">${'★'.repeat(3 - stars)}</span></div>
+    <div class="starnote"><span>${M.drawStar ? '★' : '☆'} Tegningen passede første gang</span><span>${wrongMat ? '☆' : '★'} De rigtige materialer</span><span>${exact ? '★' : '☆'} Præcis de rigtige mængder</span></div>`;
+  const acct = `<table class="acct"><tr><td>Budget fra kommunen</td><td>${kr(M.budget)}</td></tr><tr><td>Materialer</td><td class="neg">− ${kr(spent)}</td></tr>${extra ? `<tr><td>Ekstra levering</td><td class="neg">− ${kr(extra)}</td></tr>` : ''}<tr class="sum"><td>Til din kasse</td><td>${kr(profit)}</td></tr></table>`;
+  const calcs = `<div class="calcs">${lines.map(l => `<div class="calc ${l.ok ? 'ok' : 'bad'}"><b>${l.t}</b>${l.why}</div>`).join('')}</div>`;
+  const last = S.mission >= MISSIONS_PER_PARK;
+  M.resultHTML = starHTML + calcs + acct + `<button class="go" id="bNext" type="button">${last ? 'Åbn parken' : 'Tag telefonen: næste kunde'}</button>` + (waste ? `<p class="howto">Spildte penge: ${kr(waste)}.</p>` : '');
+  phase = 'result';
+  save(); renderAll();
+  setTimeout(() => { justBuilt = false; }, 3000);
+}
+function onNext() {
+  if (S.mission >= MISSIONS_PER_PARK) {
+    if (phase !== 'parkdone') {
+      S.parks++;
+      const bonus = 1000 + S.decor.length * 200;
+      S.money += bonus; save();
+      M.resultHTML = `<p style="margin:0">Borgmesteren klipper snoren over, og ${PARKS[S.park % PARKS.length].name} er åben! Du får <b>${kr(bonus)}</b> i bonus, og der kommer ekstra bonus for hver ting, du har pyntet med.</p>
+        <p class="howto">Brug pengene på pynt nu, eller tag den næste park.</p><button class="go green" id="bNext" type="button">Byg næste park</button>`;
+      phase = 'parkdone'; renderAll(); return;
+    }
+    S.park++; S.mission = 0; S.objects = []; S.decor = []; save();
+  }
+  newMission();
+}
+
+/* ================= decor ================= */
+function renderDecor() {
+  $('decor').innerHTML = DECOR.map(d => `<button type="button" class="ditem" data-id="${d.id}" aria-pressed="${placing === d.id}" ${S.money < d.price ? 'disabled' : ''}><svg viewBox="-18 -18 36 36" aria-hidden="true">${d.svg(0, 0)}</svg><span>${d.name}<small>${kr(d.price)}</small></span></button>`).join('');
+}
+$('bDecor').addEventListener('click', () => { const open = $('decor').hidden; $('decor').hidden = !open; placing = null; if (open) renderDecor(); $('tip').textContent = open ? 'Vælg en ting og klik på kortet, hvor den skal stå.' : 'Træk i figuren for at flytte den. Træk i de hvide prikker for at ændre størrelsen.'; renderMap(); });
+$('decor').addEventListener('click', e => { const b = e.target.closest('.ditem'); if (!b || b.disabled) return; placing = placing === b.dataset.id ? null : b.dataset.id; renderDecor(); renderMap(); });
+
+/* ================= map input ================= */
+let drag = null;
+function mapPt(e) { const svg = $('map'); const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(svg.getScreenCTM().inverse()); return [q.x / CS, q.y / CS]; }
+$('map').addEventListener('pointerdown', e => {
+  const p = mapPt(e);
+  if (placing) {
+    const it = DECOR.find(d => d.id === placing);
+    const cell = { shape: 'decor', x: Math.floor(p[0]), y: Math.floor(p[1]) };
+    const blocked = obstacles().some(q => inside(q, [cell.x + .5, cell.y + .5])) || (M && phase === 'draw' && inside(M.obj, [cell.x + .5, cell.y + .5]));
+    if (blocked) { $('tip').textContent = 'Der er optaget. Vælg et tomt sted på græsset.'; return; }
+    if (S.money < it.price) return;
+    S.money -= it.price; S.decor.push({ id: it.id, x: cell.x, y: cell.y }); save();
+    if (S.money < it.price) placing = null;
+    $('tip').textContent = `${it.name} er sat op. Vælg en ting mere, eller klik på "Pynt parken" for at lukke.`;
+    renderDecor(); header(); renderMap(); return;
+  }
+  if (!M || phase !== 'draw') return;
+  const h = e.target.closest('.hd');
+  if (h) drag = { mode: 'h', i: +h.dataset.i };
+  else if (e.target.closest('#active')) drag = { mode: 'm', last: [Math.round(p[0]), Math.round(p[1])] };
+  else return;
+  e.preventDefault();
+  try { $('map').setPointerCapture(e.pointerId); } catch (er) {}
+});
+$('map').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = mapPt(e), o = M.obj, before = JSON.stringify(o);
+  if (drag.mode === 'h') handles(o)[drag.i].move(o, p[0], p[1]);
+  else { const c = [Math.round(p[0]), Math.round(p[1])]; const dx = c[0] - drag.last[0], dy = c[1] - drag.last[1]; if (dx || dy) { moveBody(o, dx, dy); drag.last = c; } }
+  if (JSON.stringify(o) !== before) { drawBad = false; renderActive(); const r = $('read'); if (r) r.innerHTML = readHTML(); }
+});
+const end = () => { drag = null; };
+$('map').addEventListener('pointerup', end); $('map').addEventListener('pointercancel', end);
+$('map').addEventListener('keydown', e => {
+  const h = e.target.closest('.hd'); if (!h || !M || phase !== 'draw') return;
+  const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!d) return;
+  e.preventDefault(); const hd = handles(M.obj)[+h.dataset.i]; const [x, y] = hd.pos(M.obj); hd.move(M.obj, x + d[0], y + d[1]);
+  renderActive(); const r = $('read'); if (r) r.innerHTML = readHTML();
+});
+$('pBody').addEventListener('click', e => {
+  if (e.target.id === 'bDraw') onDrawCheck();
+  else if (e.target.id === 'bOrder') onOrder();
+  else if (e.target.id === 'bNext') onNext();
+});
+$('pBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('.shop input')) { e.preventDefault(); onOrder(); } });
+
+/* ================= start ================= */
+const prev = store.get();
+$('topics').innerHTML = TOPICS.map(t => `<label class="tp" style="--tc:${t.c}"><input type="checkbox" id="tp-${t.id}" ${!prev || prev.topics[t.id] ? 'checked' : ''}> ${t.name}</label>`).join('');
+if (prev) $('bResume').hidden = false;
+function chosenTopics() { const o = {}; TOPICS.forEach(t => o[t.id] = $('tp-' + t.id).checked); if (!Object.values(o).some(Boolean)) o.firkant = true; return o; }
+function enterGame() { $('start').hidden = true; $('game').hidden = false; window.scrollTo({ top: 0 }); }
+$('bStart').addEventListener('click', () => { S = fresh(chosenTopics()); save(); enterGame(); newMission(); });
+$('bResume').addEventListener('click', () => { S = Object.assign(fresh(chosenTopics()), prev); S.topics = chosenTopics(); enterGame(); if (S.mission >= MISSIONS_PER_PARK) { S.park++; S.mission = 0; S.objects = []; S.decor = []; } newMission(); });
+// header on start
+S = prev ? Object.assign(fresh({}), prev) : fresh({});
+$('hMoney').textContent = kr(S.money); $('hStars').textContent = S.stars; $('hParks').textContent = S.parks;
+window.__dbg = () => ({ S, M, phase, specOK, area, perim, collides, inBounds });
+})();
+</script>
+
+</body>
+</html>

@@ -148,7 +148,7 @@ const SUBJECTS = {
   natur: { name: "Natur/teknologi", color: "var(--nat)", blurb: "Forsøg, naturfænomener og undersøgelser.",
     icon: '<path d="M10 3h4M11 3v6l-5 9a2 2 0 002 3h8a2 2 0 002-3l-5-9V3"/><path d="M8 15h8"/>' },
 };
-const TYPES = { pdf: "PDF", pres: "Præsentation" };
+const TYPES = { pdf: "PDF", pres: "Præsentation", spil: "Spil" };
 
 // Ugentlige opgavesæt i matematik, nyeste først. Kun figurer vises, aldrig niveau.
 const WEEKS = [
@@ -161,6 +161,7 @@ const SHAPES = [
 
 // Eksempler: pladsholdere indtil Mortens egne materialer er lagt ind.
 const MATERIALS = [
+  { title: "Parkarkitekten", subject: "matematik", grades: [6], type: "spil", file: "materialer/matematik/geometri/parkarkitekten.html", categories: ["Geometri"], desc: "Browserspil: Byg en park for kunderne. Tegn terrasser, bede og springvand, bestil materialer i m, m² og m³, og hold budgettet. Træner omkreds, areal og rumfang." },
   { title: "To be i nutid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-be-nutid.pdf"], ["Ark B", "materialer/engelsk/to-be-nutid-b.pdf"]], desc: "Sådan bøjer du am, is og are, med udfyldningsopgaver og oversættelse begge veje." },
   { title: "To be i datid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-be-datid-a.pdf"], ["Ark B", "materialer/engelsk/to-be-datid-b.pdf"]], desc: "Was og were, og ord som yesterday og last week, der viser at det er datid." },
   { title: "To have i nutid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-have-nutid-a.pdf"], ["Ark B", "materialer/engelsk/to-have-nutid-b.pdf"]], desc: "Hvornår det hedder have, og hvornår det hedder has." },
@@ -308,5 +309,4 @@ function route() {
 window.addEventListener("hashchange", route);
 route();
 </script>
-
 </body></html>
