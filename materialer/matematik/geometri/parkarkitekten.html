@@ -416,10 +416,10 @@ function pickEvenArea(lo, hi) { // for triangles: g*h = 2A must factor nicely
 /* need: [{mat, kind:'area'|'perim'|'vol'|'plants'}] ; spec: {k:'area'|'minarea'|'perim'|'d', v} */
 const ORDERS = {
   firkant: [
-    t => { const A = pickArea([6, 16, 24][t], [16, 30, 48][t], 10, 7); return { client: 'cafe', title: 'Caféterrasse', shape: 'rect', spec: { k: 'area', v: A }, text: `Vi vil gerne have en terrasse med fliser til vores borde. Den skal være på præcis <strong>${A} m²</strong>.`, need: [{ mat: 'fliser', kind: 'area' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'fliser' }; },
+    t => { const A = pickArea([6, 16, 24][t], [16, 30, 48][t], 10, 7); const ks = t >= 1 || Math.random() < .5; return { client: 'cafe', title: 'Caféterrasse', shape: 'rect', spec: { k: 'area', v: A }, text: `Vi vil gerne have en terrasse med fliser til vores borde. Den skal være på præcis <strong>${A} m²</strong>.`.concat(ks ? ' Der skal også <strong>kantsten</strong> hele vejen rundt om terrassen.' : ''), need: [{ mat: 'fliser', kind: 'area' }].concat(ks ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'fliser' }; },
     t => { const A = [12, 20, 30][t]; return { client: 'hund', title: 'Hundeskov', shape: 'rect', spec: { k: 'minarea', v: A }, text: `Vi drømmer om en hundeskov. Den skal være på <strong>mindst ${A} m²</strong>, og der skal være hegn hele vejen rundt. Den skal være et rektangel, men du bestemmer selv længde og bredde.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'graes' }; },
-    t => { const P = 2 * rnd([6, 9, 11][t], [10, 13, 16][t]); return { client: 'idraet', title: 'Boldbane', shape: 'rect', spec: { k: 'perim', v: P }, text: `Vi har ${P} m kridtstreg til at male en ny boldbane. Banens <strong>omkreds skal være præcis ${P} m</strong>. Hele banen skal have rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes' }; },
-    t => { const P = 2 * rnd([7, 9, 11][t], [9, 12, 14][t]); return { client: 'hund', title: 'Hundeskov', shape: 'rect', opt: 'maxarea', spec: { k: 'maxarea', v: P }, text: `Vi har købt <strong>${P} m hegn</strong>. Byg den <strong>største hundeskov</strong>, I kan lave med hegnet. Hele hundeskoven skal have rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes', border: 'hegn' }; },
+    t => { const P = 2 * rnd([6, 9, 11][t], [10, 13, 16][t]); return { client: 'idraet', title: 'Boldbane', shape: 'rect', spec: { k: 'perim', v: P }, text: `Vi har ${P} m kridtstreg til at male en ny boldbane. Banens <strong>omkreds skal være præcis ${P} m</strong>. Hele banen skal have rullegræs.`.concat(t >= 2 ? ' Der skal også <strong>hegn</strong> hele vejen rundt, så bolden bliver inde.' : ''), need: [{ mat: 'graes', kind: 'area' }].concat(t >= 2 ? [{ mat: 'hegn', kind: 'perim' }] : []), look: 'graes' }; },
+    t => { const P = 2 * rnd([7, 9, 11][t], [9, 12, 14][t]); return { client: 'hund', title: 'Hundeskov', shape: 'rect', opt: 'maxarea', spec: { k: 'maxarea', v: P }, text: `Vi har købt <strong>${P} m hegn</strong>. Byg den <strong>største hundeskov</strong>, I kan lave med hegnet. Hegnet har vi selv, så I skal kun købe rullegræs til hele hundeskoven.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes', border: 'hegn' }; },
     t => { const A = pick([[12, 16, 18, 20], [24, 30, 36], [40, 42, 48]][t]); return { client: 'bh', title: 'Legeplads', shape: 'rect', opt: 'minperim', spec: { k: 'area', v: A }, text: `Vi skal have en legeplads på præcis <strong>${A} m²</strong> med hegn hele vejen rundt. Hegn er dyrt, så brug <strong>så lidt hegn som muligt</strong>.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'grus', border: 'hegn' }; },
     t => { const A = pickArea([8, 12, 20][t], [18, 30, 42][t], 9, 6); return { client: 'skole', title: 'Cykelparkering', shape: 'para', spec: { k: 'area', v: A }, text: `Cyklerne skal stå skråt, så parkeringen skal være et <strong>parallelogram</strong> på præcis <strong>${A} m²</strong>. Den skal have asfalt.`, need: [{ mat: 'asfalt', kind: 'area' }], look: 'asfalt' }; },
   ],
@@ -428,13 +428,13 @@ const ORDERS = {
     t => { const A = pickEvenArea([4, 8, 12][t], [10, 18, 28][t]); return { client: 'spejd', title: 'Teltplads', shape: 'tri', spec: { k: 'area', v: A }, text: `Vores nye teltplads skal være en trekant på præcis <strong>${A} m²</strong>, og den skal dækkes med rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes' }; },
   ],
   cirkel: [
-    t => { const r = rnd(2, 3); return { client: 'gartner', title: 'Springvand', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Parken skal have et rundt springvand med en <strong>diameter på ${2 * r} m</strong>. Der skal kantsten hele vejen rundt.`.concat(t >= 1 ? ' Bunden skal have fliser.' : ''), need: [{ mat: 'kantsten', kind: 'perim' }].concat(t >= 1 ? [{ mat: 'fliser', kind: 'area' }] : []), look: 'vand' }; },
-    t => { const r = rnd(1, 3); return { client: 'spejd', title: 'Bålplads', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Vi skal have en rund bålplads med en <strong>diameter på ${2 * r} m</strong>. Hele bålpladsen skal dækkes med grus.`, need: [{ mat: 'grus', kind: 'area' }], look: 'grus' }; },
+    t => { const r = rnd(2, 3); return { client: 'gartner', title: 'Springvand', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Parken skal have et rundt springvand med en <strong>diameter på ${2 * r} m</strong>. Der skal kantsten hele vejen rundt.`.concat(t >= 1 ? ' Bunden skal have fliser.' : '', ' Vandet kommer fra vandværket, så det skal I ikke købe.'), need: [{ mat: 'kantsten', kind: 'perim' }].concat(t >= 1 ? [{ mat: 'fliser', kind: 'area' }] : []), look: 'vand' }; },
+    t => { const r = rnd(1, 3); return { client: 'spejd', title: 'Bålplads', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Vi skal have en rund bålplads med en <strong>diameter på ${2 * r} m</strong>. Hele bålpladsen skal dækkes med grus.`.concat(t >= 1 ? ' Der skal også <strong>kantsten</strong> hele vejen rundt.' : ''), need: [{ mat: 'grus', kind: 'area' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'grus' }; },
   ],
   rumfang: [
     t => { const dep = [1, 0.5, 0.4][t]; const A = t === 2 ? pick([10, 15, 20, 25]) : pickArea([4, 8, 12][t], [12, 20, 30][t], 8, 6); return { client: 'bh', title: 'Sandkasse', shape: 'rect', depth: dep, spec: { k: 'area', v: A }, text: `Vi ønsker os en sandkasse på præcis <strong>${A} m²</strong>. Sandet skal være <strong>${fmt(dep)} m dybt</strong>.`.concat(t >= 1 ? ' Der skal kantsten hele vejen rundt.' : ''), need: [{ mat: 'sand', kind: 'vol' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'sand' }; },
     t => { const hgt = [1, 0.5, 0.5][t]; const A = pickArea([4, 6, 10][t], [10, 16, 24][t], 8, 4); return { client: 'skole', title: 'Højbed', shape: 'rect', depth: hgt, spec: { k: 'area', v: A }, text: `Elevrådet vil dyrke grøntsager. Vi skal have et højbed på <strong>${A} m²</strong>, og det skal fyldes med muldjord <strong>${fmt(hgt)} m op</strong>.`, need: [{ mat: 'muld', kind: 'vol' }], look: 'muld' }; },
-    t => { const r = rnd(1, 3), dep = t === 0 ? 1 : 0.5; return { client: 'bh', title: 'Soppebassin', shape: 'circ', depth: dep, spec: { k: 'd', v: 2 * r }, text: `Børnene vil have et rundt soppebassin med en <strong>diameter på ${2 * r} m</strong>. Vandet skal være <strong>${fmt(dep)} m dybt</strong>.`, need: [{ mat: 'vand', kind: 'vol' }], look: 'vand' }; },
+    t => { const r = rnd(1, 3), dep = t === 0 ? 1 : 0.5; return { client: 'bh', title: 'Soppebassin', shape: 'circ', depth: dep, spec: { k: 'd', v: 2 * r }, text: `Børnene vil have et rundt soppebassin med en <strong>diameter på ${2 * r} m</strong>. Vandet skal være <strong>${fmt(dep)} m dybt</strong>.`.concat(t >= 1 ? ' Der skal også <strong>kantsten</strong> hele vejen rundt om bassinet.' : ''), need: [{ mat: 'vand', kind: 'vol' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'vand' }; },
   ],
 };
 const HINTS = {
@@ -450,7 +450,7 @@ function estArea(m) { const k = m.spec.k, v = m.spec.v; if (k === 'd') return PI
 function makeOffer(c) {
   const m0 = c.g(0); const t = trinOf(drawSkill(m0)); const m = c.g(t);
   m.topic = c.tp; m.key = c.key; m.color = TC[c.tp]; m.skills = orderSkills(m);
-  m.fee = Math.round((300 + 30 * estArea(m) + (m.opt ? 300 : 0) + (m.depth ? 200 : 0)) / 50) * 50;
+  m.fee = Math.round((300 + 30 * estArea(m) + (m.opt ? 300 : 0) + (m.depth ? 200 : 0) + 150 * (m.need.length - 1)) / 50) * 50;
   return m;
 }
 function offerWeight(c) { const m = c.g(0); const sks = orderSkills(m); return sks.reduce((a, id) => a + (S.dip[id] ? .25 : 1), 0) / sks.length * (S.recent.includes(c.key) ? .35 : 1); }
@@ -1045,7 +1045,7 @@ $('bDip').addEventListener('click', showWall);
 $('mClose').addEventListener('click', closeModal);
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); const d = e.target.closest('[data-dip]'); if (d) showDiploma(d.dataset.dip, false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden) closeModal(); });
-window.__dbg = () => ({ S, M, phase, offers, solvable, optFits, specOK, area, perim, collides, inBounds });
+window.__dbg = () => ({ S, M, phase, ORDERS, offers, solvable, optFits, specOK, area, perim, collides, inBounds });
 })();
 </script>
 
