@@ -109,6 +109,43 @@ table.shop { width: 100%; border-collapse: separate; border-spacing: 0; backgrou
 .calc b { display: block; }
 .calc.ok { border-left-color: var(--ok); }
 .calc.bad { border-left-color: var(--bad); }
+.offers { display: flex; flex-direction: column; gap: 10px; }
+.offer { --oc: var(--blue); background: var(--white); border: 2px solid color-mix(in srgb, var(--oc) 45%, var(--white)); border-left: 6px solid var(--oc); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.offer .client b { font-size: 15px; }
+.offer p { margin: 0; font-size: 15px; }
+.offer p strong { color: color-mix(in srgb, var(--oc) 75%, var(--ink)); }
+.ofoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fee { font-weight: 700; font-variant-numeric: tabular-nums; color: #1d5e3f; background: var(--okbg); border-radius: 999px; padding: 3px 10px; font-size: 14px; }
+.go.sm { font-size: 15px; padding: 8px 14px; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; font-size: 14px; align-self: flex-start; }
+.checks { display: flex; flex-direction: column; gap: 3px; font-size: 14.5px; }
+.checks .y { color: var(--ok); font-weight: 700; } .checks .n { color: var(--bad); font-weight: 700; }
+.prog { display: flex; flex-direction: column; gap: 6px; background: var(--white); border-radius: 10px; padding: 9px 12px; }
+.prog .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+.bar { height: 7px; border-radius: 99px; background: #ece8de; grid-column: 1 / -1; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--amber); border-radius: 99px; }
+.opt { background: #fff8ea; border: 1.5px solid var(--husk); border-radius: 10px; padding: 8px 12px; font-size: 14.5px; }
+.modal[hidden] { display: none; }
+.modal { position: fixed; inset: 0; background: rgba(27,27,49,.62); display: grid; place-items: center; z-index: 50; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.mbox { background: var(--cream); border-radius: 16px; max-width: 640px; width: 100%; max-height: 90vh; overflow: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.mbox h2 { font-family: var(--display); margin: 0; font-size: 26px; }
+.cert { background: #fffdf6; border: 7px double #c9a227; border-radius: 6px; padding: 20px 18px; text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; position: relative; }
+.cert .seal { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #f6d36b, #c9a227); display: grid; place-items: center; color: #6b4e00; font-family: var(--display); font-weight: 800; font-size: 24px; box-shadow: 0 2px 0 #a8861c; }
+.cert .dk { font-family: var(--display); font-weight: 800; letter-spacing: .18em; font-size: 30px; color: #8a6a12; }
+.cert .who { font-family: var(--display); font-weight: 700; font-size: 24px; }
+.cert .tt { font-weight: 700; font-size: 18px; color: var(--ink); }
+.cert .txt { color: var(--muted); max-width: 40ch; }
+.cert .sig { margin-top: 8px; display: flex; justify-content: space-between; width: 100%; font-size: 13px; color: var(--muted); border-top: 1px solid #e3d9bd; padding-top: 6px; gap: 8px; }
+.cert img { position: absolute; right: 16px; bottom: 48px; height: 64px; }
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.mini { background: #fffdf6; border: 4px double #c9a227; border-radius: 6px; padding: 10px; text-align: center; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.mini b { font-size: 15px; }
+.mini.locked { border-color: #d8d3c4; background: #f2efe7; color: var(--muted); }
+.mini .bar { margin-top: 2px; }
+.who-in { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.who-in label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.who-in input { font: 500 16px var(--body); padding: 7px 9px; border: 2px solid #b6dcc9; border-radius: 8px; background: var(--white); color: var(--ink); min-width: 0; }
+.chip.dip { cursor: pointer; font: inherit; font-size: 14px; }
 .bigstars { font-size: 30px; letter-spacing: 3px; color: var(--gold); line-height: 1; }
 .bigstars .off { color: #d8d3c4; }
 .starnote { font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
@@ -151,7 +188,7 @@ table.shop { width: 100%; border-collapse: separate; border-spacing: 0; backgrou
     </div>
     <div class="hud">
       <span class="chip money">Kasse <b id="hMoney">0 kr</b></span>
-      <span class="chip"><span class="star">★</span> <b id="hStars">0</b></span>
+      <button type="button" class="chip dip" id="bDip"><span class="star">★</span> Diplomer <b id="hStars">0</b></button>
       <span class="chip">Parker åbnet <b id="hParks">0</b></span>
     </div>
   </div>
@@ -164,14 +201,16 @@ table.shop { width: 100%; border-collapse: separate; border-spacing: 0; backgrou
       <h2>Dit eget arkitektfirma</h2>
       <p>Kommunen har hyret dit firma til at bygge nye parker. Kunderne ringer med ønsker: en terrasse til caféen, en hundeskov, et springvand eller en sandkasse. Du tegner tingen ind på kortet, bestiller præcis de materialer, der skal bruges, og tjener penge på det, du sparer.</p>
       <ul class="loop">
-        <li><span class="n">1</span><span><b>Tegn</b> det, kunden ønsker, på parkkortet. Træk i figuren og de hvide prikker. Hvert tern er 1 m.</span></li>
-        <li><span class="n">2</span><span><b>Bestil</b> materialer. Fliser købes i m², hegn i m og sand i m³. Bestiller du for lidt, koster ekstra levering dobbelt. Bestiller du for meget, er pengene spildt.</span></li>
-        <li><span class="n">3</span><span><b>Tjen penge</b> og stjerner, og brug pengene på træer, bænke og legeredskaber til parken.</span></li>
+        <li><span class="n">1</span><span><b>Vælg kunde.</b> Tre kunder ringer på én gang. Store opgaver giver mere, men fylder mere i parken, så tænk dig om.</span></li>
+        <li><span class="n">2</span><span><b>Tegn</b> det, kunden ønsker, på parkkortet. Træk i figuren og de hvide prikker. Hvert tern er 1 m.</span></li>
+        <li><span class="n">3</span><span><b>Bestil</b> materialer. Fliser købes i m², hegn i m og sand i m³. Bestiller du for lidt, koster ekstra levering dobbelt. Bestiller du for meget, er pengene spildt.</span></li>
+        <li><span class="n">4</span><span><b>Tjen penge og diplomer.</b> Når du har vist, at du kan noget, får du et diplom. Pengene kan bruges på træer, bænke og legeredskaber til parken.</span></li>
       </ul>
     </div>
     <div class="panel" style="--c:var(--green)">
       <div class="pbar"><span class="t">Hvad må kunderne bestille?</span></div>
       <div class="pbody">
+        <div class="who-in"><label for="nameIn">Dit navn<input id="nameIn" type="text" autocomplete="off" maxlength="30" placeholder="Til dine diplomer"></label><label for="firmIn">Dit firma<input id="firmIn" type="text" autocomplete="off" maxlength="30" placeholder="Fx Grøn & Glad ApS"></label></div>
         <div class="topics" id="topics"></div>
         <p class="howto">Mindst én skal være valgt.</p>
         <div class="startbtns">
@@ -201,6 +240,7 @@ table.shop { width: 100%; border-collapse: separate; border-spacing: 0; backgrou
   </section>
 </main>
 
+<div class="modal" id="modal" hidden><div class="mbox" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div id="mContent"></div><button class="go" id="mClose" type="button">Luk</button></div></div>
 <template id="tHusk">
   <div class="husk"><div class="hk"><img src="data:image/png;base64,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" alt=""><span>Husk dette!</span></div><div class="hb"></div></div>
 </template>
@@ -219,8 +259,8 @@ const PI = 3.14;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ceilN = x => Math.ceil(r2(x) - 1e-9);
 const store = {
-  get() { try { return JSON.parse(localStorage.getItem('parkarkitekt2') || 'null'); } catch (e) { return null; } },
-  set(v) { try { localStorage.setItem('parkarkitekt2', JSON.stringify(v)); } catch (e) {} }
+  get() { try { return JSON.parse(localStorage.getItem('parkarkitekt3') || 'null'); } catch (e) { return null; } },
+  set(v) { try { localStorage.setItem('parkarkitekt3', JSON.stringify(v)); } catch (e) {} }
 };
 
 /* ================= world ================= */
@@ -322,9 +362,37 @@ function collides(o) {
 let S = null; // saved game
 let M = null; // current mission
 let phase = 'draw', drawTries = 0;
-function fresh(topics) { return { money: 0, stars: 0, parks: 0, park: 0, mission: 0, objects: [], decor: [], topics, skill: {}, recent: [] }; }
-function skill(t) { return S.skill[t] ?? 0; }
-function trin(t) { const s = skill(t); return s <= 1 ? 0 : s <= 3 ? 1 : 2; }
+function fresh(topics) { return { money: 0, parks: 0, park: 0, mission: 0, objects: [], decor: [], topics, sk: {}, dip: {}, recent: [], name: '', firm: '' }; }
+const SKILLS = {
+  'areal-rekt': { name: 'Areal af rektangler', title: 'Fliselægger', can: 'finde arealet af rektangler og kvadrater', topic: 'firkant' },
+  'omkreds-rekt': { name: 'Omkreds af rektangler', title: 'Hegnsbygger', can: 'finde omkredsen af rektangler og kvadrater', topic: 'firkant' },
+  'areal-para': { name: 'Areal af parallelogrammer', title: 'Asfaltmester', can: 'finde arealet af et parallelogram med grundlinje og højde', topic: 'firkant' },
+  'optimering': { name: 'Mest for pengene', title: 'Smart planlægger', can: 'finde den form, der giver mest areal eller bruger mindst hegn', topic: 'firkant' },
+  'areal-tri': { name: 'Areal af trekanter', title: 'Trekantsekspert', can: 'finde arealet af trekanter med ½ · grundlinje · højde', topic: 'trekant' },
+  'omkreds-tri': { name: 'Omkreds af trekanter', title: 'Kantstenssætter', can: 'finde omkredsen af trekanter', topic: 'trekant' },
+  'cirkel-dele': { name: 'Radius og diameter', title: 'Cirkelkender', can: 'bruge radius og diameter i en cirkel', topic: 'cirkel' },
+  'omkreds-cirkel': { name: 'Omkreds af cirkler', title: 'Springvandsbygger', can: 'finde omkredsen af en cirkel med π', topic: 'cirkel' },
+  'areal-cirkel': { name: 'Areal af cirkler', title: 'Plænelægger', can: 'finde arealet af en cirkel med π', topic: 'cirkel' },
+  'rumfang-kasse': { name: 'Rumfang af kasser', title: 'Sandkasse-ekspert', can: 'finde rumfanget af en kasse', topic: 'rumfang' },
+  'rumfang-cyl': { name: 'Rumfang af cylindre', title: 'Bassinbygger', can: 'finde rumfanget af en cylinder', topic: 'rumfang' },
+};
+const NEEDED = 3;
+function sk(id) { return S.sk[id] || (S.sk[id] = { c: 0, f: 0 }); }
+function trinOf(id) { const f = sk(id).f; return f <= 1 ? 0 : f <= 3 ? 1 : 2; } // hidden, never shown
+let newDiplomas = [];
+function credit(id, ok) {
+  const st = sk(id);
+  if (ok) { st.c++; st.f = Math.min(4, st.f + 1); if (st.c >= NEEDED && !S.dip[id]) { S.dip[id] = new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }); newDiplomas.push(id); } }
+  else st.f = Math.max(0, st.f - 1);
+}
+function areaSkill(sh) { return { rect: 'areal-rekt', para: 'areal-para', rtri: 'areal-tri', tri: 'areal-tri', circ: 'areal-cirkel' }[sh]; }
+function needSkill(kind, sh) {
+  if (kind === 'area' || kind === 'plants') return areaSkill(sh);
+  if (kind === 'perim') return { rect: 'omkreds-rekt', para: 'omkreds-rekt', rtri: 'omkreds-tri', tri: 'omkreds-tri', circ: 'omkreds-cirkel' }[sh];
+  return sh === 'circ' ? 'rumfang-cyl' : 'rumfang-kasse';
+}
+function drawSkill(m) { if (m.opt) return 'optimering'; const k = m.spec.k; if (k === 'd') return 'cirkel-dele'; if (k === 'perim') return 'omkreds-rekt'; return areaSkill(m.shape); }
+function orderSkills(m) { return [...new Set([drawSkill(m)].concat(m.need.map(n => needSkill(n.kind, m.shape))))]; }
 function save() { store.set(S); }
 
 /* ================= customers & orders ================= */
@@ -351,6 +419,8 @@ const ORDERS = {
     t => { const A = pickArea([6, 16, 24][t], [16, 30, 48][t], 10, 7); return { client: 'cafe', title: 'Caféterrasse', shape: 'rect', spec: { k: 'area', v: A }, text: `Vi vil gerne have en terrasse med fliser til vores borde. Den skal være på præcis <strong>${A} m²</strong>.`, need: [{ mat: 'fliser', kind: 'area' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'fliser' }; },
     t => { const A = [12, 20, 30][t]; return { client: 'hund', title: 'Hundeskov', shape: 'rect', spec: { k: 'minarea', v: A }, text: `Vi drømmer om en hundeskov. Den skal være på <strong>mindst ${A} m²</strong>, og der skal være hegn hele vejen rundt. Du bestemmer selv formen.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'graes' }; },
     t => { const P = 2 * rnd([6, 9, 11][t], [10, 13, 16][t]); return { client: 'idraet', title: 'Boldbane', shape: 'rect', spec: { k: 'perim', v: P }, text: `Vi har ${P} m kridtstreg til at male en ny boldbane. Banens <strong>omkreds skal være præcis ${P} m</strong>. Hele banen skal have rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes' }; },
+    t => { const P = 2 * rnd([7, 9, 11][t], [9, 12, 14][t]); return { client: 'hund', title: 'Hundeskov', shape: 'rect', opt: 'maxarea', spec: { k: 'maxarea', v: P }, text: `Vi har købt <strong>${P} m hegn</strong>. Byg den <strong>største hundeskov</strong>, I kan lave med hegnet. Hele hundeskoven skal have rullegræs.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes', border: 'hegn' }; },
+    t => { const A = pick([[12, 16, 18, 20], [24, 30, 36], [40, 42, 48]][t]); return { client: 'bh', title: 'Legeplads', shape: 'rect', opt: 'minperim', spec: { k: 'area', v: A }, text: `Vi skal have en legeplads på præcis <strong>${A} m²</strong> med hegn hele vejen rundt. Hegn er dyrt, så brug <strong>så lidt hegn som muligt</strong>.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'grus', border: 'hegn' }; },
     t => { const A = pickArea([8, 12, 20][t], [18, 30, 42][t], 9, 6); return { client: 'skole', title: 'Cykelparkering', shape: 'para', spec: { k: 'area', v: A }, text: `Cyklerne skal stå skråt, så parkeringen skal være et <strong>parallelogram</strong> på præcis <strong>${A} m²</strong>. Den skal have asfalt.`, need: [{ mat: 'asfalt', kind: 'area' }], look: 'asfalt' }; },
   ],
   trekant: [
@@ -375,18 +445,56 @@ const HINTS = {
   circ: { d: 'Diameteren er 2 · radius. Du trækker i radius.' },
 };
 
-function newMission() {
+let offers = [], chooseMsg = '';
+function estArea(m) { const k = m.spec.k, v = m.spec.v; if (k === 'd') return PI * (v / 2) ** 2; if (k === 'perim' || k === 'maxarea') return (v / 4) ** 2; return v; }
+function makeOffer(c) {
+  const m0 = c.g(0); const t = trinOf(drawSkill(m0)); const m = c.g(t);
+  m.topic = c.tp; m.key = c.key; m.color = TC[c.tp]; m.skills = orderSkills(m);
+  m.fee = Math.round((300 + 30 * estArea(m) + (m.opt ? 300 : 0) + (m.depth ? 200 : 0)) / 50) * 50;
+  return m;
+}
+function offerWeight(c) { const m = c.g(0); const sks = orderSkills(m); return sks.reduce((a, id) => a + (S.dip[id] ? .25 : 1), 0) / sks.length * (S.recent.includes(c.key) ? .35 : 1); }
+function wpick(list, wf) { const w = list.map(wf); const sum = w.reduce((a, b) => a + b, 0); let r = Math.random() * sum; for (let i = 0; i < list.length; i++) { r -= w[i]; if (r <= 0) return list[i]; } return list[list.length - 1]; }
+function optBest(m) {
+  if (m.opt === 'maxarea') { const half = Math.floor(m.spec.v / 2); const a = Math.floor(half / 2); return { l: half - a, b: a, val: a * (half - a) }; }
+  let best = null; for (let x = 1; x <= MW; x++) if (m.spec.v % x === 0 && m.spec.v / x <= MH) { const p = 2 * (x + m.spec.v / x); if (!best || p < best.val) best = { l: Math.max(x, m.spec.v / x), b: Math.min(x, m.spec.v / x), val: p }; }
+  return best;
+}
+function optFits(m) {
+  const bst = optBest(m); if (!bst) return false;
+  for (const [l, b] of [[bst.l, bst.b], [bst.b, bst.l]]) for (let y = 1; y <= MH; y++) for (let x = 0; x < MW; x++) { const c = { shape: 'rect', x, y, l, b }; if (inBounds(c) && !collides(c)) return true; }
+  return false;
+}
+function newOffers() {
   const topics = TOPICS.map(t => t.id).filter(id => S.topics[id]);
-  let topic, gen, guard = 0, key;
-  do { topic = pick(topics); const i = rnd(0, ORDERS[topic].length - 1); gen = ORDERS[topic][i]; key = topic + i; guard++; } while (guard < 30 && S.recent.includes(key));
-  S.recent.push(key); if (S.recent.length > 3) S.recent.shift();
-  M = gen(trin(topic));
-  for (let tries = 0; tries < 12 && !solvable(M); tries++) { topic = pick(topics); M = pick(ORDERS[topic])(Math.max(0, trin(topic) - (tries > 5 ? 1 : 0))); }
-  M.topic = topic; M.color = TC[topic];
-  M.obj = startShape(M.shape);
-  phase = 'draw'; drawTries = 0;
+  const pool = []; topics.forEach(tp => ORDERS[tp].forEach((g, i) => pool.push({ tp, g, key: tp + i })));
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const list = [], used = new Set();
+    while (list.length < 3) {
+      let cand = pool.filter(p => !used.has(p.key)); if (!cand.length) cand = pool;
+      const c = wpick(cand, offerWeight); used.add(c.key); const m = makeOffer(c); if (m.opt && !optFits(m) && cand.length > 1) continue; list.push(m);
+    }
+    if (list.some(m => solvable(m))) return list;
+  }
+  return null;
+}
+function goChoose() {
+  M = null; phase = 'choose';
+  offers = newOffers();
+  if (!offers) { chooseMsg = ''; S.mission = MISSIONS_PER_PARK; openPark(true); return; }
   renderAll();
 }
+function takeOffer(i) {
+  M = offers[i]; S.recent.push(M.key); if (S.recent.length > 4) S.recent.shift();
+  M.obj = startShape(M.shape); phase = 'draw'; drawTries = 0; chooseMsg = '';
+  renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function quitOffer() {
+  S.money = Math.max(0, S.money - 300); save();
+  chooseMsg = `${CLIENTS[M.client].name} blev skuffet og har fundet et andet firma. Du har betalt 300 kr i erstatning.`;
+  drawBad = false; goChoose();
+}
+function newMission() { goChoose(); }
 function solvable(m) {
   const R = { rect: { l: [1, 12], b: [1, 8] }, rtri: { a: [1, 12], b: [1, 8] }, tri: { g: [1, 12], o: [0, 0], h: [1, 8] }, para: { g: [1, 10], off: [0, 0], h: [1, 8] }, circ: { r: [1, 5] } }[m.shape];
   const keys = Object.keys(R), cands = [];
@@ -672,9 +780,9 @@ let justBuilt = false, drawBad = false, placing = null;
 /* ================= panel ================= */
 function header() {
   $('hMoney').textContent = kr(S.money);
-  $('hStars').textContent = S.stars;
+  $('hStars').textContent = Object.keys(S.dip).length + ' af ' + Object.keys(SKILLS).length;
   $('hParks').textContent = S.parks;
-  $('parkName').textContent = PARKS[S.park % PARKS.length].name + (S.park >= PARKS.length ? ' ' + (Math.floor(S.park / PARKS.length) + 1) : '');
+  $('parkName').textContent = (S.firm ? S.firm + ' · ' : '') + PARKS[S.park % PARKS.length].name + (S.park >= PARKS.length ? ' ' + (Math.floor(S.park / PARKS.length) + 1) : '');
   $('dots').innerHTML = Array.from({ length: MISSIONS_PER_PARK }, (_, i) => `<i class="${i < S.mission ? 'd' : i === S.mission ? 'n' : ''}"></i>`).join('');
 }
 function huskHTML(text) { const t = $('tHusk').content.firstElementChild.cloneNode(true); t.querySelector('.hb').textContent = text; return t.outerHTML; }
@@ -692,19 +800,26 @@ function readHTML() {
   return rows.map(r => `<span><small>${r[0]}</small><b>${r[1]}</b></span>`).join('');
 }
 function renderAll() { header(); renderMap(); renderPanel(); }
+function offerHTML(m, i) {
+  const c = CLIENTS[m.client];
+  return `<div class="offer" style="--oc:${m.color}"><div class="client"><span class="avatar" style="background:${c.col};width:34px;height:34px;font-size:15px">${c.name[0]}</span><span><b>${c.name}</b><small>${m.title}</small></span></div><p>${m.text}</p><div class="ofoot"><span class="fee">Honorar ${kr(m.fee)}</span><button class="go sm" type="button" data-take="${i}">Tag opgaven</button></div></div>`;
+}
 function renderPanel() {
-  const panel = $('panel'); panel.style.setProperty('--c', M ? M.color : 'var(--green)');
+  const panel = $('panel'); panel.style.setProperty('--c', M && phase !== 'parkdone' ? M.color : 'var(--teal)');
   const body = $('pBody');
-  if (phase === 'draw') {
+  if (phase === 'choose') {
+    $('pTitle').textContent = 'Telefonen ringer'; $('pPhase').textContent = 'Vælg kunde';
+    body.innerHTML = (chooseMsg ? `<div class="fb bad">${chooseMsg}</div>` : '') + `<p class="howto" style="color:var(--ink)">Tre kunder vil have dit firma til at bygge noget. Du kan kun tage én af opgaverne. Store opgaver giver et større honorar, men fylder mere. Tjek på kortet, om der er plads.</p><div class="offers">${offers.map(offerHTML).join('')}</div>`;
+  } else if (phase === 'draw') {
     $('pTitle').textContent = M.title; $('pPhase').textContent = '1 · Tegn';
-    body.innerHTML = clientHTML() + `<p class="howto">Tegn ${M.title.toLowerCase()} på kortet. Træk i figuren for at flytte den, og træk i de hvide prikker for at ændre størrelsen. Hvert tern er 1 m.</p><div class="read" id="read">${readHTML()}</div><div id="dfb"></div><button class="go" id="bDraw" type="button">Vis tegningen til kunden</button>`;
+    body.innerHTML = clientHTML() + `<p class="howto">Tegn ${M.title.toLowerCase()} på kortet. Træk i figuren for at flytte den, og træk i de hvide prikker for at ændre størrelsen. Hvert tern er 1 m.</p><div class="read" id="read">${readHTML()}</div><div id="dfb"></div><button class="go" id="bDraw" type="button">Vis tegningen til kunden</button><button class="linkbtn" id="bQuit" type="button">Der er ikke plads. Afvis opgaven (koster 300 kr)</button>`;
   } else if (phase === 'shop') {
     $('pTitle').textContent = M.title; $('pPhase').textContent = '2 · Bestil';
     const rows = M.shop.map((id, i) => { const m = MATS[id]; return `<tr><td class="sw"><span class="mat" style="background:${m.col};display:block"></span></td><td class="nm"><b>${m.name}</b><small>${m.price} kr pr. ${m.unit} · ${m.d}</small></td><td class="q"><input id="q${i}" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Antal ${m.unit} ${m.name}"><span class="u">${m.unit}</span></td></tr>`; }).join('');
     body.innerHTML = clientHTML() + `<p class="howto" style="color:var(--ink)"><b>Kunden har godkendt tegningen.</b> Nu skal du bestille materialer. Bestil kun det, der skal bruges, i hele ${'m, m², m³ eller stk'}.${M.depth ? ` Husk: ${M.look === 'muld' ? 'højden' : 'dybden'} er ${fmt(M.depth)} m.` : ''}</p>
       <div class="read">${readHTML()}</div>
       <table class="shop">${rows}</table>
-      <p class="howto">Kommunens budget: <b>${kr(M.budget)}</b>. Det, du ikke bruger, går i din kasse.</p>
+      <p class="howto">Budget til materialer: <b>${kr(M.budget)}</b>. Det, du ikke bruger, går i din kasse sammen med honoraret på ${kr(M.fee)}.</p>
       <div id="sfb"></div>
       <button class="go" id="bOrder" type="button">Bestil materialer</button>`;
   } else if (phase === 'result') {
@@ -712,7 +827,7 @@ function renderPanel() {
     body.innerHTML = clientHTML() + M.resultHTML;
   } else if (phase === 'parkdone') {
     $('pTitle').textContent = 'Parken åbner!'; $('pPhase').textContent = 'Indvielse';
-    body.innerHTML = M.resultHTML;
+    body.innerHTML = parkHTML;
   }
 }
 
@@ -721,6 +836,7 @@ function specOK(o) {
   const s = M.spec;
   if (s.k === 'area') return Math.abs(area(o) - s.v) < 1e-6;
   if (s.k === 'minarea') return area(o) >= s.v - 1e-6;
+  if (s.k === 'maxarea') return perim(o) <= s.v + 1e-6;
   if (s.k === 'perim') return Math.abs(perim(o) - s.v) < 1e-6;
   if (s.k === 'd') return 2 * o.r === s.v;
 }
@@ -729,6 +845,7 @@ function specHint() {
   if (s.k === 'perim') return HINTS.rect.perim + ' Prøv fx at gøre den ene side længere og den anden kortere.';
   if (s.k === 'd') return HINTS.circ.d;
   if (s.k === 'minarea') return HINTS.rect.area + ` Arealet skal være ${s.v} m² eller mere.`;
+  if (s.k === 'maxarea') return `Hegnet skal række hele vejen rundt, så omkredsen må højst være ${s.v} m. ` + HINTS.rect.perim;
   return HINTS[sh].area;
 }
 function onDrawCheck() {
@@ -736,12 +853,12 @@ function onDrawCheck() {
   if (collides(o)) { drawBad = true; renderMap(); $('dfb').innerHTML = `<div class="fb bad">Der er ikke plads. Figuren rammer et træ, en sti eller noget, du har bygget. Flyt den et andet sted hen.</div>`; return; }
   if (!specOK(o)) {
     drawTries++;
-    $('dfb').innerHTML = `<div class="fb bad">Kunden ryster på hovedet: Det passer ikke med det, vi bad om. Prøv igen.</div>` + huskHTML(specHint());
+    $('dfb').innerHTML = `<div class="fb bad">${M.spec.k === 'maxarea' ? 'Hegnet rækker ikke hele vejen rundt. Prøv igen.' : 'Kunden ryster på hovedet: Det passer ikke med det, vi bad om. Prøv igen.'}</div>` + huskHTML(specHint());
     return;
   }
   drawBad = false;
   M.drawStar = drawTries === 0;
-  S.skill[M.topic] = clamp(skill(M.topic) + (drawTries === 0 ? 0.5 : -0.5), 0, 4);
+  if (!M.opt) credit(drawSkill(M), drawTries === 0);
   setupShop();
   phase = 'shop'; renderAll();
   setTimeout(() => { try { $('q0').focus({ preventScroll: true }); } catch (e) {} }, 30);
@@ -791,37 +908,54 @@ function onOrder() {
     else if (q < nd.need) { exact = false; if (q === 0) wrongMat = true; const miss = nd.need - q; extra += miss * m.price * 2; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} var for lidt. Der manglede ${miss} ${m.unit}, og ekstra levering koster dobbelt pris.`, why: nd.why }); }
     else { exact = false; const over = q - nd.need; waste += over * m.price; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} var for meget. ${over} ${m.unit} blev ikke brugt.`, why: nd.why }); }
   });
-  const profit = Math.max(0, M.budget - spent - extra);
-  const stars = (M.drawStar ? 1 : 0) + (wrongMat ? 0 : 1) + (exact ? 1 : 0);
-  S.money += profit; S.stars += stars;
-  S.skill[M.topic] = clamp(skill(M.topic) + (exact ? 0.5 : -0.5), 0, 4);
+  const saved = Math.max(0, M.budget - spent - extra);
+  // skills for materials
+  M.needs.forEach((nd, k) => { const i = M.shop.indexOf(nd.mat); credit(needSkill(M.need[k].kind, M.shape), qty[i] === nd.need); });
+  // optimisation quality
+  let quality = 1, optHTML = '';
+  const o = M.obj;
+  if (M.opt === 'maxarea') {
+    const ob = optBest(M); const a1 = ob.b, b1 = ob.l; const best = ob.val;
+    quality = area(o) / best;
+    optHTML = `<div class="opt"><b>${quality >= 1 ? 'Største mulige hundeskov!' : 'Der var plads til en større hundeskov.'}</b> Din er ${o.l} · ${o.b} = ${area(o)} m². Med ${M.spec.v} m hegn er den største ${a1} · ${b1} = ${best} m². Et kvadrat eller noget tæt på giver mest areal for hegnet.</div>`;
+  } else if (M.opt === 'minperim') {
+    const ob = optBest(M); const best = ob.val, bl = ob.b, bb = ob.l;
+    quality = best / perim(o);
+    optHTML = `<div class="opt"><b>${quality >= 1 ? 'Mindst muligt hegn!' : 'Det kunne gøres med mindre hegn.'}</b> Dit hegn er ${fmt(perim(o))} m. Med ${bl} m og ${bb} m skal der kun bruges ${best} m hegn. Jo tættere på et kvadrat, jo mindre hegn.</div>`;
+  }
+  if (M.opt) credit('optimering', quality >= 1 - 1e-9);
+  const fee = Math.round(M.fee * quality / 50) * 50;
+  const profit = fee + saved;
+  S.money += profit;
   // build it
-  const built = Object.assign({}, M.obj, { look: M.look, title: M.title, border: M.need.some(n => n.mat === 'hegn') ? 'hegn' : M.need.some(n => n.mat === 'kantsten') ? 'kantsten' : '' });
+  const built = Object.assign({}, M.obj, { look: M.look, title: M.title, border: M.border || M.need.some(n => n.mat === 'hegn') ? (M.border || 'hegn') : M.need.some(n => n.mat === 'kantsten') ? 'kantsten' : '' });
   S.objects.push(built); justBuilt = true;
   S.mission++;
-  const starHTML = `<div class="bigstars">${'★'.repeat(stars)}<span class="off">${'★'.repeat(3 - stars)}</span></div>
-    <div class="starnote"><span>${M.drawStar ? '★' : '☆'} Tegningen passede første gang</span><span>${wrongMat ? '☆' : '★'} De rigtige materialer</span><span>${exact ? '★' : '☆'} Præcis de rigtige mængder</span></div>`;
-  const acct = `<table class="acct"><tr><td>Budget fra kommunen</td><td>${kr(M.budget)}</td></tr><tr><td>Materialer</td><td class="neg">− ${kr(spent)}</td></tr>${extra ? `<tr><td>Ekstra levering</td><td class="neg">− ${kr(extra)}</td></tr>` : ''}<tr class="sum"><td>Til din kasse</td><td>${kr(profit)}</td></tr></table>`;
+  const ck = (ok, t) => `<span><span class="${ok ? 'y' : 'n'}">${ok ? '✓' : '✗'}</span> ${t}</span>`;
+  const starHTML = `<div class="checks">${ck(M.drawStar, 'Tegningen passede første gang')}${ck(!wrongMat, 'De rigtige materialer')}${ck(exact, 'Præcis de rigtige mængder')}${M.opt ? ck(quality >= 1 - 1e-9, M.opt === 'maxarea' ? 'Størst muligt areal' : 'Mindst muligt hegn') : ''}</div>` + optHTML;
+  const acct = `<table class="acct"><tr><td>Honorar fra kunden${quality < 1 ? ` (${Math.round(quality * 100)} %)` : ''}</td><td>${kr(fee)}</td></tr><tr><td>Budget til materialer</td><td>${kr(M.budget)}</td></tr><tr><td>Materialer</td><td class="neg">− ${kr(spent)}</td></tr>${extra ? `<tr><td>Ekstra levering</td><td class="neg">− ${kr(extra)}</td></tr>` : ''}<tr class="sum"><td>Til din kasse</td><td>${kr(profit)}</td></tr></table>`;
+  const progHTML = `<div class="prog"><span class="qlbl" style="margin:0">Dine diplomer</span>${M.skills.map(id => { const st = sk(id); return `<div class="row"><span>${SKILLS[id].name}</span><b>${S.dip[id] ? '★ Diplom' : Math.min(st.c, NEEDED) + ' af ' + NEEDED}</b><span class="bar"><i style="width:${Math.min(1, st.c / NEEDED) * 100}%"></i></span></div>`; }).join('')}</div>`;
   const calcs = `<div class="calcs">${lines.map(l => `<div class="calc ${l.ok ? 'ok' : 'bad'}"><b>${l.t}</b>${l.why}</div>`).join('')}</div>`;
   const last = S.mission >= MISSIONS_PER_PARK;
-  M.resultHTML = starHTML + calcs + acct + `<button class="go" id="bNext" type="button">${last ? 'Åbn parken' : 'Tag telefonen: næste kunde'}</button>` + (waste ? `<p class="howto">Spildte penge: ${kr(waste)}.</p>` : '');
+  M.resultHTML = starHTML + calcs + acct + progHTML + `<button class="go" id="bNext" type="button">${last ? 'Åbn parken' : 'Tag telefonen: næste kunde'}</button>` + (waste ? `<p class="howto">Spildte penge: ${kr(waste)}.</p>` : '');
   phase = 'result';
   save(); renderAll();
+  if (newDiplomas.length) { const id = newDiplomas.shift(); setTimeout(() => showDiploma(id, true), 1200); }
   setTimeout(() => { justBuilt = false; }, 3000);
 }
+let parkHTML = '';
+function openPark(full) {
+  S.parks++;
+  const bonus = 1000 + S.decor.length * 200;
+  S.money += bonus; save();
+  parkHTML = (full ? `<div class="fb bad">Der er ikke plads til flere af kundernes ønsker, så parken åbner nu.</div>` : '') + `<p style="margin:0">Borgmesteren klipper snoren over, og ${PARKS[S.park % PARKS.length].name} er åben! Du får <b>${kr(bonus)}</b> i bonus, og der kommer ekstra bonus for hver ting, du har pyntet med.</p>
+    <p class="howto">Brug pengene på pynt nu, eller tag den næste park.</p><button class="go green" id="bNext" type="button">Byg næste park</button>`;
+  phase = 'parkdone'; renderAll();
+}
 function onNext() {
-  if (S.mission >= MISSIONS_PER_PARK) {
-    if (phase !== 'parkdone') {
-      S.parks++;
-      const bonus = 1000 + S.decor.length * 200;
-      S.money += bonus; save();
-      M.resultHTML = `<p style="margin:0">Borgmesteren klipper snoren over, og ${PARKS[S.park % PARKS.length].name} er åben! Du får <b>${kr(bonus)}</b> i bonus, og der kommer ekstra bonus for hver ting, du har pyntet med.</p>
-        <p class="howto">Brug pengene på pynt nu, eller tag den næste park.</p><button class="go green" id="bNext" type="button">Byg næste park</button>`;
-      phase = 'parkdone'; renderAll(); return;
-    }
-    S.park++; S.mission = 0; S.objects = []; S.decor = []; save();
-  }
-  newMission();
+  if (phase === 'parkdone') { S.park++; S.mission = 0; S.objects = []; S.decor = []; save(); goChoose(); return; }
+  if (S.mission >= MISSIONS_PER_PARK) { openPark(false); return; }
+  goChoose();
 }
 
 /* ================= decor ================= */
@@ -871,6 +1005,8 @@ $('map').addEventListener('keydown', e => {
   renderActive(); const r = $('read'); if (r) r.innerHTML = readHTML();
 });
 $('pBody').addEventListener('click', e => {
+  const tk = e.target.closest('[data-take]'); if (tk) { takeOffer(+tk.dataset.take); return; }
+  if (e.target.id === 'bQuit') { quitOffer(); return; }
   if (e.target.id === 'bDraw') onDrawCheck();
   else if (e.target.id === 'bOrder') onOrder();
   else if (e.target.id === 'bNext') onNext();
@@ -883,12 +1019,33 @@ $('topics').innerHTML = TOPICS.map(t => `<label class="tp" style="--tc:${t.c}"><
 if (prev) $('bResume').hidden = false;
 function chosenTopics() { const o = {}; TOPICS.forEach(t => o[t.id] = $('tp-' + t.id).checked); if (!Object.values(o).some(Boolean)) o.firkant = true; return o; }
 function enterGame() { $('start').hidden = true; $('game').hidden = false; window.scrollTo({ top: 0 }); }
-$('bStart').addEventListener('click', () => { S = fresh(chosenTopics()); save(); enterGame(); newMission(); });
-$('bResume').addEventListener('click', () => { S = Object.assign(fresh(chosenTopics()), prev); S.topics = chosenTopics(); enterGame(); if (S.mission >= MISSIONS_PER_PARK) { S.park++; S.mission = 0; S.objects = []; S.decor = []; } newMission(); });
+function who() { S.name = $('nameIn').value.trim().slice(0, 30); S.firm = $('firmIn').value.trim().slice(0, 30); }
+$('bStart').addEventListener('click', () => { S = fresh(chosenTopics()); who(); save(); enterGame(); goChoose(); });
+$('bResume').addEventListener('click', () => { S = Object.assign(fresh(chosenTopics()), prev); S.topics = chosenTopics(); if ($('nameIn').value.trim()) S.name = $('nameIn').value.trim().slice(0, 30); if ($('firmIn').value.trim()) S.firm = $('firmIn').value.trim().slice(0, 30); enterGame(); if (S.mission >= MISSIONS_PER_PARK) { S.park++; S.mission = 0; S.objects = []; S.decor = []; } goChoose(); });
+if (prev) { $('nameIn').value = prev.name || ''; $('firmIn').value = prev.firm || ''; }
 // header on start
 S = prev ? Object.assign(fresh({}), prev) : fresh({});
-$('hMoney').textContent = kr(S.money); $('hStars').textContent = S.stars; $('hParks').textContent = S.parks;
-window.__dbg = () => ({ S, M, phase, specOK, area, perim, collides, inBounds });
+$('hMoney').textContent = kr(S.money); $('hStars').textContent = Object.keys(S.dip || {}).length + ' af ' + Object.keys(SKILLS).length; $('hParks').textContent = S.parks;
+/* ================= diplomas ================= */
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function figSrc() { return $('tHusk').content.querySelector('img').getAttribute('src'); }
+function certHTML(id) {
+  const k = SKILLS[id];
+  return `<div class="cert"><span class="seal">★</span><span class="dk">DIPLOM</span><span class="txt">tildeles</span><span class="who">${esc(S.name || 'Parkarkitekten')}</span>${S.firm ? `<span class="txt">fra ${esc(S.firm)}</span>` : ''}<span class="tt">${k.title} · ${k.name}</span><span class="txt">for at have vist ${NEEDED} gange at kunne ${k.can}.</span><div class="sig"><span>${S.dip[id] || ''}</span><span>Kommunens parkchef</span></div><img src="${figSrc()}" alt=""></div>`;
+}
+function openModal(html) { $('mContent').innerHTML = html; $('modal').hidden = false; setTimeout(() => { try { $('mClose').focus(); } catch (e) {} }, 30); }
+function closeModal() { $('modal').hidden = true; if (newDiplomas.length) { const id = newDiplomas.shift(); setTimeout(() => showDiploma(id, true), 300); } }
+function showDiploma(id, isNew) { openModal(`<h2 id="mTitle">${isNew ? 'Nyt diplom!' : 'Diplom'}</h2>${certHTML(id)}${isNew ? '<p class="howto" style="margin:0">Opgaver af den slags kommer nu sjældnere, så du får tid til nye udfordringer. Se alle dine diplomer under "Diplomer" øverst.</p>' : ''}`); }
+function showWall() {
+  if (!S) return;
+  const ids = Object.keys(SKILLS).filter(id => S.topics[SKILLS[id].topic] !== false);
+  openModal(`<h2 id="mTitle">Dine diplomer</h2><p class="howto" style="margin:0">Du får et diplom, når du har vist ${NEEDED} gange, at du kan noget. Tryk på et diplom for at se det.</p><div class="wall">${ids.map(id => { const k = SKILLS[id], st = S.sk[id] || { c: 0 }; return S.dip[id] ? `<button type="button" class="mini" data-dip="${id}"><b>${k.title}</b><span>${k.name}</span><span>★ ${S.dip[id]}</span></button>` : `<div class="mini locked"><b>${k.title}</b><span>${k.name}</span><span>${Math.min(st.c, NEEDED)} af ${NEEDED}</span><span class="bar"><i style="width:${Math.min(1, st.c / NEEDED) * 100}%"></i></span></div>`; }).join('')}</div>`);
+}
+$('bDip').addEventListener('click', showWall);
+$('mClose').addEventListener('click', closeModal);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); const d = e.target.closest('[data-dip]'); if (d) showDiploma(d.dataset.dip, false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden) closeModal(); });
+window.__dbg = () => ({ S, M, phase, offers, solvable, optFits, specOK, area, perim, collides, inBounds });
 })();
 </script>
 
