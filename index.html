@@ -148,7 +148,7 @@ const SUBJECTS = {
   natur: { name: "Natur/teknologi", color: "var(--nat)", blurb: "Forsøg, naturfænomener og undersøgelser.",
     icon: '<path d="M10 3h4M11 3v6l-5 9a2 2 0 002 3h8a2 2 0 002-3l-5-9V3"/><path d="M8 15h8"/>' },
 };
-const TYPES = { pdf: "PDF", pres: "Præsentation", spil: "Spil" };
+const TYPES = { pdf: "PDF", pres: "Præsentation", spil: "Spil", vaerktoej: "Digitalt værktøj" };
 
 // Ugentlige opgavesæt i matematik, nyeste først. Kun figurer vises, aldrig niveau.
 const WEEKS = [
@@ -163,6 +163,7 @@ const SHAPES = [
 const MATERIALS = [
   { title: "Søslaget", subject: "matematik", grades: [6], type: "spil", file: "materialer/matematik/koordinatsystem/soeslaget.html", categories: ["Koordinatsystemet"], desc: "Sænke slagskibe i et koordinatsystem med fire kvadranter. Sigt med (x, y) og sænk flåden. Spil mod computeren, eller mod en klassekammerat på en anden skærm med en spilkode." },
   { title: "Parkarkitekten", subject: "matematik", grades: [6], type: "spil", file: "materialer/matematik/geometri/parkarkitekten.html", categories: ["Geometri"], desc: "Browserspil: Vælg mellem kunderne, tegn terrasser, bede og springvand ind i parken, bestil materialer i m, m² og m³, og hold budgettet. Optjen diplomer. Træner omkreds, areal og rumfang." },
+  { title: "Cirklens hemmelige tal", subject: "matematik", grades: [6], type: "vaerktoej", file: "materialer/matematik/geometri/cirklens-hemmelige-tal.html", categories: ["Geometri"], desc: "Træk i skyderen og gør cirklen større og mindre. Se omkreds og diameter, og find ud af, hvad omkreds : diameter altid giver. Gem dine målinger i en tabel." },
   { title: "To be i nutid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-be-nutid.pdf"], ["Ark B", "materialer/engelsk/to-be-nutid-b.pdf"]], desc: "Sådan bøjer du am, is og are, med udfyldningsopgaver og oversættelse begge veje." },
   { title: "To be i datid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-be-datid-a.pdf"], ["Ark B", "materialer/engelsk/to-be-datid-b.pdf"]], desc: "Was og were, og ord som yesterday og last week, der viser at det er datid." },
   { title: "To have i nutid", subject: "engelsk", grades: [4, 5, 6], type: "pdf", files: [["Ark A", "materialer/engelsk/to-have-nutid-a.pdf"], ["Ark B", "materialer/engelsk/to-have-nutid-b.pdf"]], desc: "Hvornår det hedder have, og hvornår det hedder has." },
