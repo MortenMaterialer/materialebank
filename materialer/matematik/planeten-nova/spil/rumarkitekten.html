@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rumarkitekten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Outfit:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: navy header band like the worksheets; the park map is the stage, a side panel carries the customer order, the shop and the accounts. Single light look matching the printed materials. */
+:root {
+  --navy: #1b1b31; --cream: #f7f4ec; --ink: #1f2233; --muted: #5d6175; --line: #d9d4c6; --white: #ffffff;
+  --husk: #c96f12; --huskbg: #fff8ea; --ok: #2f8a5f; --okbg: #e6f4ec; --bad: #c0443b; --badbg: #fbe9e7;
+  --red: #d9534a; --blue: #2f78bd; --amber: #d4930f; --green: #3a9e78; --teal: #2e8b87; --purple: #7d4fb5;
+  --gold: #f2b632;
+  --display: "Jersey 10", "Outfit", system-ui, sans-serif;
+  --body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+button { font: inherit; cursor: pointer; color: inherit; }
+button:focus-visible, input:focus-visible, .hd:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { background: var(--navy); color: var(--white); }
+header.top .wrap { padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.kick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b9bccb; display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.shapes { display: inline-flex; gap: 6px; }
+.shapes svg { width: 11px; height: 11px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(26px, 4.4vw, 36px); line-height: 1; margin: 0; }
+.hud { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 6px 13px; font-size: 14px; color: #e6e7ef; display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip b { color: var(--white); font-size: 16px; }
+.chip.money b { color: #9fe0b8; }
+.chip .star { color: var(--gold); }
+
+main { padding-block: 18px 40px; }
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .stage { grid-template-columns: 1fr; } }
+
+.mapcard { background: var(--white); border: 2px solid var(--green); border-radius: 14px; overflow: hidden; box-shadow: 0 3px 0 #b6dcc9; min-width: 0; }
+.mapbar { background: var(--green); color: var(--white); padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 700; flex-wrap: wrap; }
+.mapbar small { font-weight: 500; opacity: .92; font-size: 14px; }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.3); display: block; }
+.dots i.d { background: var(--white); }
+.dots i.n { outline: 2px solid var(--white); outline-offset: 1px; }
+#map { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+.maptools { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #d7eadf; flex-wrap: wrap; align-items: center; background: #f3faf6; }
+.maptools .tip { color: var(--muted); font-size: 14px; flex: 1 1 200px; }
+.decor { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 12px 12px; background: #f3faf6; }
+.ditem { display: flex; align-items: center; gap: 8px; border: 2px solid #b6dcc9; background: var(--white); border-radius: 10px; padding: 5px 10px 5px 6px; font-size: 14px; font-weight: 600; }
+.ditem svg { width: 28px; height: 28px; }
+.ditem small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+.ditem[aria-pressed="true"] { border-color: var(--green); background: #e3f3ea; }
+.ditem:disabled { opacity: .45; cursor: default; }
+
+.panel { --c: var(--blue); border: 2px solid var(--c); border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--c) 7%, var(--white)); box-shadow: 0 3px 0 color-mix(in srgb, var(--c) 35%, var(--white)); min-width: 0; }
+.pbar { background: var(--c); color: var(--white); padding: 8px 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.pbar .t { flex: 1; }
+.pbar .ph { font-size: 13px; font-weight: 600; background: rgba(255,255,255,.22); padding: 2px 9px; border-radius: 999px; }
+.pbody { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.client { display: flex; gap: 10px; align-items: center; }
+.avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: var(--white); font-family: var(--display); font-size: 18px; }
+.client b { display: block; line-height: 1.2; }
+.client small { color: var(--muted); font-size: 13px; }
+.quote { background: var(--white); border: 1.5px solid color-mix(in srgb, var(--c) 35%, var(--white)); border-radius: 4px 12px 12px 12px; padding: 10px 12px; font-size: 16px; }
+.qlbl { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.quote strong { color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
+.read { display: flex; gap: 8px; flex-wrap: wrap; }
+.read span { background: var(--white); border: 1.5px solid color-mix(in srgb, var(--c) 35%, var(--white)); border-radius: 8px; padding: 4px 10px; display: flex; flex-direction: column; min-width: 84px; }
+.read small { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.read b { font-size: 19px; font-variant-numeric: tabular-nums; }
+.howto { font-size: 14px; color: var(--muted); margin: 0; }
+.go { background: var(--navy); color: var(--white); border: 0; border-radius: 10px; padding: 11px 20px; font-weight: 700; font-size: 17px; align-self: flex-start; }
+.go:disabled { opacity: .4; cursor: default; }
+.go.alt { background: var(--white); color: var(--navy); border: 2px solid var(--navy); }
+.go.green { background: var(--green); }
+.fb { border-radius: 10px; padding: 9px 12px; font-weight: 500; font-size: 15px; }
+.fb.ok { background: var(--okbg); color: #1d5e3f; border: 1.5px solid var(--ok); }
+.fb.bad { background: var(--badbg); color: #8a2a23; border: 1.5px solid var(--bad); }
+.husk { display: flex; border: 2px solid var(--husk); border-radius: 10px; overflow: hidden; background: var(--huskbg); }
+.husk .hk { flex: none; width: 92px; background: var(--husk); color: var(--white); display: flex; align-items: center; gap: 4px; padding: 4px 6px; font-weight: 700; line-height: 1.15; font-size: 14px; }
+.husk .hk img { height: 54px; width: auto; }
+.husk .hb { padding: 8px 12px; font-size: 14.5px; display: flex; align-items: center; }
+
+table.shop { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--white); border-radius: 10px; overflow: hidden; border: 1.5px solid color-mix(in srgb, var(--c) 40%, var(--white)); font-size: 15px; }
+.shop td { padding: 7px 8px; border-top: 1px solid color-mix(in srgb, var(--c) 18%, var(--white)); vertical-align: middle; }
+.shop tr:first-child td { border-top: 0; }
+.shop .nm b { display: block; line-height: 1.2; }
+.shop .nm small { color: var(--muted); font-size: 13px; }
+.shop .q { white-space: nowrap; text-align: right; }
+.shop input { width: 64px; font: 600 17px var(--body); padding: 5px 6px; border: 2px solid color-mix(in srgb, var(--c) 45%, var(--white)); border-radius: 7px; text-align: right; font-variant-numeric: tabular-nums; }
+.shop .u { display: inline-block; min-width: 26px; text-align: left; font-weight: 600; margin-left: 3px; }
+.mat { width: 26px; height: 26px; border-radius: 6px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+.shop .sw { width: 34px; }
+
+.acct { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; background: var(--white); border-radius: 10px; overflow: hidden; }
+.acct td { padding: 6px 10px; border-top: 1px solid #ece8de; }
+.acct tr:first-child td { border-top: 0; }
+.acct td:last-child { text-align: right; white-space: nowrap; }
+.acct tr.sum td { font-weight: 700; border-top: 2px solid var(--ink); }
+.acct .neg { color: var(--bad); }
+.calcs { display: flex; flex-direction: column; gap: 6px; }
+.calc { background: var(--white); border-left: 4px solid var(--c); border-radius: 6px; padding: 7px 10px; font-size: 14.5px; }
+.calc b { display: block; }
+.calc.ok { border-left-color: var(--ok); }
+.calc.bad { border-left-color: var(--bad); }
+.offers { display: flex; flex-direction: column; gap: 10px; }
+.offer { --oc: var(--blue); background: var(--white); border: 2px solid color-mix(in srgb, var(--oc) 45%, var(--white)); border-left: 6px solid var(--oc); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.offer .client b { font-size: 15px; }
+.offer p { margin: 0; font-size: 15px; }
+.offer p strong { color: color-mix(in srgb, var(--oc) 75%, var(--ink)); }
+.ofoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fee { font-weight: 700; font-variant-numeric: tabular-nums; color: #1d5e3f; background: var(--okbg); border-radius: 999px; padding: 3px 10px; font-size: 14px; }
+.go.sm { font-size: 15px; padding: 8px 14px; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; font-size: 14px; align-self: flex-start; }
+.checks { display: flex; flex-direction: column; gap: 3px; font-size: 14.5px; }
+.checks .y { color: var(--ok); font-weight: 700; } .checks .n { color: var(--bad); font-weight: 700; }
+.prog { display: flex; flex-direction: column; gap: 6px; background: var(--white); border-radius: 10px; padding: 9px 12px; }
+.prog .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+.bar { height: 7px; border-radius: 99px; background: #ece8de; grid-column: 1 / -1; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--amber); border-radius: 99px; }
+.opt { background: #fff8ea; border: 1.5px solid var(--husk); border-radius: 10px; padding: 8px 12px; font-size: 14.5px; }
+.modal[hidden] { display: none; }
+.modal { position: fixed; inset: 0; background: rgba(27,27,49,.62); display: grid; place-items: center; z-index: 50; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.mbox { background: var(--cream); border-radius: 16px; max-width: 640px; width: 100%; max-height: 90vh; overflow: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.mbox h2 { font-family: var(--display); margin: 0; font-size: 26px; }
+.cert { background: #fffdf6; border: 7px double #c9a227; border-radius: 6px; padding: 20px 18px; text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; position: relative; }
+.cert .seal { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #f6d36b, #c9a227); display: grid; place-items: center; color: #6b4e00; font-family: var(--display); font-weight: 800; font-size: 24px; box-shadow: 0 2px 0 #a8861c; }
+.cert .dk { font-family: var(--display); font-weight: 800; letter-spacing: .18em; font-size: 30px; color: #8a6a12; }
+.cert .who { font-family: var(--display); font-weight: 700; font-size: 24px; }
+.cert .tt { font-weight: 700; font-size: 18px; color: var(--ink); }
+.cert .txt { color: var(--muted); max-width: 40ch; }
+.cert .sig { margin-top: 8px; display: flex; justify-content: space-between; width: 100%; font-size: 13px; color: var(--muted); border-top: 1px solid #e3d9bd; padding-top: 6px; gap: 8px; }
+.cert img { position: absolute; right: 16px; bottom: 48px; height: 64px; }
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.mini { background: #fffdf6; border: 4px double #c9a227; border-radius: 6px; padding: 10px; text-align: center; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.mini b { font-size: 15px; }
+.mini.locked { border-color: #d8d3c4; background: #f2efe7; color: var(--muted); }
+.mini .bar { margin-top: 2px; }
+.who-in { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.who-in label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.who-in input { font: 500 16px var(--body); padding: 7px 9px; border: 2px solid #b6dcc9; border-radius: 8px; background: var(--white); color: var(--ink); min-width: 0; }
+.chip.dip { cursor: pointer; font: inherit; font-size: 14px; }
+.bigstars { font-size: 30px; letter-spacing: 3px; color: var(--gold); line-height: 1; }
+.bigstars .off { color: #d8d3c4; }
+.starnote { font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+
+.intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 800px) { .intro { grid-template-columns: 1fr; } }
+.intro h2 { font-family: var(--display); font-size: clamp(22px, 3.4vw, 30px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; }
+.intro p { margin: 0 0 10px; max-width: 62ch; }
+.loop { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.loop li { display: flex; gap: 10px; align-items: flex-start; }
+.loop .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--white); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.topics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tp { display: flex; align-items: center; gap: 8px; border: 2px solid var(--tc); border-radius: 10px; padding: 8px 10px; background: var(--white); font-weight: 600; }
+.tp input { width: 20px; height: 20px; accent-color: var(--tc); }
+.startbtns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.ml { font: 700 13px var(--body); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+.ml.h { fill: var(--husk); }
+.mt { font: 700 11px var(--body); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 3px; }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.newobj { transform-box: fill-box; transform-origin: center; animation: pop .5s cubic-bezier(.3,1.6,.5,1) 1s both; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- pixel edition: square corners, hard shadows, pixel display font, the park painted in pixels ---------- */
+.px, #map image, .ditem img { image-rendering: pixelated; image-rendering: crisp-edges; }
+#map image { image-rendering: pixelated; }
+header.top::after { content: ""; display: block; height: 12px; background: var(--hedge) repeat-x left bottom / 48px 12px; image-rendering: pixelated; }
+.mapcard, .panel, .go, .chip, .ditem, .offer, .quote, .read span, .fb, .husk, table.shop, .acct, .calc, .opt, .mbox, .cert, .mini, .tp, .who-in input, .shop input, .avatar, .dots i, .bar, .bar i, .fee, .pbar .ph, .loop .n, .prog, .mat { border-radius: 0 !important; }
+.mapcard { border-width: 3px; box-shadow: 5px 5px 0 #b6dcc9; }
+.panel { border-width: 3px; box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 35%, var(--white)); }
+h1, h2, .mapbar, .pbar .t, .go, .chip, .avatar, .loop .n, .read b, .fee, .husk .hk span, .cert .dk, .cert .who, .mini b { font-family: var(--display); font-weight: 400 !important; letter-spacing: .03em; }
+h1 { font-size: clamp(38px, 6vw, 52px); }
+.intro h2 { font-size: clamp(30px, 4.4vw, 40px); } .mbox h2 { font-size: 34px; }
+.mapbar { font-size: 23px; padding: 4px 14px 5px; } .pbar { padding: 4px 14px 5px; } .pbar .t { font-size: 23px; }
+.dots i { width: 11px; height: 11px; }
+.chip { font-size: 18px; padding: 4px 12px; border-width: 2px; } .chip b { font-size: 21px; }
+.go { font-size: 23px; padding: 5px 18px 6px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; }
+.go.alt { border-color: var(--navy); box-shadow: 4px 4px 0 var(--line); }
+.go.green { border-color: #1e5440; box-shadow: 4px 4px 0 #1e5440; }
+.go:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+.go.sm { font-size: 20px; padding: 3px 13px 4px; }
+.avatar { font-size: 24px; }
+.loop .n { font-size: 19px; }
+.read b { font-size: 25px; } .fee { font-size: 19px; }
+.quote, .read span, .offer, .tp, .ditem, table.shop, .shop input, .who-in input { border-width: 2px; }
+.offer { box-shadow: 3px 3px 0 color-mix(in srgb, var(--oc) 30%, var(--white)); }
+.ditem { border-width: 3px; box-shadow: 3px 3px 0 #b6dcc9; }
+.ditem img { height: auto; display: block; }
+.mat { background-size: 32px 32px !important; image-rendering: pixelated; }
+.fb { border-width: 2px; }
+.husk { border-width: 3px; box-shadow: 4px 4px 0 #ecd59e; }
+.husk .hk { width: 118px; font-size: 20px; }
+.husk .hk img { height: 88px; }
+.cert { border: 6px solid #c9a227; box-shadow: inset 0 0 0 3px #fffdf6, inset 0 0 0 6px #c9a227; }
+.cert .seal { background: none; box-shadow: none; width: auto; height: auto; }
+.cert .seal img { position: static; height: 60px; }
+.cert > img { height: 88px; bottom: 40px; }
+.cert .dk { font-size: 40px; } .cert .who { font-size: 32px; }
+.mini { border: 4px solid #c9a227; } .mini.locked { border-color: #d8d3c4; } .mini b { font-size: 19px; }
+.ml { font: 400 19px var(--display); letter-spacing: .03em; stroke-width: 4px; stroke-linejoin: miter; }
+.mt { font: 400 15px var(--display); letter-spacing: .04em; }
+.newobj { transform-box: view-box; animation: pop .5s steps(4) 1s both; }
+/* sprite animation: frames swap in steps */
+.k1 { animation: k1 .9s steps(1) infinite; } .k2 { animation: k2 .9s steps(1) infinite; }
+@keyframes k1 { 0% { opacity: 1; } 50% { opacity: 0; } } @keyframes k2 { 0% { opacity: 0; } 50% { opacity: 1; } }
+.f3a, .f3b, .f3c { animation: 1.5s steps(1) infinite; } .f3a { animation-name: f3a; } .f3b { animation-name: f3b; } .f3c { animation-name: f3c; }
+@keyframes f3a { 0% { opacity: 1; } 33.3% { opacity: 0; } } @keyframes f3b { 0% { opacity: 0; } 33.3% { opacity: 1; } 66.6% { opacity: 0; } } @keyframes f3c { 0% { opacity: 0; } 66.6% { opacity: 1; } }
+.walk { animation-name: walk; animation-iteration-count: infinite; } @keyframes walk { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(var(--dx), var(--dy)); } }
+.fwd { animation: fwd 1s steps(1) infinite; } .bwd { animation: bwd 1s steps(1) infinite; }
+@keyframes fwd { 0% { opacity: 1; } 50% { opacity: 0; } } @keyframes bwd { 0% { opacity: 0; } 50% { opacity: 1; } }
+.sail { animation-name: sail; animation-duration: 26s; animation-iteration-count: infinite; } @keyframes sail { from { transform: translateX(var(--a)); } to { transform: translateX(var(--b)); } }
+.truck { opacity: 0; animation: truck 2.8s linear forwards; }
+@keyframes truck { 0% { opacity: 1; transform: translateX(var(--x0)); animation-timing-function: steps(24); } 35% { transform: translateX(var(--cx)); animation-timing-function: steps(1); } 60% { transform: translateX(var(--cx)); animation-timing-function: steps(24); } 95% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--x1)); } }
+.spark { opacity: 0; animation: spark 5s steps(1) infinite; } @keyframes spark { 0%, 40%, 70%, 100% { opacity: 0; } 45%, 65% { opacity: .95; } }
+@media (prefers-reduced-motion: reduce) { .k2, .bwd, .f3b, .f3c, .spark { display: none; } .k1, .fwd, .f3a { opacity: 1; } }
+
+/* ---------- space edition (Rumarkitekten) ---------- */
+header.top { background-color: #15122b; background-image:
+  radial-gradient(1px 1px at 12% 30%, #fff 99%, transparent), radial-gradient(1px 1px at 33% 70%, #ffd34d 99%, transparent),
+  radial-gradient(1px 1px at 58% 22%, #fff 99%, transparent), radial-gradient(1px 1px at 77% 64%, #b9b3e6 99%, transparent),
+  radial-gradient(2px 2px at 90% 28%, #fff 99%, transparent), radial-gradient(1px 1px at 46% 85%, #fff 99%, transparent),
+  radial-gradient(1px 1px at 5% 80%, #b9b3e6 99%, transparent), radial-gradient(1px 1px at 68% 45%, #fff 99%, transparent);
+  background-size: 180px 90px; }
+.mapcard { border-color: #5fe0d0 !important; box-shadow: 5px 5px 0 #b9b3e6 !important; }
+.mapbar { background: #241d45 !important; color: #ffffff !important; }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="kick">
+        <span class="shapes" aria-hidden="true">
+          <svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z" fill="#d9534a"/></svg>
+          <svg viewBox="0 0 10 10"><rect width="10" height="10" fill="#2f78bd"/></svg>
+          <svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path d="M4 0h2v2h1v2h1v2h1v2h1v2h-10v-2h1v-2h1v-2h1v-2h1z" fill="#d4930f"/></svg>
+        </span>
+        Matematik · 6. klasse · Geometri
+      </div>
+      <h1>Rumarkitekten</h1>
+    </div>
+    <div class="hud">
+      <span class="chip money">Kasse <b id="hMoney">0 kr</b></span>
+      <button type="button" class="chip dip" id="bDip"><span class="star">★</span> Diplomer <b id="hStars">0</b></button>
+      <span class="chip">Felter bygget <b id="hParks">0</b></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" lang="da">
+  <!-- START -->
+  <section id="start" class="intro">
+    <div>
+      <h2>Koloniens arkitekt</h2>
+      <p>Kolonien er lige landet på planeten Nova, og alt skal bygges fra bunden. Du er koloniens arkitekt. Kolonisterne kalder op over radioen og beder om en landingsplads, en fold til glimfårene, et solcellefelt eller en vandtank. Du tegner byggeriet ind på kortet, bestiller præcis de materialer, der skal bruges, fra forsyningsskibet og tjener kreditter på det, du sparer.</p>
+      <ul class="loop">
+        <li><span class="n">1</span><span><b>Vælg opgave.</b> Tre kolonister kalder på én gang. Store opgaver giver mere, men fylder mere på byggefeltet, så tænk dig om.</span></li>
+        <li><span class="n">2</span><span><b>Tegn</b> byggeriet på kortet. Træk i figuren og de hvide prikker. Hvert tern er 1 m. Byg udenom sten, kratere og det, der allerede står der.</span></li>
+        <li><span class="n">3</span><span><b>Bestil</b> materialer fra forsyningsskibet. Metalplader købes i m², energihegn i m og regolit i m³. Bestiller du for lidt, koster en ekstra levering dobbelt. Bestiller du for meget, er pengene spildt.</span></li>
+        <li><span class="n">4</span><span><b>Tjen kreditter og diplomer.</b> Når du har vist, at du kan noget, får du et diplom fra Kommandøren. Kreditterne kan bruges på udstyr til kolonien.</span></li>
+      </ul>
+    </div>
+    <div class="panel" style="--c:var(--green)">
+      <div class="pbar"><span class="t">Hvad må kolonisterne bestille?</span></div>
+      <div class="pbody">
+        <div class="who-in"><label for="nameIn">Dit navn<input id="nameIn" type="text" autocomplete="off" maxlength="30" placeholder="Til dine diplomer"></label><label for="firmIn">Dit firma<input id="firmIn" type="text" autocomplete="off" maxlength="30" placeholder="Fx Nova Byg ApS"></label></div>
+        <div class="topics" id="topics"></div>
+        <p class="howto">Mindst én skal være valgt.</p>
+        <div class="startbtns">
+          <button class="go green" id="bStart" type="button">Start nyt firma</button>
+          <button class="go alt" id="bResume" type="button" hidden>Fortsæt</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="stage" hidden>
+    <div class="mapcard">
+      <div class="mapbar"><span id="parkName">Landingszonen</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+      <svg id="map" role="img" aria-label="Kort over byggefeltet"></svg>
+      <div class="maptools">
+        <span class="tip" id="tip">Træk i figuren for at flytte den. Træk i de hvide prikker for at ændre størrelsen.</span>
+        <button class="go alt" id="bDecor" type="button" style="font-size:20px;padding:3px 13px 4px">Køb udstyr</button>
+      </div>
+      <div class="decor" id="decor" hidden></div>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="pbar"><span class="t" id="pTitle">Ny opgave</span><span class="ph" id="pPhase">1 · Tegn</span></div>
+      <div class="pbody" id="pBody"></div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden><div class="mbox" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div id="mContent"></div><button class="go" id="mClose" type="button">Luk</button></div></div>
+<template id="tHusk">
+  <div class="husk"><div class="hk"><img class="px" alt=""><span>Husk dette!</span></div><div class="hb"></div></div>
+</template>
+
+<script>
+(() => {
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+/* pixel sprites (edit them in Piskel: the .piskel files sit next to this game). name: { w, h, f: [frame data URIs] } */
+const SPR = {"trae":{"w":24,"h":24,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABX0lEQVR42rWWIW+DQBiGXy5tqpZaXIMjqLnaQzSz/INRWTfJT5isWSqh+wXYpaLnlpllmWA4Mle1pLKpYGKBHMcdHBf2KSB3z/vd+313B/DPYZlM8hxa8u9ZwZSciQnw6Sutn9NTDvhRqRKydMA8kM7mYJfzH1iIgx+1RCxdMB8yOACwPMd1kzREJmOAtYrsObRUgYfAxVUQGZzO5sZwrS4Si7hdLPHw/dYat10scfuyVzVImBUsITJreHhgu2CXMwLbRWC7jXEyUTFIl9c8MD3lUquo67a+TXchAMS1QDWxC24aRCfzoYXl60CyglkHPzJqTRX85/VTXYMx4UqBseCtnbw6Phr7zQvcPL8DwLrTIhHcBf+4u5dm3zpNPYeW013Y6G3drKvgs88KlpAxLBl0ZVar6AsZXMxedditr5sk5ra8ri01XOdGq8ixKNLlOfcTkPTeybxIj1tKOAD8AtCu2nELQ+H3AAAAAElFTkSuQmCC"]},"trae2":{"w":24,"h":24,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABaklEQVR42rWVIW+DQBTH/1z6HSoXDIK6mqapwVVNYJuJovsFOlfXqbnJBVRVE5pM1ZEszYKpWFYEWYLG7gOMiY71AXfHwehLSDhy/P7v/u/uHnDl0Nr8ZOpWRsdREmj/EigDT7vtZRCmGKwXQiFNBVwAMgf4doEwrcwfrBcVEU0ZTIMDB4B4f4B93BREel2AZdGjcCFYEW5MJ/AB2ECWr4Jx4cxplXm8P4hXUIhyEcdL4O2hOm+8RLy6FW2QeZQEHuNaQ+Gj/llw1D8/NHiipWBSrykwTLlWGdNJ5Zs/nAGAexHIf5TBWwZTyrxhYWkdWJQEWn7Um25NEfz1811Sgw7hYoGO4IW7yNSt7HT/1NpvKvD49QEAjvigNQQbqxc8393U9wNTtzJ/OCvsbdWs86DZR0ngsS4sUbpN845kA5mvYBsPXs5eVAPHPm5ccuRVbfmDq3S0+e+rWxaReU6c8Gp7MhWpcUsIB4Af/TDE0lVbg5sAAAAASUVORK5CYII="]},"trae-lille":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVR42o2ToW7CUBSGv9ugZ9HYFjWz4HgBEpZMTYHGoSbnqNorgEItGbauCSHNDIJABSGpnt0LMEFPue097XqSipvb7/z/+e+90KL83vDq94ZXbc/UAfb6tPkEIBi/AJBmsVEbCChAUd8/pWWwmBVNjA07oA0P3iAJOUc7AJ73a9IsNl4rGCAJ1Xw6KlyxLCXqluuJp6o+de+f2K8pT4WrTpLQafL1+Aqw9P6Fxf77SM/A+VmZvzo7wPZyuI2QZrEJFrP68JT5t5cDH79HgGmn6Qqfox1EI1W5FGLJRQvbou6cgkBNcONjkreQH5ED5sqFeprFq2oG0/yeLwHmD30VtOsPKkZ9RXiA/ZEAAAAASUVORK5CYII="]},"baenk":{"w":16,"h":12,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAMCAYAAABr5z2BAAAAcUlEQVR42mNgoBAwMjAwMEhLG/4nR/PTp+cZWWCcREvSzJh/nJFB3koqlAVZgGwvMDAwMMhbSYUObBgszVckSXP0xPuoYfDgwTOywgBugIKCFIla76MaQLELqjf+pCwapaUN/7PIvwwjRtOfh+KrYGoB5qohUtDfbn0AAAAASUVORK5CYII="]},"lygte":{"w":14,"h":14,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAf0lEQVR42mNgwAH+P+gK/f+gKxSXPCO6YgY8gFGhbDWMzUSsJnQ1TMRqQtfMgk1Sxnr5Khj7ydHIMGxqmLBperJDhgGGkQ1B0YjTmTqb8DqXCafsFT+8fmXEFjiE/MioULYaa+DgChC8gUMsYEJPEYQATC0TtuRETJJjIDeRAwC7oD1fMfbXmwAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAfklEQVR42mNgwAH+P+jq+P+gqwOXPCO6YgY8gFGhrALGZiJWE7oaJmI1oWtmwSYpY728HMZ+cjSyE5saJmyanuyQYYBhZENQNOJ0ps4mvM5lwil7xQ+vXxmxBQ4hPzIqlFVgDRxcAYI3cIgFTOgpghCAqWXClpyISXIM5CZyALkAPl7/cVU9AAAAAElFTkSuQmCC"]},"blomster":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABXUlEQVR42qWTP0gCURzHP4qiay1q9EcHl6NRl3AUBFvOoMBBh7Ax3FyC1KHF1fEWOYeGlgYLlEZpcoxbDEKsjihFAkGna5A77k4zjn7be7/3+f2+3/d7D/4ZLvuGkBe0dYAiKxbGY4ePTmMWYDgeUferAJzPQgCauYjbDN9vX1LopJdg704Q706Qul8lLkYsKt1mOJCVCWRlCp00w/FopYXJ14xoImQU8azzW+3lGAObiRoAudcNS37vYOvYZfatyy/HmlR7OQJZGYCP6zzFsLTUoN9VFwp0ueVY0/EYV1poZFqQgcHFYl0MS9TaPgBKqfn6Ao1Mi9nT4cLj1R2ilKTW9rFbWeRrFR+l1Jzx27d1jE5Ch42XKOQFLS5GjDHdnj0AIEpJ46BuobD/CcDoZcr0eXLisc/YDuqhg7/+BSEvaNFE6E/J5u6WO1BkxdXvqo7gweP7jePfaIYBfgCUWJQLF9mxwwAAAABJRU5ErkJggg=="]},"gynge":{"w":20,"h":18,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAASCAYAAABb0P4QAAAAyUlEQVR42mNkYGBgkJY2/M9ABfD06XlGFmlpw//7LCSpYR6D0wmG/ywMDAwM999/YKAWYKSml1nkX4axwDhz1TkZ0n88CIPx/zwUX8Ui/zIMm0Z0uZkcCquSb36HGIqu+OGxZ6shrhZH4SMDDDknBbgcEwOVweA3kAWbICzW/zwUXwULL2wRw8DwjJEoAxkYGBhEYnvwuuTN4hIGeSupUPRIw2ngh0c3qedlBgYGhj8HZ1PPwKdPzzPKW0mFUtWF2BL08EiHVDcQAIsQQlL7T3TtAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAASCAYAAABb0P4QAAAAyElEQVR42mNkYGBgkJY2/M9ABfD06XlGFmlpw//7LCSpYR6D0wmG/ywMDAwM999/YKAWYKSml1nkX4axwDhz1TkZ0n88CIPx/zwUX8Ui/zIMm0Z0uZkcCquSb36HGIqu+OGxZ6shrhZH4SMDDDknBbgcEwOVwaiBg9BAFmyCsIT+56H4KlgSwZYWGRieMRJlIAMDA4NIbA9el7xZXMIgbyUVip5OcRr44dFN6nmZgYGB4c/B2dQz8OnT84zyVlKhVHUhtjxMDAAAYwxCUi3SaiEAAAAASUVORK5CYII="]},"isbod":{"w":20,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQCAYAAAAWGF8bAAAA80lEQVR42mNkgAJpacP/DBSAp0/PMzIgG3Yz2Os/DNwM9iKZD3MQk7S04f99FpIMlIJ9FpIM0tKG/5kYqAwYpaUN/89V56SKYck3vzMwUiNCYIBF/mUYC4zz5Mk5igyTkTGCGIpPEh/A5QAmbIZdn83IcH02I8Ib8i/DGBgYGI7GlzMcjS/HaxHeWL4+m5Hhz0PxVQ+PPVuNLH40vhynL1iweUVGxohhXREsbT5nkLeSCn147Dyj9cLO/whxElz45Mk5hqC+51izFzZxvC5Edyl2Qxn+EzTwwfMPGJJHTu+DMVdh04xND9WzHtyFNqZOVDEQANzKhHccj8PMAAAAAElFTkSuQmCC"]},"parasol-roed":{"w":18,"h":18,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAA50lEQVR42q3UsQ6CMBAG4J8LT0DCYLq7syAMOrCyMvmMrq4ODlpZ2IlxaxhMnN1wsaYcbRXiPxFov157QABLhEh6eKJUE/B7oQ05bdcAgOOlHjzbrFI8b1cUEj3HyIXoiRwBgEO2GFVNLoRHIzoco18QV0yM5iIcI98gvh1fyNYdE0njCGkcOYH6/hi234alcYTlbg8AaKvyM8lZ0T8S2t4TM21VDip0bY18iB7o25LGaWp3nGekVBMUspsNFLKDUk1O7685n4NpxOyanIqZCG//CDMP2bzmCAAZWBbLhEjOX35sAwQAXnUghkxtkO0AAAAAAElFTkSuQmCC"]},"parasol-blaa":{"w":18,"h":18,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAA7ElEQVR42q3UMQ6CMBQG4J8XRka3JlwBWIwkxsF7eAsGOYGLF3DmHkwmGBd08QAm3dh0x8Wa9tFWIf4Tgfbrax8QwBIhsh6eSNkG/F5oQ1bbAwDg3ByNZ/N8iZt8AFXRc4xciJo4QADMNvtB1eRCeBSiwjH6BXFFx2gqwjHyDeLb8YVs3dGRKE4QxYkTeN6vZvttWBQnuOzWAIC0rD+TnBX9I6HtPdGTlrVRoWtr5EPUQN+WFE5ju+M8IynboKuKyUBXFZCyzen9NedTMIXoXTuNxXSEt3+A6YesX3MEwCmwLLYQImu+/NgMBABeW/KGMVMA4doAAAAASUVORK5CYII="]},"parasol-gul":{"w":18,"h":18,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAA60lEQVR42q3UTwqCQBQG8G8eLu0EcwJbCCJBgtG6g3iqbtAFXEdBQkTQRmg/Bwjbhm2cGJ8zU0rfSsaZ3/x5jgKWSJm08ESpq+Btwobcd3MAwP5w7r1brxZ4PWpERTvAyIXogRwBgHorBqsmF8KjER2O0S+IKyZGUxGOka8T344vZKuOieRxiDwOncDx9gQABLrBhuVxiNnmAgBoyvQzyLmifySwfSdmmjLtrdC1NfIhuqNvSxqnsdVxnpFSVxEV7WSgu3cZdbc5m4JpxKxaNRYzEV7+AWYesvnMEQCVsEy2lDI5ffmx9RAAeAMsgYaoc4lh5QAAAABJRU5ErkJggg=="]},"cykel":{"w":16,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAHCAYAAAABIM1CAAAAcElEQVR42mNkQAM3g73+o4upr93GyEAMwKYZmxgyYGFgYGCQljb8z8DAwOB04jlWRTB5BgYGhqdPzzPilETnw2xHFkNXz4SueJ+FJMPNYK//N4O9/quv3cYoLW34f5+FJG4/4HMBNjF0eUaCfiQQDgAAMzJdvVts3QAAAABJRU5ErkJggg=="]},"telt":{"w":18,"h":14,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAOCAYAAAAi2ky3AAAAjklEQVR42mNgIACkpQ3/MxABmAgZcjT+H1GGMREyhIGBgWFdyEOChjExkAYccEkwEnINAwMDw8uvjxkYGBgYgtbIMzx9ep6RGi7C6SpGQq5BdhE+VxF0UdWB10S5ihGfa5ANyTf9gddV5IQRVlcxEuMaYlxFiYtQXMWEK6YIAWhq34/iNWIzJi7w9Ol5RgC+i0Ux4JNEDAAAAABJRU5ErkJggg=="]},"blomst-pink":{"w":4,"h":4,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAALklEQVR42m3LMQ0AIAwAsIbgAW1YmRyuyZqT8XLQv6AiuyIbZkX22geU7OHnLRe1qxKlgw1U+QAAAABJRU5ErkJggg=="]},"blomst-gul":{"w":4,"h":4,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAMUlEQVR42mNgYGBg+LTN6P+nbUb/GRgYGBg/bTP6zyorwcDAwMDw+/ELBiYGbABZCwB/9hFBSJpnAgAAAABJRU5ErkJggg=="]},"blomst-roed":{"w":4,"h":4,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAALUlEQVR42m3LsRHAIAwEMB2XORjoWy+UNT2NaSlQL9CV6crA15XZP9Ayy8tdDi8dDxDne6mHAAAAAElFTkSuQmCC"]},"blomst-hvid":{"w":4,"h":4,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJUlEQVR42mNgYGBg+A8FDAwMDCz//////+OKNwNMgokBG0DWAgDQxRoGITg4wwAAAABJRU5ErkJggg=="]},"springvand":{"w":20,"h":20,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA6klEQVR42mNgoDJgxCUxa8Hq//g0piWEMhJlILJB+srcWA27ePcrToMZsRmGyyBcBiMbyojPsA2/rODsNid+hqp9HxkYGBgYAtiO4TSUBdlGmGHIBsEAzDBk+QC2Ywz6ytwoQcBETAQQA2BmsBByXbwRPwp/4TlUl6K7kgmfreiG4RJDBkzEeEddAIKJARgGtjnxkxR2ZjaeKHwWfLEJAzc/4Dbw1JHtxHsZOQLwiWF14cW7Xxn0lbkZAtiOocQ0PgNgCRwjHeLK6KQArDkF2ZW4cgyurEdy4WBm44kRAXgLB5oUX9QoYKkOAGkydegc+17uAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA6ElEQVR42mNgoDJgxCUxa8Hq//g0piWEMhJlILJB+srcWA27ePcrToMZsRmGyyBcBiMbyojPsA2/rLAaFMB2DKehLMgKYYbhMgjdogC2Ywz6ytwoQcCEKwLanPgZGBgYGOKN+FEwujy6D5lwua5q30cUA2AAJla17yNcLXIwMeHyFrJh6gIQjE0OHTARiklkg5DZZBtIKiBo4M0P2NkkG7jw3EcUg5ANQ5bDaSAsLSEnWmwakcVgajHSIbaMDktnC899RMG40iHMDCZseTOA7RjDqSPbcXoLWR7ZdbQtHGhSfFGjgKU6AAAPdH4XnJASuAAAAABJRU5ErkJggg=="]},"krusning":{"w":20,"h":20,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAR0lEQVR42mNgGAVDE/z////M////zxCjlpGQQVg1MTKaUM1VpLiWKNcRkmMiVQMhNUx0jVmqeRmfRkLBQb9kQ5WkMgoGBwAAliFEmW8Byb0AAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAUUlEQVR42mNgGAXYwP///8/8////DDFqGfEZglcjI6MJ1VxEiouJVky0oUTbjEMtE7UjkIlc1+HSw0SXNDd4w5AUV5IU3pQkbPpkPYqy2sgDAGE6YuXsg5aKAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAWklEQVR42mNgGAjw////M////z9DjFpGfIbg1cjIaEJV1xCljhSvEaWeFMMI6iHHMGx6maidImhjICXeRfc2E01zw8iIFKonbCZKDCVKLaWFA+2LL2qUQlQFAIiHcg3xI8DhAAAAAElFTkSuQmCC"]},"baalplads":{"w":26,"h":26,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAACEUlEQVR42q1WsUoDQRB9p4uE2KQ6hVh51qZI7OXSBQIWBuIP+AmJYKF2KvgVKgZEEAQ7g6idEUljobmQqBG56kBMuxYyx+7e7d3FON3N3r63O/NmZoEEVipXeKlc4Un9f7JSucJv7u754fGZBKrz68yII9mo19Dvv/q+k0YDABDmv7w41eKxuJOIYK7romjbWFoq+H7XdRNFhoXdQvWJYL1eH6ZphpKIe9XbsahQnTQaARKn68DpOijatuQPCScXySZ0JBSmq2ZTIiFT/WrOirYt3ZCF5UMNCYF6Tlv2R+QyNkdqqMIIyMifsXLavaHyLpUrvGjb/k9O19GSqJaxcn7eKJxijpiolo16Dbt7+xLASn4a5w/ficgoxIQFgJMCDRKBmqOrZhOe00Yha2BuNg0AWsKV/DQA4NpbCIiCsFicEFoDDmAoARIhfb9//q4jpRcFiyKRyRAgJAJaz1jQKo+pC6paRKMQEgF9twbfWgLCM0QxWPOWVJQkYd0NCllDIrz2Fvx9ItblxalhxLWg5UwnQKAaEa5uHUl7RXlPRo2EGdPE2+MtWgOOjy+9rIdmDuubB4G9bCq9/fL8tJOoBXVSi36S1eKljvBvLYjqTC1migANw5FbUFRXjpqwUS3IiBt8a9Vq4LbihBWrX7TIwaf+IJKKdaabsGO9GUaZsCO9GUJO6I8OJe46/3hvu3EfkD906+HXoM3mDAAAAABJRU5ErkJggg=="]},"baal":{"w":8,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAYElEQVR42mNgQAI3g73+M6ABJnSBT21a/7EquBns9V/S+AEDr68yiiIUE3h9lRmwWgHTzcDAwMCgs4mB11cZ7h4mXLphGpjQdaP7ihHdgQwMDAyfN99leH5WgUF97TZGAIKDJm7V8NB4AAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAYUlEQVR42mNgQAM3g73+I/OZkDmf2rT+o2tgQpbk9VVmkDR+gGIKE7oOXl9lTBNuBnv95/VVZmDQ2cTAwMCAYgoTTACXKUzorkY3hRFmhaTxA7jOz5vvMjw/q8CgvnYbIwBygyZuUj0CbgAAAABJRU5ErkJggg=="]},"spand":{"w":8,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAHCAYAAAA1WQxeAAAAWElEQVR42oWPoQ2AMBQF7zcYHOivUOiu0FWYi31w1Qzw0hEqi8JAk556yZ15BuAeGx2kbOYe27nPPc9xVyaAbV3oUwlStnSVn0pXQcoWGDAM7B3fJ1I2gAdemxbDYXGSvAAAAABJRU5ErkJggg=="]},"skovl":{"w":6,"h":11,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAALCAYAAABcUvyWAAAASUlEQVR42mNggAJpacP/0tKG/2F8JhhDJLaHARkwMeAAZErALBWJ7YGzGaWlDf+jW/xmcQk5djx9ep7xzeISFGOePj3PyIDL5wBGMxgQo1OcjQAAAABJRU5ErkJggg=="]},"sandbunke":{"w":12,"h":5,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAFCAYAAABxeg0vAAAARklEQVR42mNkQAPf7nT9R+ZzqZQxIvMZcSmEgcd3LjEwMDAwqHssYWRgYGBgwqcYGdzcEfOfgYGBgQmfYpjpKE6C6SQWAAC48hon0h40XgAAAABJRU5ErkJggg=="]},"kaal":{"w":6,"h":6,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAUElEQVR42n2LoQGAMBDE8t3kVYepY4HOwigsUMcESBSypu9ZoqirJDJ3MYDayszu9AiO7TSAJClqKxMgSfQIsjvjeVmDZI9YpSnX89pv448Paq4eUI9Y0pAAAAAASUVORK5CYII="]},"tomat":{"w":6,"h":6,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAXElEQVR42nXNoQ2DQABA0XcnCZoB0E1OIRkD1UEqCZJBTnUMJIoEzQBoUkvVSb585gfox+5uU+PYTsu0BogF53xpU6MfuxtiwdJ3r0A8ttPnXYM5X4bXD4Snx2N/DbUf+4IjrB8AAAAASUVORK5CYII="]},"spire":{"w":6,"h":6,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAL0lEQVR42mOIX+f9n4GBgQGdZmLAARiRVTEwMDAsDNrKiFcHHCDrQtFx7+IrFIUAuLIP/RWrdcEAAAAASUVORK5CYII="]},"badeand":{"w":11,"h":9,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAJCAYAAADkZNYtAAAAeElEQVR42mNkwAGkpQ3/w9hPn55nZGBgYGDBpfDODkk4X8WD4f/Tp+cZmRjwABWP53D2iyat/0wwk5CthQFk0xkYGBgYka2EmYTqhOdwNzOiuw+Xc+BufnTtAU6FyHKMMDfv6/uJVbFTETvCGdjCFRnAFDIwMDAAADNVNLfX6WShAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAJCAYAAADkZNYtAAAAeElEQVR42mNgIAEw4pKQljb8D2M/fXqekYGBgYEFl8I7OyThfBUPhv9Pn55nZIJJIpuEUPQczn7RpPWfBdkUFQ+G/wwMDAwwPrLpGM5Al0QGEnXXIM54dO0BTkXIcowwN+/r+4lVsVMROzw0GLEFFTKAKWRgYGAAABOOLQCpq/jSAAAAAElFTkSuQmCC"]},"and":{"w":10,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAY0lEQVR42mNkQALS0ob/kflPn55nhLEZkRWF7MhCVsewxmMaimIGaWnD//mXZ///////f2lpQzidf3n2f5gtTAxEAkZsVqKDNR7TGFiQBU6fvouiwNRUmQHFM+i+RQcoHiIEAJXaKbk0KcSrAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAbElEQVR42mNgIBIwInOkpQ3/I/OfPj3PiKFQWtrwf8iOLBRT1nhMQ1HMIC1t+D//8uz//////y8tbQin8y/P/g+zhQmbScggZEcWg7S04X9GQgphTmCBcU6fvotVkampMsIz6L5FB0+fnmcEACH5L3HrS3PQAAAAAElFTkSuQmCC"]},"svane":{"w":10,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAYklEQVR42mNkQALS0ob/kflPn55nhLEZkRU9qV+CrI5BpjEGRTGDtLTh//+zrv7/////f2lpQwQ96+p/mC1MDEQCRmxWogOZxhgGFmSBWzuPoihQc7dmQPEMum/RAYqHCAEAsBkq28Q6EegAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAa0lEQVR42mNgIBIwInOkpQ3/I/OfPj3PiKFQWtrw/5P6JSimyDTGoChmkJY2/P9/1tX//////y8tbYigZ139D7OFCZtJyOBJ/RIGaWnD/4yEFMKcwALj3Np5FKsiNXdrhGfQfYsOnj49zwgAsLoxtRvNsV8AAAAASUVORK5CYII="]},"hund":{"w":13,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAHCAYAAADTcMcaAAAAfElEQVR42mNgIAJISxv+l5Y2/I8iQEhD19Sl/7umLoVrZJq7fB6KRpipMJxfVcLw1DsKbkj+g///WTzsDBmlpQ3/7zh0HreNW5cxTGzrgXOZGBgYGJ4+Pc+YHJkEF9wuZ4CiR09XiwGmbqICIyOG29H9iEscJUCwaUIXBwAFAz1KPAaW+QAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAHCAYAAADTcMcaAAAAcklEQVR42mNgIAJISxv+l5Y2/M9ALJCWNvzfNXXp/66pS+EaWZBNePr0PCO6iflVJQxPvaMYpLcug/Af/P/P8vTpeUaYiTsOncfuhK3LGCa29cC5TNjUbJczQOHr6WrBXTJRgZERq/thTkTn4/Q0PhoGAJdWOAwFmwWIAAAAAElFTkSuQmCC"]},"bold":{"w":5,"h":5,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAARElEQVR42mNkYGBgkJY2/M8ABU+fnmdklJY2/L/PQpKBgYGBQW3NVgYZGSMGJgYkcCvEm4GBgQEiuP/5K2Q5BkZsZgIAdf8Qd2JF6xUAAAAASUVORK5CYII="]},"fodbold":{"w":5,"h":5,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAPElEQVR42m2MsQ0AIAzDXN5onyj/3wBPlDvCAhIDWSxZVgzAPcXZWtNwT0nSS7tV1SCiA9BeUTUAsN/nBqS4HiwNjzBDAAAAAElFTkSuQmCC"]},"gaest-1":{"w":9,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAfUlEQVR42mNkQALS0ob/YeynT88zwtgsyAoU+F8iaTH8D1PIBFNwbU0+sqEM19bkw01mlJY2/L/PQpLB6cRzBmSTHnwUZ4CJw62DCCBM2mchCWczwqxDFoQBpxPPUTzAIC1t+H+xncV/BgYGhsV2Fv+RfcqErLPi7k8UGgYACWYxLJv9mcUAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAZ0lEQVR42mNkQALS0ob/YeynT88zwtgsyAoU+F8iaTH8D1PIBFNwbU0+sqEM19bkw01mggm+6FmFogiZz4RsyoOP4nCMbBojzLp9FpIM6MDpxHMUDzBISxv+X2xn8R+ZZsAGYBLoCgDbTjPTmmOkiAAAAABJRU5ErkJggg=="]},"gaest-2":{"w":9,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAg0lEQVR42lVPuQ2AMAy8RIyQziUVZWATKoSUJSLGiLIEDRU7MAAwBR0D0JnKkXONH92jM1Ag8iz789xG9kYTzq0rgmECC9EKYY+9NsUe++JsiTy7kDDmqyKN+YILCUSeS5wLCcO0QN8CI3H6KXjXpSoAIs/tnBkA2jmzbmq18jvWagp+RjEuXLrMzWAAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAc0lEQVR42mNkQALS0ob/YeynT88zwtgsyArOrtCEazCOYPgPU8gEU7CuyAjZUIZ1RUZwk5lggmmvo1AUIfNZYKakvWZgMI64DpcQiYWYFtTH8J8RZp1IbA8DOnizuATFAwzS0ob/laP6/iPTDNgATAJdAQBjRC8cNskxLAAAAABJRU5ErkJggg=="]},"gaest-3":{"w":9,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAeUlEQVR42l1PsQnAMAyTQ7ecYLoWOuaCXpM5b+SH/JE3OuaA0i8K7lBs3AgMQpaFRXBgTqL8vk9STt6wyGUHD61mDGooR/ShKEe0ZGJOMhphz4I5SfWg4miEh1ab0eyT7ydNm7Fn+RUAc5JeNwGAXjfxTX8mXXgOAC+TgjQLcaarFQAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAaElEQVR42mNkQALS0ob/YeynT88zwtiMyApY/j+Ga/jDKAtXyARTkG/PjWwoQ749N9xkJphgRsw3FEXIfCZkU/4wysIxsmmMMOuuz2ZkQAeaqf9RPMAgLW34f1uH2n9kmgEbgEmgKwAAyT0tDEzgv84AAAAASUVORK5CYII="]},"gaest-4":{"w":9,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAhElEQVR42mNkQALS0ob/YeynT88zwtiMyApazf/ANVSfZIErZIIpuH2wH9lQhtsH++EmM0lLG/5PMmlhULUvRFGkal/IkGTSwiAtbfifBSaYZNLCUH2yhgGZj+ImmGnoYN6ZGhQPMEhLG/6Ps+74z8DAwBBn3fEf2adMyDr3PliJQsMAABJwL2aLq0+uAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAaElEQVR42mNkQALS0ob/YeynT88zwtiMyApazf/ANVSfZIErZIIpuH2wH9lQhtsH++EmM8EE24u/oihC5jMhm1J9kgWOkU1jhFmXZNLCgA7mnalB8QCDtLTh/zjrjv/INAM2AJNAVwAA8PMzQiNUh/wAAAAASUVORK5CYII="]},"gaest-5":{"w":9,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAh0lEQVR42mNkQALS0ob/YeynT88zwtgsyArOrtCEazCOYPgPU8gEU3BtTT6yoQzX1uTDTWaSljb8L9/szqAVMhFFkVbIRAb5ZncGaWnD/3Dr5JvdGYwjdjIg82GAEWYdsiAMPKzdieIBBmlpw/86ZVH/GRgYGHTKov4j+5QJWef7pddRaBgAAGTyLlGGWOJhAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAc0lEQVR42mNkQALS0ob/YeynT88zwtgsyArOrtCEazCOYPgPU8gEU3BtTT6yoQzX1uTDTWaCCXpev4GiCJnPhGyKccR1OEY2jRFmnXyzOwM6eFi7k+Hp0/OMjMgOF4zWZHi/9DoDjEb2IUYQIAcFAwMDAwDjkjR0qWwd7QAAAABJRU5ErkJggg=="]},"glimt":{"w":3,"h":3,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAG0lEQVR42mNgYGBg+P///38GBgYGRhgDDmACAPlHC/ahBRIeAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAEklEQVR42mNgQAf/////jyEIAE3ZA/039crgAAAAAElFTkSuQmCC"]},"baad":{"w":26,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAICAYAAADnVO9eAAAAmklEQVR42mNkIBJISxv+Rxd7+vQ8I7H6GYm1JOXoOQzxOdZGRFvGCHMpLg3S0ob/j5zeh9MAG1MnnHLIZjL+v+z7X8bjCU7F+CwhBGCOePr0PCPj/8u+/281/GVgm7yUgVbAxtSJgQXmm75zl6luQVF6PoyZyCgtbZjAwMAwn0aeSYQG3QJGaIQnQCXmwySJBHjVP316fgGMDQABLTeSqmnBlAAAAABJRU5ErkJggg=="]},"lastbil":{"w":30,"h":14,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAOCAYAAAA45qw5AAAA30lEQVR42mOUljb8z0BF8PTpeUZk/v/Lvv8ZdTczoqtjYWBgYGCRfxlGDUv/PBRfJW8lFfrw2LPVMDEZjydY1TJKSxv+Z5F/GYasmFxAKPSQQ4OFgcrg7OUjOOWMdW3+wyynusXoYPonLhRHwSxnYhgAIG8lFTogFtMlqDP5vmEVH1gf/3kovkpaWpwqBnLMsySgghlhsb6RJtV8EnWQkIrriAKErkEMLSWZnj49z8gi/zIMJlDfXM6gb6TJUN9cDleIDROjFpsaBgYGhofHnq1mxFfswTTjKk6JUYtLDQAlSWhW3DdKUAAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAOCAYAAAA45qw5AAAA5ElEQVR42mOUljb8z0BF8PTpeUZk/s1gr//qa7cxoqtjYWBgYGCRfxlGDUv/PBRfJW8lFfrw2LPVMDGnE8+xqmWUljb8zyL/MgxZMbmAUOghhwYLA5XB2ctHcMoZ69r8h1lOdYvRwfRPXCiOglnOxDAAQN5KKnRALKZLUGfyfcMqPrA+/vNQfJW0tDhVDOSYZ0lABTPCYn0jTar5JOogIRXXEQUIXYMYWkqyPH16nlHeSioUFuT6RpoMAYF+DBvWb2K4eO46zuKUGLXY1DAwMDA8PPZsNSO+Yg9mEK7ilBi1uNQAAA+sa1tCPTaeAAAAAElFTkSuQmCC"]},"segl":{"w":20,"h":20,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA/klEQVR42rWVrQ6DMBDHr02fYAkOuwQzMUcwmIk9yx4AS7A8AM+CmMEsuIkZEiyOpK/A1JFbc9fCsp0qR/vL/z56VSBYfTss4LGisYrzGwmUp5GPBzXAwoGVC6Og0/nCwl7P+7ru+vkDqjiYBJLAFKq/hdG9eRqtqdLcBs6O14cXiqbdvEmwaShFKFWpt6jbGjrbNqEQqX9ss3AfUpuGUvyOk4o9oyXY2GbioTipWHVeoAT1wYJArC4NMVRtQ7ueVgthCKJq0Y9K6VU0RWNVDcD2ohserrnc4vUz7t1Elb480X9U3ZrDorGq62d2w97h8L/xtXfAYkTeAfuLJ+ANkM+XpMlCllgAAAAASUVORK5CYII="]},"greb":{"w":8,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAATElEQVR42mNkYGBgkJY2/M+ABTx9ep6RQVra8D8uIC1t+J8FpvrB8w8ouhUkBRgYGBgYmNAFYRIwwMRAALAgc9CtQVGAbjQMMBLyJgDXVylZKWbsDgAAAABJRU5ErkJggg=="]},"laerer":{"w":18,"h":44,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAsCAYAAABovuiKAAABvUlEQVR42mNkwAG0VZX/o4tdvX2XEZd6RmIMIMZAJlINwaWOiVRDcKlnYqASYEEXONoUA2db1y3BEEMWxxrY2qrK/9E14APWdUtQAp2RgYGB4WZ32v+gWXsZPnzjQ42dHj9EmJRsQpET4PrEsC7NmUG9dBYjiteONsUwaJdsYnjy5BwDAwMDg4yMEYZmZLmjTTEML588xx1GDAwMDMqq+gwMDMxYXQSTwxlGH5bX/0fWADPk5ZPnDOIykgzY5AQiGxmJDmxkg/AFNhOhaMVlCN7oR09PR1cfQGgOdcAwACP6ycki6AYxEVNEEFMCMBFb3hBSx0izgg0ZwNIWepoh2qBvr8/DDdCxjGe4cnwhXI5L1BCrHiZ0A5ANQTaMkBombK4gBqCrp1oJiWLQ8yc3idaIrpY2LhpcBv3as4FB+MZ1osLp+ZObDMI3rqMkWIyi1jW0Datm5LTEwMDAcK45EH/KVlLRIyo93btziXFgAltCUmaQRf+xw9sY0cNjiCXIUYOIN4iYBIhNDYZBL54/IWgQNjXw3C8tbfifgYGB4ed37Jp/fkdtXMHUP316nhGe+7nVHUIpCZ+vNw+sBgAYpsZCbyk5GgAAAABJRU5ErkJggg=="]},"flise-park":{"w":32,"h":32,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACHUlEQVR42qVXvWrDQAy+HJmM8Q+GQIYMJlPnvkSfoEOnzn2FPk9eoXmDQscu2YJpMwQCwT8Yr+lQFBRZutM5tyQk0kn6JH3Szbab3aVrBpNkkQk5WKdrBrMqF6ate/Z/Sc8YYyx8SfP4Rgh/cgdfkmSROVQn8X/JeNcMZg4/gvfgCOeQCyUNgtR4kkXGUkVwBMOZZFFwip5eHlTOWB/srjS45F5/vkdIcmf2+fF7wdFqT5rHZooePZZeUu2PptofvdFiPRwlfNciOdtudpd7IoaLcRtyspK+lYyFwI27iBYwOMjpp3msR+DeA2kt18sxAlyl0pxxMmkeq7ukXC9NuV6O7rESPBw/UGNt3av5QUqFdUU4he2oUcyiHFqWKxxN+2jalTq8Khe8A9qhg2Uhp5I+Nz8O1elGtmuGfwdCoJVkaQo5OTpTVuWC5wGcO01KKA9o6gnSbqUon98eRQR8BnwzAutb8bL3L3UruRaYNI9HDmP9Gyacspq5Nh7VNMSQYGUJGS6i0ALFSIlMCMzHwafdA0CXyrNLqWbK+XifklNb9955MQ/Jlwvitu5Hk04zqKwEm7aXMcTUIDgsregsFXNbsXYRDUXzhop9EXPG6HDBLyWNc0kWydOQOnQ+t9cCk6obcwF2xnXmHHlwSkWRXuWgRbnc0jciJwOBFEU6bSf0PdU0T7lRG4YoUcZ0EY0vEBv6/pMGy5QiTrLI/AFElIMK6A3XYgAAAABJRU5ErkJggg=="]},"flise-sti":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAQ0lEQVR42mNcPn/vfwYKAAsDAwODkrI02QYwMVAIUAw4eOA0QQ3oahiXz9/7f/B4YfAZsExOnTIDoh7dHGphMEITEgCZcxZ20ODNHgAAAABJRU5ErkJggg=="]},"flise-fliser":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAZklEQVR42mM8fOrafwYywZq1GxlYGBgYGK7fvEOuGQxMMMahg4eI1oSsFm6Anb0d0QYgq2VioBDQzgBJCTEGSQkxggaw4JJ4/uLVAHuB6gZ8+PCRMgMEBPhp7IUBS8osa9ZupMgLAPSVHG+qeBGQAAAAAElFTkSuQmCC"]},"flise-graes":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA3ElEQVR42qWTPQ6CQBCFHxMvMLuhpSKhUg7iFfBaXsDGC3gHW7QiobI1wBGwms0w7irR1y2Zn2/mDdn+cpzZO1gVnOMxPfFNVJcVpmEMSaI1yQBAbd+BvQsdpViMCACmYVzEkOBLR/buI1FdVtAjk+5yum1DkdQY9tuiwGF3x1oJJWlMwS44T+5CVJcVAGBjkdZuX+IIP0rIKTaXdsOOKGr77n0H9iLZO7R9F4qISzo2a67nGX+INHrsgOzbukMF5wFHn7RG1s6IfaIs9TfGDkfHyZv07acwbbImeQFO5XBd8Zq79wAAAABJRU5ErkJggg=="]},"flise-asfalt":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVR42o1SuxXCMAy8+KWTP4PxqCmYgBUYIBsxCTPwoE1M6tCg9xT5ArnKPskn6eRuuR8XfHG4Jj3iNlTs4bvT+bLUaYRFygXKzfMbInEVt1zvHwPA6/mASETKpYl5LoBA1W0XCl+QCmwJso52CdjRqEDKhaqz2e04ANBb4pfjdRqbGAAES7IExmnRlMt+D2yndkvBz7jlBetktQXdL/uVzDzlAgtYqKBIbERE4trEf6tk3zvY9uo0Ngn+7nOCN8h7YO/6ULmUCz739GmbdqeGWgAAAABJRU5ErkJggg=="]},"flise-grus":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABA0lEQVR42n1TSwrCMBB9Bu8wkEAuoO1OcO1KvGkvoK7ctuDOzwUKLQTUK+hCJp1OR2fVfOb9Jp0dqvodIqFrE35V3yd4T5NvAHAA0LUJ19t90sTlPeVz7wkhKgAAKJaLUSOz8OXtbpObJKEDMGLXDF2bYFlkQhci5YUGYzXczGtpz1nIvLdal/lyiJRteU9531mhSflsqWvTJNgRgByTlioVyWBDJMz1XHX6WhEAnJvLkMHz9cC/sqyt1uVgQU7AYrMUjRRY4+n7lBt0DrJCpC8AhyPHpBv0YwOA4/40/AtWaAx+vd1hWS2Wiy+AfKosmRnPzWXSLK3ODlX91r4kmByxVR90kqqjCn1ZJgAAAABJRU5ErkJggg=="]},"flise-sand":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA7UlEQVR42o1TsQ2DMBA0ViaIpaSwZFFDAxI1ZbJEJskI2SPbIIWG1AhEYSNcsAApIlvvxwa+PN/Zf3/vqH49FrJTjAsyDZ0XoxCsmtZ7ARZDjEqlLViksfcCyMFFr5fziggFjAsCOYwLIpW2nBM8MAUFuP1p6JxzKpUmVdNaIm53q32p9N/C/VZasB9nbwrBGeDXizRepQFtYKvUTF4qbb3BNPpxtjbwPjAuSNS/n4sv570yD1IohgMLLRVOioYGZGwwLkjVtME0oiN/wde6tXAkb1hJnrkx+rZva5G+n9qdQWhRjDDJMydGIzSaH+k0iIKtP0cRAAAAAElFTkSuQmCC"]},"flise-muld":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAy0lEQVR42oVSMQ7CMAw8rG4d6iHKwojED/gEE+9HYmSpOjhDZhiQI9d1gqfU8V3uzj3db48PACTO2GSFVqkCAFhmhi0/R1FTgR4MAK/3c/c9ATiA/Ys6U6o0Uu1PdrhUweV83RHas1WkffJ+R2p8lSo/At/0Z5Xra5kZZH1Fqf/LiCJAj0wVlSpNFY0k9ggt8WQ9R3n0FLYtLDM3BZ6sZ8HaIMsWvWZB/n6T9bjGnpUop8R5/yeOgotW2RQkzhiFOSKmiN3KHa04ccYXtTBrSmKJV3gAAAAASUVORK5CYII="]},"flise-planter":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABFklEQVR42pVToW4DMQx9F41lUgzSkNKh8aGS4aKS8n3DeKWT9gP7hPGClWx0pGioBZOmSQUFJdcDOXC4Q/acNK3Wh+4c+z37OanGd5MDAHgKaGMDRtdHAICzBI08z5SCXJgXA8Bm95P8GwBoY4PBvMbb5ysG8/pI0VOQrpiU40YnP2zXR4ptbERg+fUhAhw3zLyf1lh9r7Cf1jiFXKDrY9rBcLYQ87SRnkJRwFlCNbq9P5TMymc+BXMuIT/jjro+irGyxv+ACTXxlZ75khH43hhnKdkzALkTN+/PxRH0GEazaTVemS5ylhJyuQc58pVp0zS5p4CKH9Ml2D1NcP34AmfpbwvnzMwxnC1k3MQD/YBK3zk8BfwCIoyTJAgZnKwAAAAASUVORK5CYII="]},"flise-vand":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAWElEQVR42mOMWvnsPwMFgImBQoBigKM6P8kGsCBr3H/zI4oh+29+JGgAI6lhsDRMkiF61XPywwBZM/UDcQQYgC2dsJCiEVs6YaRJXlgaJkmZAeiJhaaxAADXPB20f/2vCwAAAABJRU5ErkJggg=="]},"flise-soe":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAWElEQVR42mP0P7nhPwMFgImBQoBigIO6BskGsCBrPHDzBoohB27eIGgAI6lhsMHMnyHg1EbywwBZM/UDcQQYgC2dsJCiEVs6YaRJXthg5k+ZAeiJhaaxAAD3dx1gwcqmSQAAAABJRU5ErkJggg=="]},"flise-havn":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAXUlEQVR42mPMKWj4z0ABYGFgYGCQk5ch2wAmBgoBhgHy8vKUGfDw4cMB9gKpgPH/Zd//DAwMDN17/BkYGBgYSl02MpDCp9wFOQUN/wdXOqCpAdgSGUkGYEtkAx8GAKoXGTxoRgm8AAAAAElFTkSuQmCC"]},"flise-solceller":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAa0lEQVR42mM8eebyfwYKAAsDAwPDNRYdhgn13QzSCmoMTx/cgkvOqvVkICTPxMDAwDChvhuvLfjkWRgYGBikFdTgAshsbGLo8iwMDAxwZ6E7kYFBmYGQPBMDhYBiAxgpjUaKXTCaDoZFOgAA8ctG19nByEoAAAAASUVORK5CYII="]},"sten":{"w":24,"h":24,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABJUlEQVR42u2VTQrCMBCFp+oFRAoudSNYETyCRxAR1/Uo6kEU3Ipn6BEi2ohFqW4VwRvoxkAyTv5QcONbNUP6vWFmkgD89WsFLpuievdBxXmeWP8vuYCXq4US37AMAADGE3jYzAITHINleLvTQGZT0ijwhQuwDJc1nkwVk5ILnALhWLrdk5UomHqwYZkCwmWh4IP+UBmKgi57KmufzN8Mvg2P6t2YLJEOjqWDH46Zvgc2uICa4GzNAABGTk32hXtPkWsjKTjPkzlpgGE+cFwexYDnSSCO+yeZYxXlRViunfku7YWVKlwvNy+4nL0oz5vB9X5iwoTvUoiaLW+44Nguu/j1ORPH31BzBS5nb7uuY2k502wbUZPj9aIhI60ouPOTaTLSgYWe+DPKNr3WK/EAAAAASUVORK5CYII="]},"krater":{"w":24,"h":24,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABFUlEQVR42s2WQQrCQAxFk8EDqBeQuuhCENwL6gVKL9BFj9bFXKB4ARXcC0IXLixeQHsDXSnDNJmkFcQsp8n7IZkmg6CwWbR5UudVvUMpdqCB5llG+hQWnpIYcnAOyllhLSmCEnwyjYLg27UOiiAHl8CckC+CIfh8EcP5dIHD/khCV+ulKGL6wgGg9e0dm2fZ55IYLliCcyK+GSqD+SJWwSkRv3dIlacLnOqJ2wujCXw0d+hrKoHRcKyCleW2n8A39r8C2r6Yqt5hYW3wD6Wgfl8ezR3SNGnNJcMNLipDrtmur8sIlihNE1UZ3j5u9i0Bt0xuBpKID6eGnXpcU3fczVoc1z9ZOD9Zmd2WvhVfGKjJ7ptnywu8pcR4wa1A4AAAAABJRU5ErkJggg=="]},"glimfaar":{"w":12,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAu0lEQVR42nWQrQ6CABSFPxjRqgQCxWJSHsDILAYozIeg+yIGg76ABuhENisjWSwUN34aRLZrUDdAPOnsnPt3LnyQxIUkcSFDPookLqSuROpKZMgBDMMSw7AEQEniQuaLKQB+k3KYLHvDHveS0/kIQBgFqF2zW+w3aa8xjAIc20W11jPlcS9/zhxucmyXMApQujnG8jn7lddm+gVAM3NP+xrb3QbNzL020y+amXsAb/72v5r673PZ7Xkd016pVF6qilu6qgAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAuElEQVR42o3PoQrCUBSA4f+ORasKu2HFYtLVgdE+w3wKuy9iMOgLzLD1xYH1YlpZWVDYtGkUjkXhKgt+6cD5OXDgzRStmKKV37mTKVq530TuN5HfGUDrQLQOBECZopXRuP91YPU4selNAKjKK7v9FoAsT3Hs6OMT27I8JZovcILZQFXltTOyRfMFWZ6i7D86w/V0+ayHCYDrN0tlL7UOxPWbr+BZD5Pz2Sg/9GIAlz/4oRfXx8sB4AX18V6RXcNopgAAAABJRU5ErkJggg=="]},"minirover":{"w":14,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAICAYAAADJEc7MAAAAq0lEQVR42o1QSwqDQAx9Y72DYBYeoKtZFbyHvUdP4BF6D+caMjstVEq3zmKGdtNdd5Z0Y0DUfh6EJO/xEhLgDxBpnnPqmyi4HF7YHjfw/qQWE2+P5yKINJc9c9kzE2nO8rQQT0Skuenq1U1TvulqDC6ppI8BoD1fP963G3M75ixPC2eDUb/umyLO7nsAcDaYSExCSj3vAWBwSeVsMAAQeX9SIkxrZ4NZ0+RBb6NsYHmqldRVAAAAAElFTkSuQmCC"]},"drone":{"w":12,"h":9,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAAxElEQVR42mOctWD1fwYoSEsIZWTAApDVMDAwMDBISxv+ZyAAYGoYGRgYGLQUHQI+/vq4np+NP/Djr4/rkRU+fXqeUVra8D8/G38giglaig4B0tKG/1+8+4qCkW3XUnQIwLD2xbuv/+MfXPgf/+ACigaYYhZs7u3kU8Ww/dr9AxtQNEhLG/5/+vQ8o7Guzf99FpIMDAwMDE4nnjMg+YsR7mmYYqzuhIKPvz6uf/r0PCMjchhPaJwaeO3+gQ3omgrqs+EhBwBCDWLVT2kM6QAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAArklEQVR42mNgYGBgmLVg9X8GPABFftaC1f+lpQ3/49KEU15a2vA/jEbGMDEtRYcABgYGBkYGBgYGGOfjr4/rz14+gmKQsa4NAz8bfyBWt0pLG/5/8e4rCobZAjOUCZvG8k+3Gco/3YbztRQdAq7dP7AB7iSY6U+fnmeEmQgD/Gz8gR9/fVz/9Ol5RgYGBgYmWCjUt1bBFSDjgvrs9ViDFtmdWooOAch41oLV8FACAPK/ZA9TKpgpAAAAAElFTkSuQmCC"]},"robot":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA6UlEQVR42mNgwANuBnv9Z6AESEsb/pe3kgrFp4YRmyZ8Gp4+Pc+I0wBpacP/Zy8fwesqY10bFEOYsCma/omLYfonLpx8ZG+xYDMgk+8bXj4yYMHnVGSAy2skByKL/MswBgYGhofHnq1GMQCmcfbS2XgDMTU6FSU2WJBDH+ZsIz1NrJrPXboO946xrs3/p0/PM+IMg4+pkIBWa2BmeCm9AqsaeSupUBZcgcY/ezUDAwMDw0sCAcyIHrd/HoqvwhUOqdGp8EAkGAvoCv88FF8FE4fFANbM8+Ld1//YMhGyHLI4E6EEhE0O2XAAzhhhqbc12mUAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA6UlEQVR42mNgwAP+X/b9z0AJkJY2/C9vJRWKTw0jNk34NDx9ep4RpwHS0ob/z14+gtdVxro2KIYwYVM0/RMXw/RPXDj5yN5iwWZAJt83vHxkwILPqcgAl9dIDkQW+ZdhDAwMDA+PPVuNYgBM4+yls/EGYmp0KkpssCCHPszZRnqaWDWfu3Qd7h1jXZv/T5+eZ8QZBh9TIQGt1sDM8FJ6BVY18lZSoSy4Ao1/9moGBgYGhpcEApgRPW7/PBRfhSscUqNT4YFIMBbQFf55KL4KJg6LAayZ58W7r/+xZSJkOWRxJkIJCJscsuEAaSpiUnAEzBgAAAAASUVORK5CYII="]}};
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const r1 = x => Math.round(x * 10) / 10, r2 = x => Math.round(x * 100) / 100;
+const fmt = x => String(r2(x)).replace('.', ',');
+const kr = x => Math.round(x).toLocaleString('da-DK') + ' kreditter';
+const PI = 3.14;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ceilN = x => Math.ceil(r2(x) - 1e-9);
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem('rumarkitekt1') || 'null'); } catch (e) { return null; } },
+  set(v) { try { localStorage.setItem('rumarkitekt1', JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ================= world ================= */
+const MW = 20, MH = 12, CS = 34, PADM = 0;
+const VW = MW * CS, VH = MH * CS;
+const PARKS = [
+  { name: 'Landingszonen', trees: [[2, 2, 'krater'], [17.5, 1.5, 'sten'], [18.5, 10.5, 'trae'], [9.5, 10.5, 'krater']], blocks: [{ x: 0, y: 7, w: 12, h: 1, kind: 'sti' }, { x: 11, y: 0, w: 1, h: 7, kind: 'sti' }] },
+  { name: 'Drivhusdalen', trees: [[1.5, 10.5, 'trae2'], [6, 1.5, 'trae'], [14.5, 6, 'sten'], [18.5, 2, 'trae2']], blocks: [{ x: 0, y: 4, w: 20, h: 1, kind: 'sti' }, { x: 15, y: 9, w: 5, h: 3, kind: 'sø' }] },
+  { name: 'Rumhavnen', trees: [[4.5, 4.5, 'krater'], [12, 10.5, 'sten'], [18.5, 7, 'trae']], blocks: [{ x: 0, y: 0, w: 20, h: 2, kind: 'havn' }, { x: 8, y: 2, w: 1, h: 10, kind: 'sti' }] },
+];
+const TOPICS = [
+  { id: 'firkant', name: 'Firkanter', c: '#2f78bd' },
+  { id: 'trekant', name: 'Trekanter', c: '#d9534a' },
+  { id: 'cirkel', name: 'Cirkler', c: '#3a9e78' },
+  { id: 'rumfang', name: 'Rumfang', c: '#7d4fb5' },
+];
+const TC = Object.fromEntries(TOPICS.map(t => [t.id, t.c]));
+const MISSIONS_PER_PARK = 6;
+
+/* materials: unit, price (kr per unit), fill colour */
+const MATS = {
+  fliser:    { name: 'Metalplader', unit: 'm²', price: 200, col: '#9aa3b2', d: 'Til landingspladser og gulve' },
+  graes:     { name: 'Rummos', unit: 'm²', price: 60, col: '#5cc8a8', d: 'Blødt mos, der gror på Nova' },
+  asfalt:    { name: 'Roverbelægning', unit: 'm²', price: 150, col: '#4a4d5a', d: 'Hårdt underlag, roverne kan køre på' },
+  grus:      { name: 'Regolitgrus', unit: 'm²', price: 40, col: '#b7a9c7', d: 'Knust planetsten, lægges i ét lag' },
+  kantsten:  { name: 'Kantlys', unit: 'm', price: 120, col: '#ffd34d', d: 'Lysstribe, der sættes hele vejen rundt' },
+  hegn:      { name: 'Energihegn', unit: 'm', price: 250, col: '#5fe0d0', d: 'Sættes hele vejen rundt' },
+  sand:      { name: 'Regolit', unit: 'm³', price: 300, col: '#d08a5c', d: 'Løs planetjord, leveres med rover' },
+  muld:      { name: 'Næringsjord', unit: 'm³', price: 350, col: '#4a3550', d: 'Jord til planterne i drivhuset' },
+  vand:      { name: 'Vand', unit: 'm³', price: 50, col: '#5aa9e6', d: 'Smeltet is fra isminen' },
+  planter:   { name: 'Frøkapsler', unit: 'stk', price: 45, col: '#5fe0d0', d: 'Der skal være 1 kapsel pr. m²' },
+  solceller: { name: 'Solceller', unit: 'm²', price: 180, col: '#2f4f8a', d: 'Laver strøm af sollyset' },
+};
+
+/* ================= geometry (map units, y down) ================= */
+function poly(o) {
+  switch (o.shape) {
+    case 'rect': return [[o.x, o.y], [o.x + o.l, o.y], [o.x + o.l, o.y - o.b], [o.x, o.y - o.b]];
+    case 'rtri': return [[o.x, o.y], [o.x + o.a, o.y], [o.x, o.y - o.b]];
+    case 'tri': return [[o.x, o.y], [o.x + o.g, o.y], [o.x + o.o, o.y - o.h]];
+    case 'para': return [[o.x, o.y], [o.x + o.g, o.y], [o.x + o.g + o.off, o.y - o.h], [o.x + o.off, o.y - o.h]];
+  }
+  return null;
+}
+const hyp = (a, b) => Math.hypot(a, b);
+function area(o) {
+  switch (o.shape) {
+    case 'rect': return o.l * o.b;
+    case 'rtri': return o.a * o.b / 2;
+    case 'tri': return o.g * o.h / 2;
+    case 'para': return o.g * o.h;
+    case 'circ': return r2(PI * o.r * o.r);
+  }
+}
+function sides(o) { // lengths shown to the student (rounded to 1 decimal like a tape measure)
+  switch (o.shape) {
+    case 'rect': return [o.l, o.b, o.l, o.b];
+    case 'rtri': return [o.a, o.b, r1(hyp(o.a, o.b))];
+    case 'tri': return [o.g, r1(hyp(o.g - o.o, o.h)), r1(hyp(o.o, o.h))];
+    case 'para': { const s = r1(hyp(o.off, o.h)); return [o.g, s, o.g, s]; }
+  }
+  return [];
+}
+function perim(o) { return o.shape === 'circ' ? r2(PI * 2 * o.r) : r1(sides(o).reduce((a, b) => a + b, 0)); }
+function inPoly(p, P) {
+  let c = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+    if (((P[i][1] > p[1]) !== (P[j][1] > p[1])) && (p[0] < (P[j][0] - P[i][0]) * (p[1] - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0])) c = !c;
+  }
+  return c;
+}
+function inside(o, p) {
+  if (o.shape === 'circ') return hyp(p[0] - o.x, p[1] - o.y) < o.r;
+  if (o.shape === 'tree') return hyp(p[0] - o.x, p[1] - o.y) < 0.75;
+  if (o.shape === 'block') return p[0] > o.x && p[0] < o.x + o.w && p[1] > o.y && p[1] < o.y + o.h;
+  if (o.shape === 'decor') return p[0] > o.x && p[0] < o.x + 1 && p[1] > o.y && p[1] < o.y + 1;
+  return inPoly(p, poly(o));
+}
+function bbox(o) {
+  if (o.shape === 'circ') return [o.x - o.r, o.y - o.r, o.x + o.r, o.y + o.r];
+  const P = poly(o); const xs = P.map(p => p[0]), ys = P.map(p => p[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+function inBounds(o) { const b = bbox(o); return b[0] >= 0 && b[1] >= 0 && b[2] <= MW && b[3] <= MH; }
+function obstacles() {
+  const pk = PARKS[S.park % PARKS.length];
+  return [].concat(pk.trees.map(t => ({ shape: 'tree', x: t[0], y: t[1] })), pk.blocks.map(b => Object.assign({ shape: 'block' }, b)), S.objects, S.decor.map(d => ({ shape: 'decor', x: d.x, y: d.y })));
+}
+function collides(o) {
+  const obs = obstacles();
+  const b = bbox(o);
+  for (let x = Math.floor(b[0]) + 0.25; x < b[2]; x += 0.5) for (let y = Math.floor(b[1]) + 0.25; y < b[3]; y += 0.5) {
+    if (!inside(o, [x, y])) continue;
+    if (obs.some(q => inside(q, [x, y]))) return true;
+  }
+  return false;
+}
+
+/* ================= state ================= */
+let S = null; // saved game
+let M = null; // current mission
+let phase = 'draw', drawTries = 0;
+function fresh(topics) { return { money: 0, parks: 0, park: 0, mission: 0, objects: [], decor: [], topics, sk: {}, dip: {}, recent: [], name: '', firm: '' }; }
+const SKILLS = {
+  'areal-rekt': { name: 'Areal af rektangler', title: 'Pladelægger', can: 'finde arealet af rektangler og kvadrater', topic: 'firkant' },
+  'omkreds-rekt': { name: 'Omkreds af rektangler', title: 'Hegnsbygger', can: 'finde omkredsen af rektangler og kvadrater', topic: 'firkant' },
+  'areal-para': { name: 'Areal af parallelogrammer', title: 'Roverbanebygger', can: 'finde arealet af et parallelogram med grundlinje og højde', topic: 'firkant' },
+  'optimering': { name: 'Mest for pengene', title: 'Smart planlægger', can: 'finde den form, der giver mest areal eller bruger mindst energihegn', topic: 'firkant' },
+  'areal-tri': { name: 'Areal af trekanter', title: 'Trekantsekspert', can: 'finde arealet af trekanter med ½ · grundlinje · højde', topic: 'trekant' },
+  'omkreds-tri': { name: 'Omkreds af trekanter', title: 'Kantlysmontør', can: 'finde omkredsen af trekanter', topic: 'trekant' },
+  'cirkel-dele': { name: 'Radius og diameter', title: 'Cirkelkender', can: 'bruge radius og diameter i en cirkel', topic: 'cirkel' },
+  'omkreds-cirkel': { name: 'Omkreds af cirkler', title: 'Dambygger', can: 'finde omkredsen af en cirkel med π', topic: 'cirkel' },
+  'areal-cirkel': { name: 'Areal af cirkler', title: 'Mosgartner', can: 'finde arealet af en cirkel med π', topic: 'cirkel' },
+  'rumfang-kasse': { name: 'Rumfang af kasser', title: 'Skjoldbygger', can: 'finde rumfanget af en kasse', topic: 'rumfang' },
+  'rumfang-cyl': { name: 'Rumfang af cylindre', title: 'Tankbygger', can: 'finde rumfanget af en cylinder', topic: 'rumfang' },
+};
+const NEEDED = 3;
+function sk(id) { return S.sk[id] || (S.sk[id] = { c: 0, f: 0 }); }
+function trinOf(id) { const f = sk(id).f; return f <= 1 ? 0 : f <= 3 ? 1 : 2; } // hidden, never shown
+let newDiplomas = [];
+function credit(id, ok) {
+  const st = sk(id);
+  if (ok) { st.c++; st.f = Math.min(4, st.f + 1); if (st.c >= NEEDED && !S.dip[id]) { S.dip[id] = new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }); newDiplomas.push(id); } }
+  else st.f = Math.max(0, st.f - 1);
+}
+function areaSkill(sh) { return { rect: 'areal-rekt', para: 'areal-para', rtri: 'areal-tri', tri: 'areal-tri', circ: 'areal-cirkel' }[sh]; }
+function needSkill(kind, sh) {
+  if (kind === 'area' || kind === 'plants') return areaSkill(sh);
+  if (kind === 'perim') return { rect: 'omkreds-rekt', para: 'omkreds-rekt', rtri: 'omkreds-tri', tri: 'omkreds-tri', circ: 'omkreds-cirkel' }[sh];
+  return sh === 'circ' ? 'rumfang-cyl' : 'rumfang-kasse';
+}
+function drawSkill(m) { if (m.opt) return 'optimering'; const k = m.spec.k; if (k === 'd') return 'cirkel-dele'; if (k === 'perim') return 'omkreds-rekt'; return areaSkill(m.shape); }
+function orderSkills(m) { return [...new Set([drawSkill(m)].concat(m.need.map(n => needSkill(n.kind, m.shape))))]; }
+function save() { store.set(S); }
+
+/* ================= customers & orders ================= */
+const CLIENTS = {
+  kommando: { name: 'Kommandøren', who: 'Kolonirådet', col: '#2f78bd' },
+  ingenioer: { name: 'Ingeniøren', who: 'Teknikholdet', col: '#c96f12' },
+  botaniker: { name: 'Botanikeren', who: 'Drivhuset', col: '#3a9e78' },
+  robot: { name: 'Robotmekanikeren', who: 'Værkstedet', col: '#6b6f78' },
+  dyr: { name: 'Dyrepasseren', who: 'Dyrestationen', col: '#7d4fb5' },
+  boern: { name: 'Kolonibørnene', who: 'Skolen', col: '#d9534a' },
+};
+function pickArea(lo, hi, maxX, maxY) {
+  for (let i = 0; i < 300; i++) { const A = rnd(lo, hi); let n = 0; for (let x = 2; x <= maxX; x++) if (A % x === 0 && A / x >= 2 && A / x <= maxY) n++; if (n >= 2) return A; }
+  return 24;
+}
+function pickEvenArea(lo, hi) { // for triangles: g*h = 2A must factor nicely
+  for (let i = 0; i < 300; i++) { const A = rnd(lo, hi); const D = 2 * A; let n = 0; for (let x = 2; x <= 10; x++) if (D % x === 0 && D / x >= 2 && D / x <= 8) n++; if (n >= 2) return A; }
+  return 12;
+}
+/* need: [{mat, kind:'area'|'perim'|'vol'|'plants'}] ; spec: {k:'area'|'minarea'|'perim'|'d', v} */
+const ORDERS = {
+  firkant: [
+    t => { const A = pickArea([6, 16, 24][t], [16, 30, 48][t], 10, 7); const ks = t >= 1 || Math.random() < .5; return { client: 'kommando', title: 'Landingsplads', shape: 'rect', spec: { k: 'area', v: A }, text: `Forsyningsskibets landingsfartøj skal have en landingsplads. Den skal være på præcis <strong>${A} m²</strong> og dækkes med <strong>metalplader</strong>.`.concat(ks ? ' Der skal også <strong>kantlys</strong> hele vejen rundt, så piloten kan se den.' : ''), need: [{ mat: 'fliser', kind: 'area' }].concat(ks ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'fliser' }; },
+    t => { const A = [12, 20, 30][t]; return { client: 'dyr', title: 'Glimfårfold', shape: 'rect', spec: { k: 'minarea', v: A }, text: `Vi har fundet glimfår, Novas egne dyr. De skal have en fold på <strong>mindst ${A} m²</strong> med <strong>energihegn</strong> hele vejen rundt. Folden skal være et rektangel, men du bestemmer selv længde og bredde.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'graes' }; },
+    t => { const P = 2 * rnd([6, 9, 11][t], [10, 13, 16][t]); return { client: 'kommando', title: 'Træningsbane', shape: 'rect', spec: { k: 'perim', v: P }, text: `Astronauterne skal holde formen og løbe rundt langs kanten af en træningsbane. Vi har ${P} m lysstribe til kanten, så banens <strong>omkreds skal være præcis ${P} m</strong>. Hele banen skal dækkes med <strong>rummos</strong>.`.concat(t >= 2 ? ' Der skal også <strong>energihegn</strong> hele vejen rundt.' : ''), need: [{ mat: 'graes', kind: 'area' }].concat(t >= 2 ? [{ mat: 'hegn', kind: 'perim' }] : []), look: 'graes' }; },
+    t => { const P = 2 * rnd([7, 9, 11][t], [9, 12, 14][t]); return { client: 'dyr', title: 'Glimfårfold', shape: 'rect', opt: 'maxarea', spec: { k: 'maxarea', v: P }, text: `Forsyningsskibet har bragt <strong>${P} m energihegn</strong>. Byg den <strong>største glimfårfold</strong>, I kan lave med hegnet. Hegnet har vi selv, så I skal kun købe <strong>rummos</strong> til hele folden.`, need: [{ mat: 'graes', kind: 'area' }], look: 'graes', border: 'hegn' }; },
+    t => { const A = pick([[12, 16, 18, 20], [24, 30, 36], [40, 42, 48]][t]); return { client: 'boern', title: 'Legeplads', shape: 'rect', opt: 'minperim', spec: { k: 'area', v: A }, text: `Vi vil have en legeplads på præcis <strong>${A} m²</strong> med <strong>energihegn</strong> hele vejen rundt, så ingen går ud på planeten alene. Energihegn bruger meget strøm, så brug <strong>så lidt hegn som muligt</strong>.`, need: [{ mat: 'hegn', kind: 'perim' }], look: 'grus', border: 'hegn' }; },
+    t => { const A = pickArea([8, 12, 20][t], [18, 30, 42][t], 9, 6); return { client: 'robot', title: 'Roverparkering', shape: 'para', spec: { k: 'area', v: A }, text: `Roverne skal holde skråt, så de nemt kan køre ud. Parkeringen skal være et <strong>parallelogram</strong> på præcis <strong>${A} m²</strong>, og den skal have <strong>roverbelægning</strong>.`, need: [{ mat: 'asfalt', kind: 'area' }], look: 'asfalt' }; },
+  ],
+  trekant: [
+    t => { const A = pickEvenArea([3, 6, 10][t], [8, 15, 24][t]); return { client: 'botaniker', title: 'Drivhusbed', shape: 'rtri', spec: { k: 'area', v: A }, text: `Jeg skal så de første planter. Drivhusbedet skal være en trekant med en ret vinkel på præcis <strong>${A} m²</strong>, og der skal sås 1 <strong>frøkapsel</strong> pr. m².`.concat(t >= 1 ? ' Der skal også <strong>kantlys</strong> hele vejen rundt, så planterne får lys om natten.' : ''), need: [{ mat: 'planter', kind: 'plants' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'planter' }; },
+    t => { const A = pickEvenArea([4, 8, 12][t], [10, 18, 28][t]); return { client: 'ingenioer', title: 'Solcellefelt', shape: 'tri', spec: { k: 'area', v: A }, text: `Kolonien mangler strøm. Vi skal have et solcellefelt formet som en trekant på præcis <strong>${A} m²</strong>, og det skal dækkes helt med <strong>solceller</strong>.`, need: [{ mat: 'solceller', kind: 'area' }], look: 'solceller' }; },
+  ],
+  cirkel: [
+    t => { const r = rnd(2, 3); return { client: 'botaniker', title: 'Algedam', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Algerne i dammen laver ilt til kolonien. Vi skal have en rund algedam med en <strong>diameter på ${2 * r} m</strong> og <strong>kantlys</strong> hele vejen rundt.`.concat(t >= 1 ? ' Bunden skal have <strong>metalplader</strong>.' : '', ' Vandet henter vi selv fra isminen, så det skal I ikke købe.'), need: [{ mat: 'kantsten', kind: 'perim' }].concat(t >= 1 ? [{ mat: 'fliser', kind: 'area' }] : []), look: 'vand' }; },
+    t => { const r = rnd(1, 3); return { client: 'robot', title: 'Dronelandingsplads', shape: 'circ', spec: { k: 'd', v: 2 * r }, text: `Fragtdronerne skal have en rund landingsplads med en <strong>diameter på ${2 * r} m</strong>. Hele pladsen skal dækkes med <strong>regolitgrus</strong>.`.concat(t >= 1 ? ' Der skal også <strong>kantlys</strong> hele vejen rundt.' : ''), need: [{ mat: 'grus', kind: 'area' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'grus' }; },
+  ],
+  rumfang: [
+    t => { const dep = [1, 0.5, 0.4][t]; const A = t === 2 ? pick([10, 15, 20, 25]) : pickArea([4, 8, 12][t], [12, 20, 30][t], 8, 6); return { client: 'ingenioer', title: 'Strålingsskjold', shape: 'rect', depth: dep, spec: { k: 'area', v: A }, text: `Solen på Nova sender stråling. Vi skal have et skjold: en kasse på præcis <strong>${A} m²</strong>, der fyldes med <strong>regolit</strong> <strong>${fmt(dep)} m op</strong>. Regolitten stopper strålingen.`.concat(t >= 1 ? ' Der skal <strong>kantlys</strong> hele vejen rundt.' : ''), need: [{ mat: 'sand', kind: 'vol' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'sand' }; },
+    t => { const hgt = [1, 0.5, 0.5][t]; const A = pickArea([4, 6, 10][t], [10, 16, 24][t], 8, 4); return { client: 'boern', title: 'Højbed', shape: 'rect', depth: hgt, spec: { k: 'area', v: A }, text: `Vi vil dyrke grøntsager til kolonien. Vi skal have et højbed på <strong>${A} m²</strong>, og det skal fyldes med <strong>næringsjord</strong> <strong>${fmt(hgt)} m op</strong>.`, need: [{ mat: 'muld', kind: 'vol' }], look: 'muld' }; },
+    t => { const r = rnd(1, 3), dep = t === 0 ? 1 : 0.5; return { client: 'ingenioer', title: 'Vandtank', shape: 'circ', depth: dep, spec: { k: 'd', v: 2 * r }, text: `Kolonien skal have en rund vandtank med en <strong>diameter på ${2 * r} m</strong>. Det smeltede is fra isminen skal stå <strong>${fmt(dep)} m højt</strong> i tanken, så I skal bestille <strong>vand</strong>.`.concat(t >= 1 ? ' Der skal også <strong>kantlys</strong> hele vejen rundt om tanken.' : ''), need: [{ mat: 'vand', kind: 'vol' }].concat(t >= 1 ? [{ mat: 'kantsten', kind: 'perim' }] : []), look: 'vand' }; },
+  ],
+};
+const HINTS = {
+  rect: { area: 'Areal af et rektangel = længde · bredde.', perim: 'Omkreds = alle fire sider lagt sammen.' },
+  para: { area: 'Areal af et parallelogram = grundlinje · højde. Brug den stiplede højde, ikke den skrå side.' },
+  rtri: { area: 'Areal af en trekant = ½ · grundlinje · højde. I en retvinklet trekant er de to sider ved den rette vinkel grundlinje og højde.' },
+  tri: { area: 'Areal af en trekant = ½ · grundlinje · højde. Det er kun grundlinjen og den stiplede højde, der tæller.' },
+  circ: { d: 'Diameteren er 2 · radius. Du trækker i radius.' },
+};
+
+let offers = [], chooseMsg = '';
+function estArea(m) { const k = m.spec.k, v = m.spec.v; if (k === 'd') return PI * (v / 2) ** 2; if (k === 'perim' || k === 'maxarea') return (v / 4) ** 2; return v; }
+function makeOffer(c) {
+  const m0 = c.g(0); const t = trinOf(drawSkill(m0)); const m = c.g(t);
+  m.topic = c.tp; m.key = c.key; m.color = TC[c.tp]; m.skills = orderSkills(m);
+  m.fee = Math.round((300 + 30 * estArea(m) + (m.opt ? 300 : 0) + (m.depth ? 200 : 0) + 150 * (m.need.length - 1)) / 50) * 50;
+  return m;
+}
+function offerWeight(c) { const m = c.g(0); const sks = orderSkills(m); return sks.reduce((a, id) => a + (S.dip[id] ? .25 : 1), 0) / sks.length * (S.recent.includes(c.key) ? .35 : 1); }
+function wpick(list, wf) { const w = list.map(wf); const sum = w.reduce((a, b) => a + b, 0); let r = Math.random() * sum; for (let i = 0; i < list.length; i++) { r -= w[i]; if (r <= 0) return list[i]; } return list[list.length - 1]; }
+function optBest(m) {
+  if (m.opt === 'maxarea') { const half = Math.floor(m.spec.v / 2); const a = Math.floor(half / 2); return { l: half - a, b: a, val: a * (half - a) }; }
+  let best = null; for (let x = 1; x <= MW; x++) if (m.spec.v % x === 0 && m.spec.v / x <= MH) { const p = 2 * (x + m.spec.v / x); if (!best || p < best.val) best = { l: Math.max(x, m.spec.v / x), b: Math.min(x, m.spec.v / x), val: p }; }
+  return best;
+}
+function optFits(m) {
+  const bst = optBest(m); if (!bst) return false;
+  for (const [l, b] of [[bst.l, bst.b], [bst.b, bst.l]]) for (let y = 1; y <= MH; y++) for (let x = 0; x < MW; x++) { const c = { shape: 'rect', x, y, l, b }; if (inBounds(c) && !collides(c)) return true; }
+  return false;
+}
+function newOffers() {
+  const topics = TOPICS.map(t => t.id).filter(id => S.topics[id]);
+  const pool = []; topics.forEach(tp => ORDERS[tp].forEach((g, i) => pool.push({ tp, g, key: tp + i })));
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const list = [], used = new Set();
+    while (list.length < 3) {
+      let cand = pool.filter(p => !used.has(p.key)); if (!cand.length) cand = pool;
+      const c = wpick(cand, offerWeight); used.add(c.key); const m = makeOffer(c); if (m.opt && !optFits(m) && cand.length > 1) continue; list.push(m);
+    }
+    if (list.some(m => solvable(m))) return list;
+  }
+  return null;
+}
+function goChoose() {
+  M = null; phase = 'choose';
+  offers = newOffers();
+  if (!offers) { chooseMsg = ''; S.mission = MISSIONS_PER_PARK; openPark(true); return; }
+  renderAll();
+}
+function takeOffer(i) {
+  M = offers[i]; S.recent.push(M.key); if (S.recent.length > 4) S.recent.shift();
+  M.obj = startShape(M.shape); phase = 'draw'; drawTries = 0; chooseMsg = '';
+  renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function quitOffer() {
+  S.money = Math.max(0, S.money - 300); save();
+  chooseMsg = `${CLIENTS[M.client].name} blev skuffet og har bedt en anden arkitekt om hjælp. Du har betalt 300 kreditter i erstatning.`;
+  drawBad = false; goChoose();
+}
+function newMission() { goChoose(); }
+function solvable(m) {
+  const R = { rect: { l: [1, 12], b: [1, 8] }, rtri: { a: [1, 12], b: [1, 8] }, tri: { g: [1, 12], o: [0, 0], h: [1, 8] }, para: { g: [1, 10], off: [0, 0], h: [1, 8] }, circ: { r: [1, 5] } }[m.shape];
+  const keys = Object.keys(R), cands = [];
+  const rec = (i, cur) => {
+    if (i === keys.length) { const c = Object.assign({ shape: m.shape, x: 0, y: 0 }, cur); const save = M; M = m; const ok = specOK(c); M = save; if (ok) cands.push(c); return; }
+    for (let v = R[keys[i]][0]; v <= R[keys[i]][1]; v++) rec(i + 1, Object.assign({}, cur, { [keys[i]]: v }));
+  };
+  rec(0, {});
+  for (const c of cands) for (let y = 1; y <= MH; y++) for (let x = 0; x < MW; x++) { c.x = x; c.y = y; if (inBounds(c) && !collides(c)) return true; }
+  return false;
+}
+function startShape(shape) {
+  const base = { rect: { l: 2, b: 2 }, rtri: { a: 2, b: 2 }, tri: { g: 3, o: 1, h: 2 }, para: { g: 3, off: 1, h: 2 }, circ: { r: 1 } }[shape];
+  for (let y = 3; y <= MH; y++) for (let x = 0; x <= MW - 3; x++) {
+    const o = Object.assign({ shape, x: shape === 'circ' ? x + 1 : x, y: shape === 'circ' ? y - 1 : y }, base);
+    if (inBounds(o) && !collides(o)) return o;
+  }
+  return Object.assign({ shape, x: 1, y: 3 }, base);
+}
+
+/* ================= handles ================= */
+function handles(o) {
+  switch (o.shape) {
+    case 'rect': return [{ pos: o => [o.x + o.l, o.y - o.b], move: (o, x, y) => { o.l = clamp(Math.round(x - o.x), 1, MW - o.x); o.b = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'rtri': return [
+      { pos: o => [o.x + o.a, o.y], move: (o, x) => { o.a = clamp(Math.round(x - o.x), 1, MW - o.x); } },
+      { pos: o => [o.x, o.y - o.b], move: (o, x, y) => { o.b = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'tri': return [
+      { pos: o => [o.x + o.g, o.y], move: (o, x) => { o.g = clamp(Math.round(x - o.x), 1, MW - o.x); o.o = Math.min(o.o, o.g); } },
+      { pos: o => [o.x + o.o, o.y - o.h], move: (o, x, y) => { o.o = clamp(Math.round(x - o.x), 0, o.g); o.h = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'para': return [
+      { pos: o => [o.x + o.g, o.y], move: (o, x) => { o.g = clamp(Math.round(x - o.x), 1, MW - o.x - o.off); } },
+      { pos: o => [o.x + o.off, o.y - o.h], move: (o, x, y) => { o.off = clamp(Math.round(x - o.x), 0, MW - o.x - o.g); o.h = clamp(Math.round(o.y - y), 1, o.y); } }];
+    case 'circ': return [{ pos: o => [o.x + o.r, o.y], move: (o, x) => { o.r = clamp(Math.round(x - o.x), 1, Math.min(5, MW - o.x, o.x, o.y, MH - o.y)); } }];
+  }
+}
+function moveBody(o, dx, dy) {
+  const n = Object.assign({}, o, { x: o.x + dx, y: o.y + dy });
+  if (inBounds(n)) { o.x = n.x; o.y = n.y; }
+}
+
+/* ================= drawing ================= */
+const P = p => [p[0] * CS, p[1] * CS];
+function shapeSVG(o, fill, stroke, extra = '') {
+  if (o.shape === 'circ') { const c = P([o.x, o.y]); return `<circle cx="${c[0]}" cy="${c[1]}" r="${o.r * CS}" fill="${fill}" stroke="${stroke}" stroke-width="3" ${extra}/>`; }
+  return `<polygon points="${poly(o).map(p => P(p).join(',')).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" ${extra}/>`;
+}
+function edgeLbl(a, b, c, t) {
+  a = P(a); b = P(b); c = P(c);
+  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+  let nx = -(b[1] - a[1]), ny = b[0] - a[0]; const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
+  if ((mx - c[0]) * nx + (my - c[1]) * ny < 0) { nx = -nx; ny = -ny; }
+  return `<text class="ml" x="${mx + nx * 13}" y="${my + ny * 13 + 4}" text-anchor="middle">${t}</text>`;
+}
+function dimLabels(o) {
+  if (o.shape === 'circ') { const c = P([o.x, o.y]); return `<line x1="${c[0]}" y1="${c[1]}" x2="${c[0] + o.r * CS}" y2="${c[1]}" stroke="#1f2233" stroke-width="2.5"/><circle cx="${c[0]}" cy="${c[1]}" r="3.5" fill="#1f2233"/><text class="ml" x="${c[0] + o.r * CS / 2}" y="${c[1] - 8}" text-anchor="middle">r = ${o.r} m</text>`; }
+  const pts = poly(o), s = sides(o);
+  const cen = [pts.reduce((a, p) => a + p[0], 0) / pts.length, pts.reduce((a, p) => a + p[1], 0) / pts.length];
+  let g = '';
+  if (o.shape === 'rect') { g += edgeLbl(pts[0], pts[1], cen, o.l + ' m') + edgeLbl(pts[1], pts[2], cen, o.b + ' m'); }
+  else if (o.shape === 'rtri') { g += edgeLbl(pts[0], pts[1], cen, o.a + ' m') + edgeLbl(pts[2], pts[0], cen, o.b + ' m') + edgeLbl(pts[1], pts[2], cen, fmt(s[2]) + ' m'); const c = P(pts[0]); g += `<path d="M${c[0] + 9} ${c[1]} V${c[1] - 9} H${c[0]}" fill="none" stroke="#1f2233" stroke-width="1.5"/>`; }
+  else if (o.shape === 'tri' || o.shape === 'para') {
+    g += edgeLbl(pts[0], pts[1], cen, o.g + ' m');
+    if (o.shape === 'tri') g += edgeLbl(pts[1], pts[2], cen, fmt(s[1]) + ' m') + edgeLbl(pts[2], pts[0], cen, fmt(s[2]) + ' m');
+    else g += edgeLbl(pts[1], pts[2], cen, fmt(s[1]) + ' m');
+    const top = o.shape === 'tri' ? [o.x + o.o, o.y - o.h] : [o.x + o.off, o.y - o.h];
+    const T = P(top), F = P([top[0], o.y]);
+    g += `<line x1="${T[0]}" y1="${T[1]}" x2="${F[0]}" y2="${F[1]}" stroke="#c96f12" stroke-width="2.5" stroke-dasharray="6 4"/><text class="ml h" x="${T[0] + 6}" y="${(T[1] + F[1]) / 2 + 4}">${o.h} m</text>`;
+  }
+  return g;
+}
+const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+/* ---------- pixel painting ----------
+   The park is painted pixel by pixel on a small canvas (16 pixels per metre) and shown scaled up with sharp pixels.
+   Moving things (visitors, ducks, the truck, the fountain) are sprites on top of it in the SVG. */
+const PXM = 16, U = CS / PXM, NW = MW * PXM, NH = MH * PXM;
+const IMG = {}, TILE = {};
+let pixReady = false;
+const pixLoad = Promise.all(Object.keys(SPR).map(n => new Promise(res => { const im = new Image(); im.onload = res; im.onerror = res; im.src = SPR[n].f[0]; IMG[n] = im; }))).then(() => {
+  Object.keys(SPR).filter(n => n.startsWith('flise-')).forEach(n => {
+    const d = SPR[n], c = document.createElement('canvas'); c.width = d.w; c.height = d.h;
+    const g = c.getContext('2d'); g.drawImage(IMG[n], 0, 0);
+    TILE[n.slice(6)] = { w: d.w, h: d.h, d: g.getImageData(0, 0, d.w, d.h).data };
+  });
+  pixReady = true;
+});
+function seeded(seed) { let r = seed; return () => (r = (r * 16807) % 2147483647) / 2147483647; }
+function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+const rgbCache = {};
+function rgbaOf(c, a = 1) {
+  if (!rgbCache[c]) {
+    const x = mkCanvas(1, 1).getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 1, 1);
+    const d = x.getImageData(0, 0, 1, 1).data; rgbCache[c] = [d[0], d[1], d[2], d[3] / 255];
+  }
+  const r = rgbCache[c]; return [r[0], r[1], r[2], r[3] * a];
+}
+function tileAt(name, x, y) { const T = TILE[name]; const j = ((y % T.h) * T.w + (x % T.w)) * 4; return [T.d[j], T.d[j + 1], T.d[j + 2], T.d[j + 3] / 255]; }
+/* which pixels belong to a shape: 0 = outside, 1 = edge, 2 = second ring, 3 = inside */
+function shapeMask(test, b, pad = 3) {
+  const x0 = clamp(Math.floor(b[0] * PXM) - pad, 0, NW), y0 = clamp(Math.floor(b[1] * PXM) - pad, 0, NH);
+  const x1 = clamp(Math.ceil(b[2] * PXM) + pad, 0, NW), y1 = clamp(Math.ceil(b[3] * PXM) + pad, 0, NH);
+  const w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0), m = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) m[y * w + x] = test([(x0 + x + .5) / PXM, (y0 + y + .5) / PXM]) ? 3 : 0;
+  const nb = (x, y) => x < 0 || y < 0 || x >= w || y >= h ? 0 : m[y * w + x];
+  for (const [ring, lim] of [[1, 0], [2, 1]]) for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x; if (m[i] !== 3) continue;
+    if (nb(x + 1, y) === lim || nb(x - 1, y) === lim || nb(x, y + 1) === lim || nb(x, y - 1) === lim) m[i] = ring;
+  }
+  return { x0, y0, w, h, m, at: (x, y) => x < 0 || y < 0 || x >= w || y >= h ? 0 : m[y * w + x] };
+}
+/* paint a region: fn(X, Y, ring, x, y) returns [r, g, b, alpha 0..1] or null */
+function paintRegion(ctx, R, fn) {
+  const id = ctx.getImageData(R.x0, R.y0, R.w, R.h), d = id.data;
+  for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
+    const c = fn(R.x0 + x, R.y0 + y, R.m[y * R.w + x], x, y); if (!c) continue;
+    const i = (y * R.w + x) * 4, a = c[3], da = d[i + 3] / 255, oa = a + da * (1 - a);
+    if (oa <= 0) continue;
+    for (let k = 0; k < 3; k++) d[i + k] = (c[k] * a + d[i + k] * da * (1 - a)) / oa;
+    d[i + 3] = oa * 255;
+  }
+  ctx.putImageData(id, R.x0, R.y0);
+}
+/* a sprite drawn on a canvas, centred on pixel (cx, cy) */
+function drawSpr(ctx, name, cx, cy, ox = 0, oy = 0) { const d = SPR[name]; ctx.drawImage(IMG[name], Math.round(cx - d.w / 2) - ox, Math.round(cy - d.h / 2) - oy); }
+/* a sprite in the SVG at pixel (x, y) (top left), frame f */
+function spr(name, x, y, cls = '', f = 0, style = '') {
+  const d = SPR[name];
+  return `<image href="${d.f[f]}" x="${(x * U).toFixed(3)}" y="${(y * U).toFixed(3)}" width="${(d.w * U).toFixed(3)}" height="${(d.h * U).toFixed(3)}" preserveAspectRatio="none"${cls ? ` class="${cls}"` : ''}${style ? ` style="${style}"` : ''}/>`;
+}
+function spr2(name, x, y, dur = .9, delay = 0) {
+  if (SPR[name].f.length < 2) return spr(name, x, y);
+  const st = `animation-duration:${dur}s;animation-delay:-${delay}s`;
+  return spr(name, x, y, 'k1', 0, st) + spr(name, x, y, 'k2', 1, st);
+}
+function spr3(name, x, y) { return ['f3a', 'f3b', 'f3c'].map((c, i) => spr(name, x, y, c, i)).join(''); }
+/* a sprite walking dx, dy pixels and back, one pixel per step; flip = turn around on the way back */
+function walker(name, x, y, dx, dy, dur, delay, flip = false) {
+  const n = Math.max(1, Math.round(Math.max(Math.abs(dx), Math.abs(dy))));
+  const st = `--dx:${(Math.round(dx) * U).toFixed(2)}px;--dy:${(Math.round(dy) * U).toFixed(2)}px;animation-duration:${dur}s;animation-delay:${delay}s;animation-timing-function:steps(${n})`;
+  const t = `animation-duration:${dur}s;animation-delay:${delay}s`;
+  const body = flip ? `<g class="fwd" style="${t}">${spr2(name, x, y, .5)}</g><g class="bwd" style="${t}"><g transform="translate(${((2 * x + SPR[name].w) * U).toFixed(2)} 0) scale(-1 1)">${spr2(name, x, y, .5)}</g></g>` : spr2(name, x, y, .5);
+  return `<g class="walk" style="${st}">${body}</g>`;
+}
+document.documentElement.style.setProperty('--hedge', 'url(' + (() => { if (true) { const c = document.createElement('canvas'); c.width = 16; c.height = 4; const g = c.getContext('2d'); g.fillStyle = '#241d45'; g.fillRect(0, 0, 16, 4); g.fillStyle = '#5fe0d0'; g.fillRect(0, 2, 16, 1); g.fillStyle = '#bff8f0'; g.fillRect(2, 1, 3, 1); g.fillRect(10, 1, 2, 1); g.fillStyle = '#3a3470'; g.fillRect(7, 0, 1, 4); g.fillRect(15, 0, 1, 4); return c.toDataURL(); }
+  const c = mkCanvas(16, 4), g = c.getContext('2d');
+  g.fillStyle = '#3a9e78'; g.fillRect(0, 0, 16, 4); g.fillStyle = '#2a6e38'; g.fillRect(0, 0, 16, 1); g.fillRect(5, 1, 3, 1); g.fillRect(12, 1, 2, 1);
+  g.fillStyle = '#7cc05e'; g.fillRect(2, 2, 2, 1); g.fillRect(9, 3, 3, 1); g.fillStyle = '#e07aa8'; g.fillRect(14, 2, 1, 1);
+  return c.toDataURL();
+})() + ')');
+const SHADOW = [42, 33, 64, .3];
+const inRoundRect = (p, x, y, w, h, r) => { const dx = Math.max(x + r - p[0], 0, p[0] - (x + w - r)), dy = Math.max(y + r - p[1], 0, p[1] - (y + h - r)); return p[0] >= x && p[0] <= x + w && p[1] >= y && p[1] <= y + h && dx * dx + dy * dy <= r * r; };
+/* grass, paths, lake/harbour and the metre grid */
+function paintGround(ctx, pk) {
+  const id = ctx.createImageData(NW, NH), d = id.data, rnd = seeded(7 + (S.park % PARKS.length) * 131);
+  const patches = Array.from({ length: 8 }, () => [rnd() * NW, rnd() * NH, 22 + rnd() * 34, 12 + rnd() * 16, rnd() < .55 ? rgbaOf('#d6c9ef') : rgbaOf('#8fd8c8')]);
+  for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) {
+    let c = tileAt('park', x, y);
+    for (const [px, py, rx, ry, pc] of patches) { const q = ((x - px) / rx) ** 2 + ((y - py) / ry) ** 2; if (q < .75 || (q < 1 && (x + y) % 2 === 0)) { c = [(c[0] + pc[0]) / 2, (c[1] + pc[1]) / 2, (c[2] + pc[2]) / 2, 1]; break; } }
+    const i = (y * NW + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+  }
+  const specks = ['#ffffff', '#5fe0d0', '#ff7ac8'];
+  for (let k = 0; k < 46; k++) { const x = Math.floor(rnd() * NW), y = Math.floor(rnd() * NH), c = rgbaOf(specks[k % 3]); for (const [dx, dy] of [[0, 0], [1, 0]]) { const i = (y * NW + Math.min(NW - 1, x + dx)) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; } }
+  ctx.putImageData(id, 0, 0);
+  pk.blocks.forEach(b => {
+    if (b.kind === 'sti') {
+      const R = shapeMask(p => p[0] >= b.x && p[0] <= b.x + b.w && p[1] >= b.y && p[1] <= b.y + b.h, [b.x, b.y, b.x + b.w, b.y + b.h], 1);
+      const edge = rgbaOf('#8a82a3');
+      paintRegion(ctx, R, (X, Y, v) => v === 1 ? edge : v ? tileAt('sti', X, Y) : null);
+    } else {
+      const R = shapeMask(p => inRoundRect(p, b.x - .19, b.y - .19, b.w + .38, b.h + .38, .7), [b.x - .2, b.y - .2, b.x + b.w + .2, b.y + b.h + .2], 1);
+      const r1 = rgbaOf('#6f6488'), r2 = rgbaOf('#a79fbd');
+      paintRegion(ctx, R, (X, Y, v) => v === 1 ? r1 : v ? r2 : null);
+      const W = shapeMask(p => inRoundRect(p, b.x, b.y, b.w, b.h, .5), [b.x, b.y, b.x + b.w, b.y + b.h], 1);
+      const tn = b.kind === 'sø' ? 'soe' : 'havn', dark = rgbaOf(b.kind === 'sø' ? '#1d7f72' : '#4a4d5a');
+      paintRegion(ctx, W, (X, Y, v) => v === 1 ? dark : v ? tileAt(tn, X, Y) : null);
+    }
+  });
+  ctx.fillStyle = 'rgba(255,255,255,.28)';
+  for (let x = 1; x < MW; x++) ctx.fillRect(x * PXM, 0, 1, NH);
+  for (let y = 1; y < MH; y++) ctx.fillRect(0, y * PXM, NW, 1);
+}
+function insidePts(o, step) {
+  const b = bbox(o), out = [];
+  for (let x = b[0] + step / 2; x < b[2]; x += step) for (let y = b[1] + step / 2; y < b[3]; y += step) {
+    if (inside(o, [x, y]) && inside(o, [x - .45, y]) && inside(o, [x + .45, y]) && inside(o, [x, y - .45]) && inside(o, [x, y + .45])) out.push([x, y]);
+  }
+  return out;
+}
+function centroid(o) { if (o.shape === 'circ') return [o.x, o.y]; const p = poly(o); return [p.reduce((a, q) => a + q[0], 0) / p.length, p.reduce((a, q) => a + q[1], 0) / p.length]; }
+function outlineSVG(o, attrs) {
+  if (o.shape === 'circ') { const c = P([o.x, o.y]); return `<circle cx="${c[0]}" cy="${c[1]}" r="${o.r * CS}" fill="none" ${attrs}/>`; }
+  return `<polygon points="${poly(o).map(p => P(p).join(',')).join(' ')}" fill="none" stroke-linejoin="round" ${attrs}/>`;
+}
+function postsPts(o) {
+  if (o.shape === 'circ') { const n = Math.round(2 * Math.PI * o.r); return Array.from({ length: n }, (_, i) => { const a = i / n * Math.PI * 2; return [o.x + o.r * Math.cos(a), o.y + o.r * Math.sin(a)]; }); }
+  const P0 = poly(o), r = [];
+  P0.forEach((a, i) => { const b = P0[(i + 1) % P0.length]; const L = hyp(b[0] - a[0], b[1] - a[1]); const n = Math.max(1, Math.round(L)); for (let k = 0; k < n; k++) r.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); });
+  return r;
+}
+const pxp = p => [Math.round(p[0] * PXM), Math.round(p[1] * PXM)];
+/* things drawn inside a build, clipped to its shape */
+function decoCanvas(o, R) {
+  const t = o.title, c = mkCanvas(R.w, R.h), g = c.getContext('2d');
+  const put = (name, p) => drawSpr(g, name, p[0], p[1], R.x0, R.y0);
+  const b = bbox(o), C = pxp(centroid(o));
+  const W = (x, y, w, h, col = 'rgba(255,255,255,.9)') => { g.fillStyle = col; g.fillRect(x - R.x0, y - R.y0, w, h); };
+  if (t === 'Træningsbane') {
+    const x0 = Math.round(b[0] * PXM), x1 = Math.round(b[2] * PXM), y0 = Math.round(b[1] * PXM), y1 = Math.round(b[3] * PXM), mx = Math.round((x0 + x1) / 2), my = Math.round((y0 + y1) / 2);
+    const hor = (x1 - x0) >= (y1 - y0);
+    W(x0 + 3, y0 + 3, x1 - x0 - 6, 1); W(x0 + 3, y1 - 4, x1 - x0 - 6, 1); W(x0 + 3, y0 + 3, 1, y1 - y0 - 6); W(x1 - 4, y0 + 3, 1, y1 - y0 - 6);
+    if (hor) W(mx, y0 + 3, 1, y1 - y0 - 6); else W(x0 + 3, my, x1 - x0 - 6, 1);
+    const rr = Math.min(x1 - x0, y1 - y0) / 5;
+    for (let a = 0; a < 64; a++) W(Math.round(mx + rr * Math.cos(a / 64 * Math.PI * 2)), Math.round(my + rr * Math.sin(a / 64 * Math.PI * 2)), 1, 1);
+    if (hor) { W(x0 + 1, my - 4, 2, 9, '#fff'); W(x1 - 3, my - 4, 2, 9, '#fff'); } else { W(mx - 4, y0 + 1, 9, 2, '#fff'); W(mx - 4, y1 - 3, 9, 2, '#fff'); }
+    
+  } else if (t === 'Roverparkering') {
+    for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) if ((R.x0 + x + R.y0 + y) % 7 === 0) { g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x, y, 1, 1); }
+    insidePts(o, 1.6).slice(0, 5).forEach(p => put('minirover', pxp(p)));
+  } else if (t === 'Landingsplads') {
+    const rr = Math.max(4, Math.min(b[2] - b[0], b[3] - b[1]) * PXM / 2 - 4); for (let a = 0; a < 96; a++) W(Math.round(C[0] + rr * Math.cos(a / 96 * Math.PI * 2)), Math.round(C[1] + rr * Math.sin(a / 96 * Math.PI * 2)), 1, 1, '#ffd34d');
+    W(C[0] - 4, C[1] - 5, 2, 11, '#ffd34d'); W(C[0] + 3, C[1] - 5, 2, 11, '#ffd34d'); W(C[0] - 2, C[1] - 1, 5, 2, '#ffd34d');
+  } else if (t === 'Solcellefelt') {
+  } else if (t === 'Drivhusbed') {
+    insidePts(o, 1).slice(0, 12).forEach((p, k) => { const q = pxp(p); ['blomst-pink', 'blomst-gul', 'blomst-roed', 'blomst-hvid'].forEach((n, j) => { if ((k + j) % 2 === 0) put(n, [q[0] + [-3, 3, -3, 3][j], q[1] + [-3, -3, 3, 3][j]]); }); });
+  } else if (t === 'Dronelandingsplads') {
+    const rr = Math.max(3, o.r * PXM - 5); for (let a = 0; a < 64; a++) W(Math.round(C[0] + rr * Math.cos(a / 64 * Math.PI * 2)), Math.round(C[1] + rr * Math.sin(a / 64 * Math.PI * 2)), 1, 1, '#ffffff');
+  } else if (t === 'Strålingsskjold') {
+    const ps = insidePts(o, 1);
+    if (ps.length > 4) put('sandbunke', pxp(ps[Math.floor(ps.length / 2)]));
+  } else if (t === 'Højbed') {
+    insidePts(o, 0.8).forEach((p, k) => put(['kaal', 'tomat', 'spire'][k % 3], pxp(p)));
+  } else if (t === 'Glimfårfold') {
+  } else return null;
+  // clip to the shape
+  const id = g.getImageData(0, 0, R.w, R.h), d = id.data;
+  for (let i = 0; i < R.w * R.h; i++) if (!R.m[i]) d[i * 4 + 3] = 0;
+  g.putImageData(id, 0, 0);
+  return c;
+}
+function borderOf(o) {
+  const two = (a, b) => { const A = rgbaOf(a), B = rgbaOf(b); return v => v === 1 ? A : v === 2 ? B : null; };
+  if (o.border === 'hegn') return two('#5c3c1f', '#a0703e');
+  if (o.border === 'kantsten') { const a = rgbaOf('#6d717b'), b = rgbaOf('#c9ccd3'), c = rgbaOf('#a7acb6'); return (v, X, Y) => v === 1 ? a : v === 2 ? ((((X + Y) >> 2) & 1) ? b : c) : null; }
+  if (o.look === 'sand' || o.look === 'muld') return two('#6e4527', '#a0703e');
+  if (o.look === 'vand') return two('#8d939e', '#e3ddd0');
+  const w = [255, 255, 255, .6]; return v => v === 1 ? w : null;
+}
+/* one build painted on the park canvas: shadow, ground, things inside, border (and fence posts) */
+function paintObject(ctx, o) {
+  const R = shapeMask(p => inside(o, p), bbox(o));
+  const tl = TILE[o.look] ? o.look : 'fliser';
+  paintRegion(ctx, R, (X, Y, v, x, y) => v ? tileAt(tl, X, Y) : (R.at(x - 1, y - 1) || R.at(x - 1, y - 2)) ? SHADOW : null);
+  const dc = decoCanvas(o, R); if (dc) ctx.drawImage(dc, R.x0, R.y0);
+  const B = borderOf(o);
+  paintRegion(ctx, R, (X, Y, v) => B(v, X, Y));
+  if (o.border === 'hegn') postsPts(o).forEach(p => { const q = pxp(p); ctx.fillStyle = '#3a2a1a'; ctx.fillRect(q[0] - 2, q[1] - 2, 4, 4); ctx.fillStyle = '#8a5d31'; ctx.fillRect(q[0] - 1, q[1] - 1, 2, 2); });
+}
+/* moving things in a build (on top, in the SVG) */
+function objectLife(o) {
+  const t = o.title, C = pxp(centroid(o));
+  if (t === 'Algedam') return spr3('krusning', C[0] - 10, C[1] - 10) + spr2('springvand', C[0] - 10, C[1] - 10, .6);
+  if (t === 'Dronelandingsplads') return spr2('drone', C[0] - 6, C[1] - 5, .2);
+  if (t === 'Vandtank-and') { const r = Math.round(o.r * PXM * .45); return REDUCED ? spr('badeand', C[0] - 6, C[1] - 4) : walker('badeand', C[0] - 5 - r, C[1] - 5, 2 * r, 3, 8, 0, true); }
+  if (t === 'Glimfårfold') { const ps = insidePts(o, 2); if (!ps.length) return ''; const b = bbox(o); return ps.slice(0, 2).map((p, i) => { const q = pxp(p), room = Math.max(0, Math.min(36, Math.round(b[2] * PXM) - q[0] - 14)); return REDUCED || room < 4 ? spr('glimfaar', q[0] - 6, q[1] - 4) : walker('glimfaar', q[0] - 6, q[1] - 4, room, 0, 7 + i * 2, -i * 3, true); }).join(''); }
+  if (o.look === 'vand' && !REDUCED) { const ps = insidePts(o, 1.3); return ps.slice(0, 3).map((p, i) => { const q = pxp(p); return `<g class="spark" style="animation-delay:-${(i * 1.7).toFixed(1)}s">${spr2('glimt', q[0] - 1, q[1] - 1, .5)}</g>`; }).join(''); }
+  return '';
+}
+function tagSVG(o) {
+  const t = o.title, b = bbox(o);
+  const tw = t.length * 6.6 + 14, tx = clamp((b[0] + b[2]) / 2 * CS, tw / 2 + 2, VW - tw / 2 - 2), ty = clamp(b[1] * CS + 2, 11, VH - 11);
+  return `<g class="tag"><rect x="${tx - tw / 2}" y="${ty - 9}" width="${tw}" height="18" fill="#ffffff" stroke="#1b1b31" stroke-width="${U}"/><text class="mt" x="${tx}" y="${ty + 5}" text-anchor="middle" style="stroke:none">${t}</text></g>`;
+}
+const DECOR = [
+  { id: 'trae', name: 'Rumtræ', price: 300, spr: 'trae-lille' },
+  { id: 'baenk', name: 'Bænk', price: 400, spr: 'baenk' },
+  { id: 'lampe', name: 'Lygte', price: 250, spr: 'lygte', anim: 1.4 },
+  { id: 'blomst', name: 'Glødeblomster', price: 150, spr: 'blomster' },
+  { id: 'gynge', name: 'Gynge', price: 1200, spr: 'gynge', anim: 1.6 },
+  { id: 'is', name: 'Hjælperobot', price: 2000, spr: 'robot', anim: 1 },
+];
+function lifeSVG() {
+  const pk = PARKS[S.park % PARKS.length];
+  let g = '';
+  if (REDUCED) return g;
+  const rnd = seeded(3 + (S.park % PARKS.length) * 17);
+  // water life
+  pk.blocks.filter(b => b.kind === 'sø').forEach(b => {
+    [0, 1].forEach(k => { const x0 = (b.x + 1 + k) * PXM, y0 = (b.y + 1 + k * .8) * PXM, x1 = (b.x + b.w - 1) * PXM; g += walker(k ? 'svane' : 'and', x0 - 5, y0 - 4, x1 - x0, 3, 14 + k * 5, -k * 4, true); });
+  });
+  pk.blocks.filter(b => b.kind === 'havn').forEach(b => {
+    const y0 = Math.round((b.y + b.h / 2) * PXM);
+    g += `<g class="sail" style="--a:${(-30 * U).toFixed(2)}px;--b:${((NW + 30) * U).toFixed(2)}px;animation-timing-function:steps(${NW + 60})">${spr('baad', 0, y0 - 6)}</g>`;
+  });
+  pk.blocks.filter(b => b.kind !== 'sti').forEach(b => {
+    for (let i = 0; i < 4; i++) { const x = Math.round((b.x + .5 + rnd() * (b.w - 1)) * PXM), y = Math.round((b.y + .4 + rnd() * (b.h - .8)) * PXM); g += `<g class="spark" style="animation-delay:-${(i * 1.3).toFixed(1)}s">${spr2('glimt', x - 1, y - 1, .5)}</g>`; }
+  });
+  // visitors walk on the paths: more built things, more visitors
+  const paths = pk.blocks.filter(b => b.kind === 'sti');
+  const n = Math.min(14, S.objects.length * 2 + Math.floor(S.decor.length / 2) + (S.mission >= MISSIONS_PER_PARK ? 4 : 0));
+  for (let i = 0; i < n && paths.length; i++) {
+    const b = paths[i % paths.length];
+    const hor = b.w >= b.h;
+    const off = ((i * 37) % 10) / 10 * .6 + .2;
+    const a = hor ? [(b.x + .3) * PXM, (b.y + off) * PXM] : [(b.x + off) * PXM, (b.y + .3) * PXM];
+    const e = hor ? [(b.x + b.w - .3) * PXM, a[1]] : [a[0], (b.y + b.h - .3) * PXM];
+    const dur = 12 + (i * 7) % 11, beg = -((i * 5) % dur);
+    const dog = i % 5 === 3, name = dog ? 'hund' : 'gaest-' + (i % 5 + 1), d = SPR[name];
+    g += walker(name, Math.round(a[0] - d.w / 2), Math.round(a[1] - d.h / 2), e[0] - a[0], e[1] - a[1], dur, beg, dog && hor);
+  }
+  return g;
+}
+function truckSVG(o) {
+  if (REDUCED) return '';
+  const b = bbox(o);
+  const cx = Math.round(clamp((b[0] + b[2]) / 2 * PXM - 15, 4, NW - 34));
+  const y = Math.round(clamp(b[3] * PXM + 8, 10, NH - 8)) - 7;
+  const col = (MATS[o.look] || MATS.fliser).col;
+  return `<g class="truck" style="--x0:${(-44 * U).toFixed(2)}px;--cx:${(cx * U).toFixed(2)}px;--x1:${((NW + 44) * U).toFixed(2)}px"><rect x="${U}" y="${((y + 1) * U).toFixed(2)}" width="${18 * U}" height="${8 * U}" fill="${col}"/>${spr2('lastbil', 0, y, .25)}</g>`;
+}
+function confettiSVG() {
+  if (REDUCED) return '';
+  let g = '';
+  const cols = ['#d9534a', '#2f78bd', '#f2b632', '#3a9e78', '#7d4fb5', '#e07aa8'];
+  for (let i = 0; i < 60; i++) { const x = Math.round((i * 97) % VW / U) * U, d = 2.5 + (i % 7) * .4, w = (2 + i % 2) * U; g += `<rect x="${x.toFixed(2)}" y="-12" width="${w}" height="${w * (1 + (i % 3 === 0))}" fill="${cols[i % 6]}"><animate attributeName="y" values="${Array.from({ length: 25 }, (_, k) => (-20 + k * (VH + 40) / 24).toFixed(1)).join(';')}" calcMode="discrete" dur="${d}s" begin="${(i % 10) * .25}s" repeatCount="3"/></rect>`; }
+  return g;
+}
+/* the shape being drawn: pixels in the order colour, with a dashed white edge */
+function activeImg(o, col, alpha, line) {
+  const R = shapeMask(p => inside(o, p), bbox(o), 1);
+  const c = mkCanvas(R.w, R.h), g = c.getContext('2d'), id = g.createImageData(R.w, R.h), d = id.data;
+  const F = rgbaOf(col, alpha), L = rgbaOf(line), Wt = [255, 255, 255, 1];
+  for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
+    const v = R.m[y * R.w + x]; if (!v) continue;
+    const p = v === 1 ? (((R.x0 + x + R.y0 + y) >> 1) & 1 ? Wt : L) : v === 2 ? L : F, i = (y * R.w + x) * 4;
+    d[i] = p[0]; d[i + 1] = p[1]; d[i + 2] = p[2]; d[i + 3] = p[3] * 255;
+  }
+  g.putImageData(id, 0, 0);
+  return `<image href="${c.toDataURL()}" x="${(R.x0 * U).toFixed(2)}" y="${(R.y0 * U).toFixed(2)}" width="${(R.w * U).toFixed(2)}" height="${(R.h * U).toFixed(2)}" preserveAspectRatio="none" pointer-events="none"/>`;
+}
+function activeSVG() {
+  let g = '';
+  if (M && phase === 'shop') g += activeImg(M.obj, M.color, .22, M.color) + dimLabels(M.obj);
+  if (M && phase === 'draw') {
+    const o = M.obj;
+    g += activeImg(o, M.color, .42, drawBad ? '#c0443b' : M.color);
+    g += `<g id="active" style="cursor:move">` + shapeSVG(o, 'transparent', 'none') + `</g>`;
+    g += dimLabels(o);
+    handles(o).forEach((h, i) => { const q = P(h.pos(o)); g += `<g class="hd" data-i="${i}" tabindex="0" role="slider" aria-label="Træk for at ændre størrelsen" style="cursor:grab"><circle cx="${q[0]}" cy="${q[1]}" r="22" fill="transparent"/><rect x="${q[0] - 4 * U}" y="${q[1] - 3 * U}" width="${10 * U}" height="${10 * U}" fill="#1f3a1a" opacity=".3"/><rect x="${q[0] - 5 * U}" y="${q[1] - 5 * U}" width="${10 * U}" height="${10 * U}" fill="#1b1b31"/><rect x="${q[0] - 4 * U}" y="${q[1] - 4 * U}" width="${8 * U}" height="${8 * U}" fill="${M.color}"/><rect x="${q[0] - 2 * U}" y="${q[1] - 2 * U}" width="${4 * U}" height="${4 * U}" fill="#ffffff"/></g>`; });
+  }
+  return g;
+}
+function renderActive() {
+  const L = $('Lactive'); if (!L) return renderMap();
+  const fx = document.activeElement && document.activeElement.closest && document.activeElement.closest('.hd');
+  const fi = fx ? fx.dataset.i : null;
+  L.innerHTML = activeSVG();
+  if (fi != null) { const el = L.querySelector(`.hd[data-i="${fi}"]`); if (el) el.focus({ preventScroll: true }); }
+}
+function renderMap() {
+  if (!pixReady) { pixLoad.then(renderMap); return; }
+  const pk = PARKS[S.park % PARKS.length];
+  const newest = justBuilt && S.objects.length ? S.objects.length - 1 : -1;
+  const cv = mkCanvas(NW, NH), ctx = cv.getContext('2d');
+  paintGround(ctx, pk);
+  S.objects.forEach((o, i) => { if (i !== newest) paintObject(ctx, o); });
+  let over = '';
+  S.decor.forEach(d => { const it = DECOR.find(x => x.id === d.id), cx = d.x * PXM + 8, cy = d.y * PXM + 8; if (it.anim) { const sd = SPR[it.spr]; over += spr2(it.spr, Math.round(cx - sd.w / 2), Math.round(cy - sd.h / 2), it.anim, (d.x * .37) % it.anim); } else drawSpr(ctx, it.spr, cx, cy); });
+  pk.trees.forEach((t, k) => drawSpr(ctx, t[2] || (k % 2 ? 'trae2' : 'trae'), t[0] * PXM, t[1] * PXM));
+  let g = `<image href="${cv.toDataURL()}" x="0" y="0" width="${VW}" height="${VH}" preserveAspectRatio="none"/>`;
+  pk.blocks.forEach(b => { if (b.w * b.h >= 6 && b.kind !== 'sti') g += `<text class="mt" x="${(b.x + b.w / 2) * CS}" y="${(b.y + b.h / 2) * CS + 5}" text-anchor="middle">${{ sø: 'Algesøen', havn: 'Rumhavnen' }[b.kind]}</text>`; });
+  if (newest >= 0) {
+    const o = S.objects[newest], c2 = mkCanvas(NW, NH), C = P(centroid(o));
+    paintObject(c2.getContext('2d'), o);
+    g += `<g class="newobj" style="transform-origin:${C[0].toFixed(1)}px ${C[1].toFixed(1)}px"><image href="${c2.toDataURL()}" x="0" y="0" width="${VW}" height="${VH}" preserveAspectRatio="none"/>${objectLife(o)}${tagSVG(o)}</g>`;
+  }
+  S.objects.forEach((o, i) => { if (i !== newest) g += objectLife(o); });
+  g += over;
+  S.objects.forEach((o, i) => { if (i !== newest) g += tagSVG(o); });
+  g += `<g id="Llife">${lifeSVG()}</g>`;
+  if (justBuilt && S.objects.length) g += truckSVG(S.objects[S.objects.length - 1]);
+  if (phase === 'parkdone') g += confettiSVG();
+  g += `<g id="Lactive"></g>`;
+  if (placing) g += `<rect width="${VW}" height="${VH}" fill="transparent" style="cursor:copy"/>`;
+  const svg = $('map');
+  svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
+  svg.innerHTML = g;
+  renderActive();
+}
+
+let justBuilt = false, drawBad = false, placing = null;
+
+/* ================= panel ================= */
+function header() {
+  $('hMoney').textContent = kr(S.money);
+  $('hStars').textContent = Object.keys(S.dip).length + ' af ' + Object.keys(SKILLS).length;
+  $('hParks').textContent = S.parks;
+  $('parkName').textContent = (S.firm ? S.firm + ' · ' : '') + PARKS[S.park % PARKS.length].name + (S.park >= PARKS.length ? ' ' + (Math.floor(S.park / PARKS.length) + 1) : '');
+  $('dots').innerHTML = Array.from({ length: MISSIONS_PER_PARK }, (_, i) => `<i class="${i < S.mission ? 'd' : i === S.mission ? 'n' : ''}"></i>`).join('');
+}
+function huskHTML(text) { const t = $('tHusk').content.firstElementChild.cloneNode(true); t.querySelector('.hb').textContent = text; return t.outerHTML; }
+function clientHTML() {
+  const c = CLIENTS[M.client];
+  return `<div class="client"><span class="avatar" style="background:${c.col}">${c.name[0]}</span><span><b>${c.name}</b><small>${c.who} · kalder om: ${M.title.toLowerCase()}</small></span></div><div class="quote"><span class="qlbl">Kolonistens ønske</span>${M.text}</div>`;
+}
+function readHTML() {
+  const o = M.obj;
+  let rows;
+  if (o.shape === 'rect') rows = [['Længde', o.l + ' m'], ['Bredde', o.b + ' m']];
+  else if (o.shape === 'rtri') rows = [['Grundlinje', o.a + ' m'], ['Højde', o.b + ' m']];
+  else if (o.shape === 'tri' || o.shape === 'para') rows = [['Grundlinje', o.g + ' m'], ['Højde', o.h + ' m']];
+  else rows = [['Radius', o.r + ' m']];
+  return rows.map(r => `<span><small>${r[0]}</small><b>${r[1]}</b></span>`).join('');
+}
+function renderAll() { header(); renderMap(); renderPanel(); }
+function offerHTML(m, i) {
+  const c = CLIENTS[m.client];
+  return `<div class="offer" style="--oc:${m.color}"><div class="client"><span class="avatar" style="background:${c.col};width:34px;height:34px;font-size:15px">${c.name[0]}</span><span><b>${c.name}</b><small>${m.title}</small></span></div><p>${m.text}</p><div class="ofoot"><span class="fee">Betaling ${kr(m.fee)}</span><button class="go sm" type="button" data-take="${i}">Tag opgaven</button></div></div>`;
+}
+function renderPanel() {
+  const panel = $('panel'); panel.style.setProperty('--c', M && phase !== 'parkdone' ? M.color : 'var(--teal)');
+  const body = $('pBody');
+  if (phase === 'choose') {
+    $('pTitle').textContent = 'Radioen kalder'; $('pPhase').textContent = 'Vælg opgave';
+    body.innerHTML = (chooseMsg ? `<div class="fb bad">${chooseMsg}</div>` : '') + `<p class="howto" style="color:var(--ink)">Tre kolonister kalder over radioen. Du kan kun tage én af opgaverne. Store opgaver giver en større betaling, men fylder mere. Tjek på kortet, om der er plads.</p><div class="offers">${offers.map(offerHTML).join('')}</div>`;
+  } else if (phase === 'draw') {
+    $('pTitle').textContent = M.title; $('pPhase').textContent = '1 · Tegn';
+    body.innerHTML = clientHTML() + `<p class="howto">Tegn ${M.title.toLowerCase()} på kortet. Træk i figuren for at flytte den, og træk i de hvide prikker for at ændre størrelsen. Hvert tern er 1 m.</p><div class="read" id="read">${readHTML()}</div><div id="dfb"></div><button class="go" id="bDraw" type="button">Vis tegningen til kolonisten</button><button class="linkbtn" id="bQuit" type="button">Der er ikke plads. Afvis opgaven (koster 300 kreditter)</button>`;
+  } else if (phase === 'shop') {
+    $('pTitle').textContent = M.title; $('pPhase').textContent = '2 · Bestil';
+    const rows = M.shop.map((id, i) => { const m = MATS[id]; return `<tr><td class="sw"><span class="mat" style="background:${SPR['flise-' + id] ? `url(${SPR['flise-' + id].f[0]}) 0 0` : m.col};display:block"></span></td><td class="nm"><b>${m.name}</b><small>${m.price} kreditter pr. ${m.unit} · ${m.d}</small></td><td class="q"><input id="q${i}" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Antal ${m.unit} ${m.name}"><span class="u">${m.unit}</span></td></tr>`; }).join('');
+    body.innerHTML = clientHTML() + `<p class="howto" style="color:var(--ink)"><b>Kolonisten har godkendt tegningen.</b> Nu skal du bestille materialer fra forsyningsskibet. Bestil kun det, der skal bruges, i hele ${'m, m², m³ eller stk'}.${M.depth ? ` Husk: ${M.look === 'muld' ? 'højden' : 'dybden'} er ${fmt(M.depth)} m.` : ''}</p>
+      <div class="read">${readHTML()}</div>
+      <table class="shop">${rows}</table>
+      <p class="howto">Budget til materialer: <b>${kr(M.budget)}</b>. Det, du ikke bruger, går til dine kreditter sammen med betalingen på ${kr(M.fee)}.</p>
+      <div id="sfb"></div>
+      <button class="go" id="bOrder" type="button">Bestil materialer</button>`;
+  } else if (phase === 'result') {
+    $('pTitle').textContent = M.title + ' er bygget'; $('pPhase').textContent = '3 · Regnskab';
+    body.innerHTML = clientHTML() + M.resultHTML;
+  } else if (phase === 'parkdone') {
+    $('pTitle').textContent = 'Feltet er færdigt!'; $('pPhase').textContent = 'Indvielse';
+    body.innerHTML = parkHTML;
+  }
+}
+
+/* ================= draw phase ================= */
+function specOK(o) {
+  const s = M.spec;
+  if (s.k === 'area') return Math.abs(area(o) - s.v) < 1e-6;
+  if (s.k === 'minarea') return area(o) >= s.v - 1e-6;
+  if (s.k === 'maxarea') return perim(o) <= s.v + 1e-6;
+  if (s.k === 'perim') return Math.abs(perim(o) - s.v) < 1e-6;
+  if (s.k === 'd') return 2 * o.r === s.v;
+}
+function specHint() {
+  const s = M.spec, sh = M.shape;
+  if (s.k === 'perim') return HINTS.rect.perim + ' Prøv fx at gøre den ene side længere og den anden kortere.';
+  if (s.k === 'd') return HINTS.circ.d;
+  if (s.k === 'minarea') return HINTS.rect.area + ` Arealet skal være ${s.v} m² eller mere.`;
+  if (s.k === 'maxarea') return `Energihegnet skal række hele vejen rundt, så omkredsen må højst være ${s.v} m. ` + HINTS.rect.perim;
+  return HINTS[sh].area;
+}
+function onDrawCheck() {
+  const o = M.obj;
+  if (collides(o)) { drawBad = true; renderMap(); $('dfb').innerHTML = `<div class="fb bad">Der er ikke plads. Figuren rammer en sten, et krater, et træ, en gangbro eller noget, du har bygget. Flyt den et andet sted hen.</div>`; return; }
+  if (!specOK(o)) {
+    drawTries++;
+    $('dfb').innerHTML = `<div class="fb bad">${M.spec.k === 'maxarea' ? 'Energihegnet rækker ikke hele vejen rundt. Prøv igen.' : 'Kolonisten ryster på hovedet: Det passer ikke med det, vi bad om. Prøv igen.'}</div>` + huskHTML(specHint());
+    return;
+  }
+  drawBad = false;
+  M.drawStar = drawTries === 0;
+  if (!M.opt) credit(drawSkill(M), drawTries === 0);
+  setupShop();
+  phase = 'shop'; renderAll();
+  setTimeout(() => { try { $('q0').focus({ preventScroll: true }); } catch (e) {} }, 30);
+}
+
+/* ================= shop phase ================= */
+function needOf(n) {
+  const o = M.obj, m = MATS[n.mat];
+  const A = area(o), Pm = perim(o);
+  const shapeA = {
+    rect: `${o.l} · ${o.b} = ${fmt(A)} m²`, para: `${o.g} · ${o.h} = ${fmt(A)} m²`, rtri: `½ · ${o.a} · ${o.b} = ${fmt(A)} m²`,
+    tri: `½ · ${o.g} · ${o.h} = ${fmt(A)} m²`, circ: `3,14 · ${o.r} · ${o.r} = ${fmt(A)} m²`
+  }[o.shape];
+  const shapeP = o.shape === 'circ' ? `3,14 · ${2 * o.r} = ${fmt(Pm)} m` : `${sides(o).map(fmt).join(' + ')} = ${fmt(Pm)} m`;
+  let v, why;
+  if (n.kind === 'area') { v = A; why = `${m.name} dækker arealet: ${shapeA}`; }
+  else if (n.kind === 'plants') { v = A; why = `1 plante pr. m², og arealet er ${shapeA}`; }
+  else if (n.kind === 'perim') { v = Pm; why = `${m.name} går hele vejen rundt, så det er omkredsen: ${shapeP}`; }
+  else { v = r2(A * M.depth); why = `${m.name} fylder rumfanget: arealet er ${shapeA}, og ${fmt(A)} · ${fmt(M.depth)} = ${fmt(v)} m³`; }
+  const buy = ceilN(v);
+  if (Math.abs(buy - v) > 1e-6) why += `. Man kan kun købe hele ${m.unit}, så der skal købes ${buy} ${m.unit}.`;
+  else why += '.';
+  return { mat: n.mat, need: buy, why };
+}
+function setupShop() {
+  M.needs = M.need.map(needOf);
+  const needIds = M.needs.map(n => n.mat);
+  const distract = shuffle(Object.keys(MATS).filter(k => !needIds.includes(k)));
+  // always include a distractor with the "wrong" unit for the same job
+  const n = 4 - needIds.length;
+  M.shop = shuffle(needIds.concat(distract.slice(0, n)));
+  const cost = M.needs.reduce((a, x) => a + x.need * MATS[x.mat].price, 0);
+  M.budget = Math.ceil(cost * 1.4 / 500) * 500;
+}
+function onOrder() {
+  const qty = M.shop.map((id, i) => { const s = $('q' + i).value.trim().replace(',', '.'); return s === '' ? 0 : Number(s); });
+  if (qty.some(q => isNaN(q) || q < 0)) { $('sfb').innerHTML = '<div class="fb bad">Skriv kun tal i felterne, fx 12. Lad feltet stå tomt, hvis du ikke skal bruge varen.</div>'; return; }
+  if (qty.some(q => Math.round(q) !== q)) { $('sfb').innerHTML = '<div class="fb bad">Materialerne sælges kun i hele enheder. Rund op til et helt tal.</div>'; return; }
+  if (qty.every(q => q === 0)) { $('sfb').innerHTML = '<div class="fb bad">Du har ikke bestilt noget endnu.</div>'; return; }
+  let spent = 0, extra = 0, waste = 0, wrongMat = false, exact = true;
+  const lines = [];
+  M.shop.forEach((id, i) => {
+    const m = MATS[id], q = qty[i], nd = M.needs.find(n => n.mat === id);
+    spent += q * m.price;
+    if (!nd) { if (q > 0) { wrongMat = true; exact = false; waste += q * m.price; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} bestilt, men der skulle ikke bruges ${m.name.toLowerCase()}.`, why: 'Pengene er spildt.' }); } return; }
+    if (q === nd.need) lines.push({ ok: true, t: `${m.name}: ${q} ${m.unit}. Præcis rigtigt!`, why: nd.why });
+    else if (q < nd.need) { exact = false; if (q === 0) wrongMat = true; const miss = nd.need - q; extra += miss * m.price * 2; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} var for lidt. Der manglede ${miss} ${m.unit}, og ekstra levering koster dobbelt pris.`, why: nd.why }); }
+    else { exact = false; const over = q - nd.need; waste += over * m.price; lines.push({ ok: false, t: `${m.name}: ${q} ${m.unit} var for meget. ${over} ${m.unit} blev ikke brugt.`, why: nd.why }); }
+  });
+  const saved = Math.max(0, M.budget - spent - extra);
+  // skills for materials
+  M.needs.forEach((nd, k) => { const i = M.shop.indexOf(nd.mat); credit(needSkill(M.need[k].kind, M.shape), qty[i] === nd.need); });
+  // optimisation quality
+  let quality = 1, optHTML = '';
+  const o = M.obj;
+  if (M.opt === 'maxarea') {
+    const ob = optBest(M); const a1 = ob.b, b1 = ob.l; const best = ob.val;
+    quality = area(o) / best;
+    optHTML = `<div class="opt"><b>${quality >= 1 ? 'Største mulige glimfårfold!' : 'Der var plads til en større glimfårfold.'}</b> Din er ${o.l} · ${o.b} = ${area(o)} m². Med ${M.spec.v} m energihegn er den største ${a1} · ${b1} = ${best} m². Et kvadrat eller noget tæt på giver mest areal for hegnet.</div>`;
+  } else if (M.opt === 'minperim') {
+    const ob = optBest(M); const best = ob.val, bl = ob.b, bb = ob.l;
+    quality = best / perim(o);
+    optHTML = `<div class="opt"><b>${quality >= 1 ? 'Mindst muligt energihegn!' : 'Det kunne gøres med mindre energihegn.'}</b> Dit energihegn er ${fmt(perim(o))} m. Med ${bl} m og ${bb} m skal der kun bruges ${best} m energihegn. Jo tættere på et kvadrat, jo mindre hegn.</div>`;
+  }
+  if (M.opt) credit('optimering', quality >= 1 - 1e-9);
+  const fee = Math.round(M.fee * quality / 50) * 50;
+  const profit = fee + saved;
+  S.money += profit;
+  // build it
+  const built = Object.assign({}, M.obj, { look: M.look, title: M.title, border: M.border || M.need.some(n => n.mat === 'hegn') ? (M.border || 'hegn') : M.need.some(n => n.mat === 'kantsten') ? 'kantsten' : '' });
+  S.objects.push(built); justBuilt = true;
+  S.mission++;
+  const ck = (ok, t) => `<span><span class="${ok ? 'y' : 'n'}">${ok ? '✓' : '✗'}</span> ${t}</span>`;
+  const starHTML = `<div class="checks">${ck(M.drawStar, 'Tegningen passede første gang')}${ck(!wrongMat, 'De rigtige materialer')}${ck(exact, 'Præcis de rigtige mængder')}${M.opt ? ck(quality >= 1 - 1e-9, M.opt === 'maxarea' ? 'Størst muligt areal' : 'Mindst muligt energihegn') : ''}</div>` + optHTML;
+  const acct = `<table class="acct"><tr><td>Betaling fra kolonisten${quality < 1 ? ` (${Math.round(quality * 100)} %)` : ''}</td><td>${kr(fee)}</td></tr><tr><td>Budget til materialer</td><td>${kr(M.budget)}</td></tr><tr><td>Materialer</td><td class="neg">− ${kr(spent)}</td></tr>${extra ? `<tr><td>Ekstra levering</td><td class="neg">− ${kr(extra)}</td></tr>` : ''}<tr class="sum"><td>Til dine kreditter</td><td>${kr(profit)}</td></tr></table>`;
+  const progHTML = `<div class="prog"><span class="qlbl" style="margin:0">Dine diplomer</span>${M.skills.map(id => { const st = sk(id); return `<div class="row"><span>${SKILLS[id].name}</span><b>${S.dip[id] ? '★ Diplom' : Math.min(st.c, NEEDED) + ' af ' + NEEDED}</b><span class="bar"><i style="width:${Math.min(1, st.c / NEEDED) * 100}%"></i></span></div>`; }).join('')}</div>`;
+  const calcs = `<div class="calcs">${lines.map(l => `<div class="calc ${l.ok ? 'ok' : 'bad'}"><b>${l.t}</b>${l.why}</div>`).join('')}</div>`;
+  const last = S.mission >= MISSIONS_PER_PARK;
+  M.resultHTML = starHTML + calcs + acct + progHTML + `<button class="go" id="bNext" type="button">${last ? 'Gør feltet færdigt' : 'Tag radioen: næste opgave'}</button>` + (waste ? `<p class="howto">Spildte penge: ${kr(waste)}.</p>` : '');
+  phase = 'result';
+  save(); renderAll();
+  if (newDiplomas.length) { const id = newDiplomas.shift(); setTimeout(() => showDiploma(id, true), 1200); }
+  setTimeout(() => { justBuilt = false; }, 3000);
+}
+let parkHTML = '';
+function openPark(full) {
+  S.parks++;
+  const bonus = 1000 + S.decor.length * 200;
+  S.money += bonus; save();
+  parkHTML = (full ? `<div class="fb bad">Der er ikke plads til flere byggerier, så feltet er færdigt nu.</div>` : '') + `<p style="margin:0">Kommandøren klipper snoren over, og ${PARKS[S.park % PARKS.length].name} er klar til kolonisterne! Du får <b>${kr(bonus)}</b> i bonus, og der kommer ekstra bonus for hvert stykke udstyr, du har sat op.</p>
+    <p class="howto">Brug kreditterne på udstyr nu, eller ryk videre til det næste byggefelt.</p><button class="go green" id="bNext" type="button">Ryk til næste byggefelt</button>`;
+  phase = 'parkdone'; renderAll();
+}
+function onNext() {
+  if (phase === 'parkdone') { S.park++; S.mission = 0; S.objects = []; S.decor = []; save(); goChoose(); return; }
+  if (S.mission >= MISSIONS_PER_PARK) { openPark(false); return; }
+  goChoose();
+}
+
+/* ================= decor ================= */
+function renderDecor() {
+  $('decor').innerHTML = DECOR.map(d => `<button type="button" class="ditem" data-id="${d.id}" aria-pressed="${placing === d.id}" ${S.money < d.price ? 'disabled' : ''}><img class="px" src="${SPR[d.spr].f[0]}" alt="" style="width:${SPR[d.spr].w * 2}px"><span>${d.name}<small>${kr(d.price)}</small></span></button>`).join('');
+}
+$('bDecor').addEventListener('click', () => { const open = $('decor').hidden; $('decor').hidden = !open; placing = null; if (open) renderDecor(); $('tip').textContent = open ? 'Vælg noget udstyr og klik på kortet, hvor det skal stå.' : 'Træk i figuren for at flytte den. Træk i de hvide prikker for at ændre størrelsen.'; renderMap(); });
+$('decor').addEventListener('click', e => { const b = e.target.closest('.ditem'); if (!b || b.disabled) return; placing = placing === b.dataset.id ? null : b.dataset.id; renderDecor(); renderMap(); });
+
+/* ================= map input ================= */
+let drag = null;
+function mapPt(e) { const svg = $('map'); const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(svg.getScreenCTM().inverse()); return [q.x / CS, q.y / CS]; }
+$('map').addEventListener('pointerdown', e => {
+  const p = mapPt(e);
+  if (placing) {
+    const it = DECOR.find(d => d.id === placing);
+    const cell = { shape: 'decor', x: Math.floor(p[0]), y: Math.floor(p[1]) };
+    const blocked = obstacles().some(q => inside(q, [cell.x + .5, cell.y + .5])) || (M && phase === 'draw' && inside(M.obj, [cell.x + .5, cell.y + .5]));
+    if (blocked) { $('tip').textContent = 'Der er optaget. Vælg et tomt sted på planetjorden.'; return; }
+    if (S.money < it.price) return;
+    S.money -= it.price; S.decor.push({ id: it.id, x: cell.x, y: cell.y }); save();
+    if (S.money < it.price) placing = null;
+    $('tip').textContent = `${it.name} er sat op. Vælg en ting mere, eller klik på "Køb udstyr" for at lukke.`;
+    renderDecor(); header(); renderMap(); return;
+  }
+  if (!M || phase !== 'draw') return;
+  const h = e.target.closest('.hd');
+  if (h) drag = { mode: 'h', i: +h.dataset.i };
+  else if (e.target.closest('#active')) drag = { mode: 'm', last: [Math.round(p[0]), Math.round(p[1])] };
+  else return;
+  e.preventDefault();
+  try { $('map').setPointerCapture(e.pointerId); } catch (er) {}
+});
+$('map').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = mapPt(e), o = M.obj, before = JSON.stringify(o);
+  if (drag.mode === 'h') handles(o)[drag.i].move(o, p[0], p[1]);
+  else { const c = [Math.round(p[0]), Math.round(p[1])]; const dx = c[0] - drag.last[0], dy = c[1] - drag.last[1]; if (dx || dy) { moveBody(o, dx, dy); drag.last = c; } }
+  if (JSON.stringify(o) !== before) { drawBad = false; renderActive(); const r = $('read'); if (r) r.innerHTML = readHTML(); }
+});
+const end = () => { drag = null; };
+$('map').addEventListener('pointerup', end); $('map').addEventListener('pointercancel', end);
+$('map').addEventListener('keydown', e => {
+  const h = e.target.closest('.hd'); if (!h || !M || phase !== 'draw') return;
+  const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!d) return;
+  e.preventDefault(); const hd = handles(M.obj)[+h.dataset.i]; const [x, y] = hd.pos(M.obj); hd.move(M.obj, x + d[0], y + d[1]);
+  renderActive(); const r = $('read'); if (r) r.innerHTML = readHTML();
+});
+$('pBody').addEventListener('click', e => {
+  const tk = e.target.closest('[data-take]'); if (tk) { takeOffer(+tk.dataset.take); return; }
+  if (e.target.id === 'bQuit') { quitOffer(); return; }
+  if (e.target.id === 'bDraw') onDrawCheck();
+  else if (e.target.id === 'bOrder') onOrder();
+  else if (e.target.id === 'bNext') onNext();
+});
+$('pBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('.shop input')) { e.preventDefault(); onOrder(); } });
+
+/* ================= start ================= */
+$('tHusk').content.querySelector('img').setAttribute('src', SPR.laerer.f[0]);
+const prev = store.get();
+$('topics').innerHTML = TOPICS.map(t => `<label class="tp" style="--tc:${t.c}"><input type="checkbox" id="tp-${t.id}" ${!prev || prev.topics[t.id] ? 'checked' : ''}> ${t.name}</label>`).join('');
+if (prev) $('bResume').hidden = false;
+function chosenTopics() { const o = {}; TOPICS.forEach(t => o[t.id] = $('tp-' + t.id).checked); if (!Object.values(o).some(Boolean)) o.firkant = true; return o; }
+function enterGame() { $('start').hidden = true; $('game').hidden = false; window.scrollTo({ top: 0 }); }
+function who() { S.name = $('nameIn').value.trim().slice(0, 30); S.firm = $('firmIn').value.trim().slice(0, 30); }
+$('bStart').addEventListener('click', () => { S = fresh(chosenTopics()); who(); save(); enterGame(); goChoose(); });
+$('bResume').addEventListener('click', () => { S = Object.assign(fresh(chosenTopics()), prev); S.topics = chosenTopics(); if ($('nameIn').value.trim()) S.name = $('nameIn').value.trim().slice(0, 30); if ($('firmIn').value.trim()) S.firm = $('firmIn').value.trim().slice(0, 30); enterGame(); if (S.mission >= MISSIONS_PER_PARK) { S.park++; S.mission = 0; S.objects = []; S.decor = []; } goChoose(); });
+if (prev) { $('nameIn').value = prev.name || ''; $('firmIn').value = prev.firm || ''; }
+// header on start
+S = prev ? Object.assign(fresh({}), prev) : fresh({});
+$('hMoney').textContent = kr(S.money); $('hStars').textContent = Object.keys(S.dip || {}).length + ' af ' + Object.keys(SKILLS).length; $('hParks').textContent = S.parks;
+/* ================= diplomas ================= */
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function figSrc() { return $('tHusk').content.querySelector('img').getAttribute('src'); }
+function certHTML(id) {
+  const k = SKILLS[id];
+  return `<div class="cert"><span class="seal"><img class="px" src="${SPR.segl.f[0]}" alt=""></span><span class="dk">DIPLOM</span><span class="txt">tildeles</span><span class="who">${esc(S.name || 'Rumarkitekten')}</span>${S.firm ? `<span class="txt">fra ${esc(S.firm)}</span>` : ''}<span class="tt">${k.title} · ${k.name}</span><span class="txt">for at have vist ${NEEDED} gange at kunne ${k.can}.</span><div class="sig"><span>${S.dip[id] || ''}</span><span>Kommandøren</span></div><img class="px" src="${figSrc()}" alt=""></div>`;
+}
+function openModal(html) { $('mContent').innerHTML = html; $('modal').hidden = false; setTimeout(() => { try { $('mClose').focus(); } catch (e) {} }, 30); }
+function closeModal() { $('modal').hidden = true; if (newDiplomas.length) { const id = newDiplomas.shift(); setTimeout(() => showDiploma(id, true), 300); } }
+function showDiploma(id, isNew) { openModal(`<h2 id="mTitle">${isNew ? 'Nyt diplom!' : 'Diplom'}</h2>${certHTML(id)}${isNew ? '<p class="howto" style="margin:0">Opgaver af den slags kommer nu sjældnere, så du får tid til nye udfordringer. Se alle dine diplomer under "Diplomer" øverst.</p>' : ''}`); }
+function showWall() {
+  if (!S) return;
+  const ids = Object.keys(SKILLS).filter(id => S.topics[SKILLS[id].topic] !== false);
+  openModal(`<h2 id="mTitle">Dine diplomer</h2><p class="howto" style="margin:0">Du får et diplom, når du har vist ${NEEDED} gange, at du kan noget. Tryk på et diplom for at se det.</p><div class="wall">${ids.map(id => { const k = SKILLS[id], st = S.sk[id] || { c: 0 }; return S.dip[id] ? `<button type="button" class="mini" data-dip="${id}"><b>${k.title}</b><span>${k.name}</span><span>★ ${S.dip[id]}</span></button>` : `<div class="mini locked"><b>${k.title}</b><span>${k.name}</span><span>${Math.min(st.c, NEEDED)} af ${NEEDED}</span><span class="bar"><i style="width:${Math.min(1, st.c / NEEDED) * 100}%"></i></span></div>`; }).join('')}</div>`);
+}
+$('bDip').addEventListener('click', showWall);
+$('mClose').addEventListener('click', closeModal);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); const d = e.target.closest('[data-dip]'); if (d) showDiploma(d.dataset.dip, false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden) closeModal(); });
+window.__dbg = () => ({ S, M, phase, ORDERS, offers, solvable, optFits, specOK, area, perim, collides, inBounds });
+})();
+</script>

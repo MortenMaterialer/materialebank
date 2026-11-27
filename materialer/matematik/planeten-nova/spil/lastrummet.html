@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lastrummet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Outfit:wght@400;500;600;700;800&display=swap">
+<style>
+/* Kolonien Nova look, shared base below. Layout: the cargo ship with its long hold on the landing pad, the crates waiting on the pier below (true size), then the cargo computer. */
+:root {
+  --space: #15122b; --space2: #241d45; --cream: #f4f1fa; --ink: #1f1d33; --muted: #5d5a75; --line: #d6d0e6; --white: #ffffff;
+  --cyan: #5fe0d0; --pink: #ff7ac8; --yellow: #ffd34d; --green: #3a9e78; --red: #d9534a; --lilac: #9a82c0; --blue: #2f78bd;
+  --display: "Jersey 10", "Outfit", system-ui, sans-serif;
+  --body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, button.tag:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { position: relative; background: var(--space); color: var(--white); overflow: hidden; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+header.top .wrap { position: relative; padding-block: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; }
+.kick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b9b3d6; margin-bottom: 2px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 5.6vw, 50px); line-height: .9; margin: 0; letter-spacing: .02em; }
+.stats { display: flex; gap: 10px; font-family: var(--display); font-size: 24px; line-height: 1; }
+.stat { background: var(--space2); border: 3px solid var(--white); padding: 5px 12px 7px; display: flex; align-items: center; gap: 8px; }
+.stat canvas { width: 21px; height: 21px; image-rendering: pixelated; }
+
+footer { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.linkbtn { background: none; border: 0; padding: 0; color: #5b3f94; text-decoration: underline; font-size: 14px; }
+
+/* panels */
+.dim { position: fixed; inset: 0; background: rgba(21,18,43,.6); display: grid; place-items: center; padding: 16px; z-index: 20; overflow: auto; }
+.panel { background: var(--cream); border: 4px solid var(--space); box-shadow: 8px 8px 0 var(--space); max-width: 600px; width: 100%; }
+.panel .bar { background: var(--space); color: var(--white); font-family: var(--display); font-size: 28px; line-height: 1; padding: 8px 14px 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel .bar button { background: transparent; border: 0; color: var(--white); font-family: var(--display); font-size: 26px; padding: 0 4px; }
+.panel .body { display: flex; gap: 14px; padding: 16px; align-items: flex-start; }
+.panel .body > div { min-width: 0; flex: 1; }
+.panel .body p { margin: 6px 0 0; }
+.fig { flex: none; width: 54px; height: 132px; image-rendering: pixelated; }
+.act { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 16px 16px; justify-content: flex-end; }
+.btn { border: 3px solid var(--space); background: var(--green); color: var(--white); font-family: var(--display); font-size: 24px; line-height: 1; padding: 8px 18px 10px; box-shadow: 4px 4px 0 var(--space); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--space); }
+.btn.ghost { background: var(--white); color: var(--space); }
+.btn.small { font-size: 20px; padding: 5px 12px 7px; box-shadow: 3px 3px 0 var(--space); }
+.btn:disabled { background: #cfc9dd; color: #6f6a85; cursor: not-allowed; box-shadow: 2px 2px 0 var(--space); }
+.shop { display: grid; gap: 8px; margin-top: 10px; }
+.item { display: flex; align-items: center; gap: 12px; background: var(--white); border: 3px solid var(--space); padding: 8px 10px; }
+.item .d { flex: 1; min-width: 0; }
+.item .d b { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: 1; display: block; }
+.item .d span { color: var(--muted); font-size: 14px; }
+.swb { width: 40px; height: 40px; border: 3px solid var(--space); font-weight: 800; font-size: 13px; color: var(--space); box-shadow: 2px 2px 0 var(--space); padding: 0; }
+.swb.on { outline: 3px solid var(--space); outline-offset: 2px; }
+.swb:disabled { opacity: .4; cursor: not-allowed; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1; font-size: .8em; margin: 0 .08em; }
+.fr i { font-style: normal; padding: 0 .14em; }
+.fr i:first-child { border-bottom: .12em solid currentColor; padding-bottom: .06em; margin-bottom: .06em; }
+.fb { padding: 10px 14px; border: 3px solid; font-size: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fb .t { flex: 1; min-width: 220px; }
+.fb.info { background: var(--white); border-color: var(--line); color: var(--muted); }
+.fb.bad { background: #fbe9e7; border-color: var(--red); color: #6e2219; }
+.fb.good { background: #e1f8f4; border-color: var(--green); color: #1a5a45; }
+.fb.help { background: #fff4d1; border-color: #e6c35a; color: #5c3f00; }
+.fb b { font-weight: 800; }
+main { padding-block: 16px 40px; }
+@media (max-width: 560px) { .panel .body .fig { display: none; } .stats { font-size: 20px; } }
+
+.order { display: flex; gap: 14px; align-items: flex-end; margin-bottom: 14px; }
+.bubble { position: relative; background: var(--white); border: 3px solid var(--space); box-shadow: 4px 4px 0 var(--space); padding: 10px 16px; margin-bottom: 24px; min-width: 0; flex: 1; }
+.bubble::before { content: ""; position: absolute; left: -15px; bottom: 12px; border: 6px solid transparent; border-right: 9px solid var(--space); }
+.bubble .k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.bubble .o { font-weight: 800; font-size: clamp(20px, 3vw, 28px); line-height: 1.2; }
+.bubble .b { color: var(--muted); margin-top: 4px; }
+
+.dock { position: relative; background: var(--space); border: 4px solid var(--space); box-shadow: 6px 6px 0 rgba(21,18,43,.3); overflow: hidden; padding: 26px 0 0; }
+#stars2 { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.shipline { position: relative; z-index: 1; display: flex; align-items: flex-end; padding: 0 16px 22px; transition: transform 1.8s cubic-bezier(.5,0,.9,.4); }
+.shipline.up { transform: translateY(-460px); }
+.cock { flex: none; width: 58px; height: 120px; position: relative; }
+.cock canvas { position: absolute; bottom: 0; left: 0; height: 120px; width: auto; image-rendering: pixelated; }
+.holdarea { flex: 1; min-width: 0; position: relative; }
+.holdlbl { color: #d8d2f0; font-weight: 600; font-size: 14px; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 10px; width: var(--hw); }
+/* the hold is 90 % of the area and 120 px high inside (two layers of 60 px); the rest is space where too much cargo sticks out */
+.hold { position: relative; width: calc(var(--hw) + 10px); height: 128px; background: #241d45; border: 4px solid var(--white); border-left-width: 6px; overflow: visible; }
+.hold .shelf { position: absolute; left: calc(var(--hw) * var(--x)); right: 0; top: 50%; border-top: 2px dashed #5d5394; pointer-events: none; }
+.hold.over { border-color: var(--red); }
+.hold.drop { background: #2f2760; outline: 3px dashed var(--cyan); outline-offset: 3px; }
+.hold .empty { position: absolute; inset: 0; display: grid; place-items: center; color: #8f86c0; font-weight: 600; font-size: 15px; pointer-events: none; text-align: center; padding: 0 10px; }
+.hold .end { position: absolute; top: -10px; bottom: -10px; right: -4px; width: 4px; background: var(--white); }
+.ground { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: var(--lilac); border-top: 3px solid #b7a3d8; }
+
+.pierbox { background: #8670ad; border: 4px solid var(--space); border-top: 0; padding: 14px 16px 18px; }
+.pierlbl { color: var(--white); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.pier { display: flex; flex-wrap: wrap; gap: 12px 10px; min-height: 120px; align-items: flex-end; }
+.pier.drop { outline: 3px dashed var(--yellow); outline-offset: 4px; }
+
+/* a crate: a tall crate is as long as its fraction of the hold. A flat crate is half as high, so it is twice as long (same amount of space). */
+.crate { position: relative; flex: none; height: 120px; width: calc(var(--hw) * var(--f)); background: #c98a4b; border: 3px solid #5a3417; color: #2b1606;
+  background-image: linear-gradient(45deg, transparent 46%, #a96d34 46% 54%, transparent 54%), linear-gradient(-45deg, transparent 46%, #a96d34 46% 54%, transparent 54%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden; }
+.hold .crate { position: absolute; left: calc(var(--hw) * var(--x)); top: 0; height: 100%; margin: 0; border-right-width: 2px; }
+.crate.flat { height: 60px; flex-direction: row; gap: 6px; }
+.hold .crate.flat { height: 50%; top: calc(50% * (1 - var(--ln))); }
+.crate .sz { font-weight: 800; font-size: clamp(14px, calc(var(--hw) * var(--f) * .22), 24px); line-height: 1; background: #f6e3c8; border: 2px solid #5a3417; padding: 2px 3px; }
+.crate .val { font-family: var(--display); font-size: 17px; line-height: 1; background: var(--space); color: var(--cyan); padding: 0 4px 2px; white-space: nowrap; }
+@media (max-width: 640px) { .cock { display: none; } }
+/* slim crates (small fractions on small screens): thinner frames, diamond stacked above the number */
+.crate .val i { font-style: normal; } .crate .val b { font-weight: inherit; }
+.crate.slim { border-width: 2px; gap: 3px; }
+.crate.slim .sz { font-size: 13px; padding: 1px; border-width: 1px; }
+.crate.slim .val { font-size: 13px; padding: 1px 2px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.crate.flat.slim { flex-direction: column; gap: 2px; }
+.crate.flat.slim .sz { font-size: 12px; }
+.crate.flat.slim .val { font-size: 12px; }
+.crate.flat.slim .val i { display: none; }
+.crate.out { background-color: #d9534a; }
+.crate:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.ghost { position: fixed; z-index: 50; pointer-events: none; opacity: .9; box-shadow: 6px 6px 0 rgba(0,0,0,.35); cursor: grabbing; }
+.overmsg { position: absolute; left: calc(var(--hw) + 4px); top: -30px; transform: translateX(-50%); background: var(--red); color: var(--white); font-weight: 800; font-size: 13px; padding: 2px 8px; white-space: nowrap; z-index: 2; }
+
+.comp { background: var(--white); border: 3px solid var(--space); box-shadow: 4px 4px 0 var(--space); padding: 12px 16px; margin-top: 18px; }
+.comp .k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.sum { font-weight: 800; font-size: clamp(20px, 3vw, 28px); margin: 4px 0 8px; }
+.qrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.qrow label { font-weight: 700; font-size: 18px; }
+.fin { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+.fin input { width: 70px; text-align: center; font-size: 22px; font-weight: 800; padding: 3px; border: 3px solid var(--space); }
+.fin i { width: 80px; height: 4px; background: var(--space); }
+#fb { margin-top: 12px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div><div class="kick">Kolonien Nova · Talforståelse</div><h1>Lastrummet</h1></div>
+    <div class="stats">
+      <div class="stat"><span>Tur</span><span id="sTrip">1</span><span>/ 8</span></div>
+      <div class="stat" title="Krystaller"><canvas id="cIcon" width="7" height="7" aria-hidden="true"></canvas><span id="sCrys">0</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="order">
+    <canvas class="fig" width="18" height="44" aria-hidden="true"></canvas>
+    <div class="bubble"><div class="k" id="oKick">Fragtordre</div><div class="o" id="oText">…</div><div class="b">Træk kasserne ind i lastrummet. Lasten må højst fylde 1 helt lastrum. Jo mere lasten er værd, jo flere krystaller får I.</div></div>
+  </div>
+
+  <div id="area">
+    <div class="dock">
+      <canvas id="stars2" aria-hidden="true"></canvas>
+      <div class="shipline" id="ship">
+        <div class="cock" id="cock"></div>
+        <div class="holdarea" id="holdarea">
+          <div class="holdlbl"><span>Lastrummet: 1 helt</span><span id="holdInfo"></span></div>
+          <div class="hold" id="hold" aria-label="Lastrummet"><div class="empty" id="empty">Træk kasser herind</div><span class="end" aria-hidden="true"></span></div>
+        </div>
+      </div>
+      <div class="ground"></div>
+    </div>
+    <div class="pierbox">
+      <div class="pierlbl">Kajen: kasser, der venter. En høj kasse er lige så lang, som dens brøk siger. En flad kasse er halvt så høj og derfor dobbelt så lang. Flade kasser kan stables i to lag.</div>
+      <div class="pier" id="pier"></div>
+    </div>
+  </div>
+
+  <div class="comp">
+    <div class="k">Lastcomputer</div>
+    <div class="sum" id="sum">Lastrummet er tomt.</div>
+    <div class="qrow" id="q" hidden>
+      <label id="qLbl">Hvor stor en del af lastrummet fylder kasserne?</label>
+      <span class="fin"><input id="qT" inputmode="numeric" aria-label="Tæller" autocomplete="off"><i></i><input id="qN" inputmode="numeric" aria-label="Nævner" autocomplete="off"></span>
+      <button class="btn small" id="qBtn">Tjek</button>
+    </div>
+    <div class="qrow" id="startRow"><button class="btn small" id="calcBtn" disabled>Lasten er klar, regn den ud</button></div>
+  </div>
+  <div class="fb info" id="fb"><div class="t" id="fbT">…</div><button class="btn small" id="fbBtn" hidden>Næste tur</button></div>
+
+  <footer><span>Krystaller og rekord gemmes i denne browser på denne computer.</span><button class="linkbtn" id="tBtn">Til læreren</button></footer>
+</main>
+
+<div class="dim" id="intro" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="inT">
+    <div class="bar"><span id="inT">Kaptajnens log: fragtflyvning</span></div>
+    <div class="body"><canvas class="fig" width="18" height="44" aria-hidden="true"></canvas><div>
+      <p style="margin-top:0">Koloniens fragtskib flyver varer ud til de andre baser på planeten. Lastrummet kan rumme <b>1 helt</b>.</p>
+      <p>Kasserne på kajen fylder hver en brøkdel af lastrummet, og de er lige så lange, som deres brøk siger. En kasse, der fylder <span class="fr"><i>1</i><i>4</i></span>, er altså en fjerdedel så lang som lastrummet.</p>
+      <p>De små kasser er flade: de er halvt så høje som lastrummet og derfor dobbelt så lange. De kan stables i to lag, og to flade kasser oven på hinanden fylder lige så meget som én høj kasse. Træk en flad kasse op i det øverste lag for at stable den.</p>
+      <p>Træk kasserne ind i lastrummet, og prøv jer frem. Stikker lasten ud, er den for stor. Vælg den last, der er mest værd.</p>
+      <p>Lastcomputeren er gået i stykker, så før I letter, skal I regne ud, hvor meget lasten fylder, og hvor meget plads der er tilbage. Et helt fyldt lastrum giver bonus.</p>
+    </div></div>
+    <div class="act"><button class="btn" id="inGo">Gå om bord</button></div>
+  </div>
+</div>
+
+<div class="dim" id="endP" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="eT">
+    <div class="bar"><span id="eT">Ruten er fløjet</span></div>
+    <div class="body"><canvas class="fig" width="18" height="44" aria-hidden="true"></canvas><div><p style="margin-top:0" id="eText"></p></div></div>
+    <div class="act"><button class="btn" id="eGo">Ny rute</button></div>
+  </div>
+</div>
+
+<div class="dim" id="teach" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tT">
+    <div class="bar"><span id="tT">Til læreren</span><button id="tClose" aria-label="Luk">✕</button></div>
+    <div class="body"><div>
+      <p style="margin-top:0"><b>Mål:</b> Jeg kan regne med brøker (addition og subtraktion). Jeg kan sammenligne brøkers størrelse.</p>
+      <p>Høje kasser er lige så lange som deres brøk af lastrummet. Små brøker (1/8 og mindre) kommer som flade kasser, der er halvt så høje og dobbelt så lange, så de stadig kan læses. De skal stables i to lag for at udnytte pladsen, og et helt fyldt lastrum kræver, at begge lag er fyldt. Det giver en fornemmelse af, at fx 2 · 1/24 = 1/12. Eleverne kan prøve sig frem og se brøkernes størrelse. Bagefter skal de regne lasten ud (plus) og den ledige plads (1 minus lasten). Valget af kasser er et lille strategispil: den mest værdifulde last er ikke altid den, der fylder mest. Nævnerne bliver sværere eller lettere efter, hvordan det går, uden at eleven kan se det.</p>
+      <p>Kasserne kan også flyttes med tastaturet: Tab hen til en kasse, og tryk Enter.</p>
+      <p class="note"><button class="linkbtn" id="tReset">Nulstil alt på denne computer</button></p>
+    </div></div>
+    <div class="act"><button class="btn" id="tOk">Luk</button></div>
+  </div>
+</div>
+
+<script>
+/* ======================================================================
+   LASTRUMMET – plus og minus med brøker som et pakkespil med træk og slip.
+   makeTrip(l) laver en tur ud fra et skjult niveau 0-3. Størrelser regnes
+   i heltal over fællesnævneren L, så der aldrig er afrundingsfejl.
+   ====================================================================== */
+// ==GEN==
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const P = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+const lcm = (a, b) => a / gcd(a, b) * b;
+const FR = (n, d) => d === 1 ? `${n}` : `<span class="fr"><i>${n}</i><i>${d}</i></span>`;
+const RF = (n, d) => { const g = gcd(n, d); return FR(n / g, d / g); };
+const BONUS = 10;
+
+// Small crates (1/8 or less) are flat: half as high, twice as long. Tall crates use both layers of the hold,
+// a flat crate uses 2k of one layer. A load fits when the flat crates can be shared between the two layers.
+const isFlat = (a, d) => 8 * a <= d;
+function fits(cr, m, L) {
+  let B = 0; const w = []; cr.forEach((c, i) => { if (m >> i & 1) { if (c.flat) w.push(2 * c.k); else B += c.k; } });
+  const C = L - B; if (C < 0) return false;
+  for (let a = 0; a < 1 << w.length; a++) { let x = 0, y = 0; w.forEach((v, j) => { if (a >> j & 1) x += v; else y += v; }); if (x <= C && y <= C) return true; }
+  return false;
+}
+// does this load only fit when the flat crates are stacked in two layers?
+function needsStack(cr, m, L) {
+  let B = 0, W = 0; cr.forEach((c, i) => { if (m >> i & 1) { if (c.flat) W += 2 * c.k; else B += c.k; } });
+  return W > L - B;
+}
+function best(cr, L) {
+  let top = { v: -1, set: 0 };
+  for (let m = 1; m < 1 << cr.length; m++) {
+    let s = 0, v = 0; cr.forEach((c, i) => { if (m >> i & 1) { s += c.k; v += c.v; } });
+    if (s > L || !fits(cr, m, L)) continue; if (s === L) v += BONUS;
+    if (v > top.v) top = { v, set: m };
+  }
+  return top;
+}
+// Denominator families. Every trip mixes at least three different denominators.
+const FAM = [
+  [[2, 4, 8], [2, 5, 10], [3, 6, 12], [2, 3, 6, 12], [4, 8, 16], [5, 10, 20], [2, 4, 12]],
+  [[2, 3, 4, 6, 12], [2, 4, 5, 10, 20], [3, 4, 6, 8, 12, 24], [2, 3, 6, 9, 18], [2, 4, 8, 16], [3, 5, 15], [4, 5, 10, 20]],
+  [[3, 4, 5, 6, 10, 12], [2, 3, 4, 6, 8, 12, 24], [4, 5, 6, 10, 15, 20], [3, 6, 9, 12, 18], [2, 5, 8, 10, 20]],
+  [[3, 4, 5, 6, 10, 12, 15, 20], [4, 6, 8, 9, 12, 18, 24], [3, 5, 6, 10, 15], [4, 5, 8, 10, 20], [6, 8, 12, 16, 24]],
+];
+let lastFam = '';
+function makeTrip(l) {
+  const wantStack = Math.random() < .8;   // most trips: the best load needs stacking
+  for (let t = 0; t < 8000; t++) {
+    const dens = P(FAM[l]); if (dens.join() === lastFam && t < 4000) continue;
+    const n = l >= 2 ? 6 : 5;
+    const cr = [];
+    for (let i = 0; i < n; i++) {
+      const small = Math.random() < .35, top = Math.max(...dens);   // often one of the smallest crates of the family
+      const d = small ? P(dens.filter(x => x * 2 > top)) : P(dens);
+      const a = small ? 1 : d <= 3 ? 1 : R(1, Math.max(1, Math.floor(d * (l >= 2 ? .45 : .4))));
+      if (gcd(a, d) !== 1) { i--; continue; }
+      cr.push({ a, d, flat: isFlat(a, d) });
+    }
+    if (new Set(cr.map(c => c.d)).size < 3) continue;
+    const nf = cr.filter(c => c.flat).length; if (nf < 2 || nf > 4) continue;
+    const L = cr.reduce((m, c) => lcm(m, c.d), 1); if (L > 60) continue;
+    cr.forEach(c => { c.k = c.a * L / c.d; c.v = Math.max(3, Math.round(c.k / L * R(30, 70))); });
+    const tot = cr.reduce((s, c) => s + c.k, 0);
+    if (tot < L * 1.2 || tot > L * 2.4) continue;
+    // there must be a way to fill the hold exactly
+    let exact = false; for (let m = 1; m < 1 << n; m++) { let s = 0; cr.forEach((c, i) => { if (m >> i & 1) s += c.k; }); if (s === L && fits(cr, m, L)) exact = true; }
+    if (!exact) continue;
+    if (new Set(cr.map(c => c.a + '/' + c.d)).size < n - 1) continue;
+    const b = best(cr, L);
+    if (wantStack && t < 6000 && !needsStack(cr, b.set, L)) continue;
+    lastFam = dens.join();
+    return { cr, L, best: b };
+  }
+}
+// ==/GEN==
+
+/* ---------------- state ---------------- */
+const KEY = 'lastrummet-v1';
+const DEF = () => ({ crys: 0, trip: 1, route: { got: 0, max: 0 }, lvl: { l: 0, st: 0, mi: 0 }, rec: null, seen: false });
+let S = DEF();
+try { S = Object.assign(DEF(), JSON.parse(localStorage.getItem(KEY) || '{}') || {}); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+function record(ok) {
+  const s = S.lvl;
+  if (ok) { s.st++; s.mi = 0; if (s.st >= 3 && s.l < 3) { s.l++; s.st = 0; } }
+  else { s.st = 0; s.mi++; if (s.mi >= 2 && s.l > 0) { s.l--; s.mi = 0; } }
+}
+const BASES = ['Base Ceres', 'Krystalminen', 'Isbjerg-stationen', 'Den røde ørken', 'Måne-terminalen', 'Drivhus-kuplen', 'Radarhøjderne', 'Søbasen'];
+
+/* ---------------- sprites ---------------- */
+const SPR = {"laerer":{"w":18,"h":44,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAsCAYAAABovuiKAAABvUlEQVR42mNkwAG0VZX/o4tdvX2XEZd6RmIMIMZAJlINwaWOiVRDcKlnYqASYEEXONoUA2db1y3BEEMWxxrY2qrK/9E14APWdUtQAp2RgYGB4WZ32v+gWXsZPnzjQ42dHj9EmJRsQpET4PrEsC7NmUG9dBYjiteONsUwaJdsYnjy5BwDAwMDg4yMEYZmZLmjTTEML588xx1GDAwMDMqq+gwMDMxYXQSTwxlGH5bX/0fWADPk5ZPnDOIykgzY5AQiGxmJDmxkg/AFNhOhaMVlCN7oR09PR1cfQGgOdcAwACP6ycki6AYxEVNEEFMCMBFb3hBSx0izgg0ZwNIWepoh2qBvr8/DDdCxjGe4cnwhXI5L1BCrHiZ0A5ANQTaMkBombK4gBqCrp1oJiWLQ8yc3idaIrpY2LhpcBv3as4FB+MZ1osLp+ZObDMI3rqMkWIyi1jW0Datm5LTEwMDAcK45EH/KVlLRIyo93btziXFgAltCUmaQRf+xw9sY0cNjiCXIUYOIN4iYBIhNDYZBL54/IWgQNjXw3C8tbfifgYGB4ed37Jp/fkdtXMHUP316nhGe+7nVHUIpCZ+vNw+sBgAYpsZCbyk5GgAAAABJRU5ErkJggg=="]},"raket":{"w":28,"h":58,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA6CAYAAACj+Dm/AAABgUlEQVR42mNgGAWDAUhLG/6Xljb8T45eFnIs22chycDAwMDgdILh/9On5xlJ0c9E79BhItd3DAwMDPssJBlIDVomci0j19LBGaS4fEeOLwefDwn5jlRf0t2HjIR8d+fmboKGXDp3BM4OimxkwFcYDO6MP7wsJDb+GBgYGPSMbODsdcvr8aZWkmsLFXVXFD6xjiLLQhV1V4aUo+fQxIxIspSJVMsa5FHFU46ew/A1VRNNw8PRbEElC+/c3M0wx9oIQ3yONWmJhqRUeufmbgYVdSP6ZQtyLBhNNKMWUgzwplKLloskGMU7BH14okafaINQGlKLh0qieRQfx/AoPo4kAwUmzsLbKB4cPiS2eU9O03/gfUgN3+Hz5cD6kJq+w+XLgfMhLXyHzZcD2yHF1wkJjAnDa9D6JavwysM6qSzYBLFlFWJcT8ww2MBWT+g+IXXgjhhzWJAV6RupoOv9//TpecanT88zrl/C8J+Y4MRnDkkNYXJ9O9pMHH4WMtI7W9AdAAAkb6G1FvtHlgAAAABJRU5ErkJggg=="]},"krystal-blaa":{"w":7,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAASklEQVR42mNgQALxDy78Z8AG4h9c+L//x4f/yAqYGHCA+AcX/jNhMyr+wYX/CRIKEJ37f3zAahdWYxMkFBgWvHjAwCgtbfgfl70AFqoeqJzBKQcAAAAASUVORK5CYII="]},"krystal-pink":{"w":7,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAARUlEQVR42nWNIQEAIBDEDmpgKUAaunwjmrzFE4EOQ2AQz/TdJj1gjiIwh7l5B1kfMCdHKsxRr/fJ3GEr1vYqjaVUSuPXPaYlHuGz34ClAAAAAElFTkSuQmCC"]},"rover":{"w":17,"h":10,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAKCAYAAABSfLWiAAAAkElEQVR42mNgQAM3g73+M5AIWNAFJqvYMkhLP8dq0NOn5xmxiaMISksb/k85eg5DUSbfNwYGBgYGY10brAYxIhtw9vIRgk431rXBcBUjzICrhX9JCgftfma4QfAw+ZF0nLTQ7LfB7p3AEHcGBgYGhvVrdjI8fXqekVgxlNi5d+8uhoXEiqHEjrS04X9yxCgGAAzfRkvpcu6+AAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAKCAYAAABSfLWiAAAAjklEQVR42mNgoAX4f9n3P6l6WNAFcpdYMUhLP8Fq0NOn5xmxiaMISksb/k85eg5DUSbfNwYGBgYGY10brAYxIhtw9vIRgk431rXBcBUjzICrhX9JCgftfma4QfAw+ZF0nLTQ7LfB7p3AEHcGBgYGhvVrdjI8fXqekVgxlNi5d+8uhoXEiqHEjrS04X9SxQBXSEdI0ESV0AAAAABJRU5ErkJggg=="]},"robot":{"w":7,"h":9,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAJCAYAAAD+WDajAAAAX0lEQVR42mNgQALS0ob/GbABaWnD//efvf+PrIARJpFy9Bxc4RxrI4anT88zssAEEtg+ICShNBOy0Qpv41CsQpF8ILwIq3sYcvIr/iPTDNi8geFaLUUHY3TF1+4fOAsAZsQfUv0d1IsAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAJCAYAAAD+WDajAAAAZ0lEQVR42mNgQALS0ob/GbABaWnD//efvf+PrIARJpFy9Bxc4RxrI4anT88zssAEEtg+ICShNBOy0Qpv41CsQpF8ILwIq3sYcvIr/iPTOL0A47MwMDAw8LPxm/ArOhgjyZs8ZWBgAABl3R1pvgkFywAAAABJRU5ErkJggg=="]},"sten":{"w":10,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAAX0lEQVR42mNgIBIwwhhd9Qv+I0s8ffqCgYGBgWHinApGBgYGBsb8lI7/0tISDAwMDAy6ugYMly9fwFDMwMDAwIRsCrIidMCErhObaQwMDAwsuCRweiY/peM/NgUwzwAAEAkd8jpNsu8AAAAASUVORK5CYII="]},"plante":{"w":9,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHCAYAAADam2dgAAAATUlEQVR42mNggIL/VSf+MyABdD7D/6oT//9ffPMfJoHOhwP9HQv+4+IzMaABDN3oQH/Hgv//L775j24qVoXoYozIHGlpQ7iCp0/Pw+UAPAMyk4QvakwAAAAASUVORK5CYII="]}};
+const IMG = {};
+const ready = Promise.all(Object.entries(SPR).map(([n, s]) => new Promise(res => { const im = new Image(); im.onload = () => { IMG[n] = im; res(); }; im.src = s.f[0]; })));
+function starfield(c, seed) {
+  const r = c.getBoundingClientRect(), w = Math.max(1, Math.ceil(r.width / 3)), h = Math.max(1, Math.ceil(r.height / 3));
+  c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#15122b'; g.fillRect(0, 0, w, h);
+  let s = seed; const RR = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < w * h / 40; i++) { g.fillStyle = RR() < .2 ? '#ffd34d' : RR() < .5 ? '#8f86c0' : '#ffffff'; g.fillRect(Math.floor(RR() * w), Math.floor(RR() * h), 1, 1); }
+}
+// the hold's width in pixels drives every crate's width (--hw)
+function layout() {
+  const a = $('holdarea').getBoundingClientRect().width;
+  $('area').style.setProperty('--hw', Math.floor(a * .9) + 'px');
+  if (T) document.querySelectorAll('.crate[data-i]').forEach(e => { const c = T.cr[+e.dataset.i]; c && e.classList.toggle('slim', slim(Math.floor(a * .9), c)); });
+  starfield($('sky'), 7); starfield($('stars2'), 31);
+}
+addEventListener('resize', layout);
+
+/* ---------------- trip ---------------- */
+const $ = id => document.getElementById(id);
+let T = null, fbAct = null;
+function say(kind, html, btn, act) { $('fb').className = 'fb ' + kind; $('fbT').innerHTML = html; $('fbBtn').hidden = !btn; if (btn) $('fbBtn').textContent = btn; fbAct = act; }
+$('fbBtn').onclick = () => fbAct && fbAct();
+function hud() { $('sTrip').textContent = S.trip; $('sCrys').textContent = S.crys; }
+const loaded = () => T.order.map(i => T.cr[i]);
+const sumK = () => loaded().reduce((s, c) => s + c.k, 0);
+const wid = c => c.flat ? 2 * c.k : c.k;   // length in the hold (units of L)
+// fill of the two layers [bottom, top]: tall crates fill both, a flat crate fills its own layer
+function layers() { const f = [0, 0]; loaded().forEach(c => { if (!c.flat) { f[0] += c.k; f[1] += c.k; } }); T.order.forEach(i => { const c = T.cr[i]; if (c.flat) f[T.lane[i]] += 2 * c.k; }); return f; }
+// narrow crates stack their labels; a flat crate has its labels side by side, so it needs more room
+const slim = (hw, c) => hw * wid(c) / T.L < (c.flat ? 84 : 56);
+const isOver = () => layers().some(x => x > T.L);
+const isFull = () => layers().every(x => x === T.L);
+const locked = () => T.step > 0;
+
+function newTrip() {
+  T = makeTrip(S.lvl.l); T.step = 0; T.tries = 0; T.firstOk = true; T.order = []; T.lane = {};
+  $('oKick').textContent = `Tur ${S.trip} af 8`;
+  $('oText').textContent = `Fragtskibet skal flyve til ${BASES[(S.trip - 1) % BASES.length]}.`;
+  $('ship').classList.remove('up');
+  $('q').hidden = true; $('startRow').hidden = false;
+  say('info', 'Træk kasserne fra kajen ind i lastrummet (eller klik på dem). Træk en kasse ud igen, hvis den ikke skal med.', null);
+  draw(); hud();
+}
+function crateEl(c, i) {
+  const b = document.createElement('div'); b.className = 'crate'; b.tabIndex = 0; b.setAttribute('role', 'button');
+  b.style.setProperty('--f', wid(c) / T.L); if (c.flat) b.classList.add('flat');
+  b.innerHTML = `<span class="sz">${FR(c.a, c.d)}</span><span class="val"><i>◆</i><b>${c.v}</b></span>`;
+  if (slim(parseFloat($('area').style.getPropertyValue('--hw')), c)) b.classList.add('slim');
+  b.setAttribute('aria-label', `${c.flat ? 'Flad kasse' : 'Høj kasse'}, fylder ${c.a} ${c.d}-dele, værd ${c.v} krystaller. ${T.order.includes(i) ? (c.flat ? (T.lane[i] ? 'I lastrummet, øverste lag' : 'I lastrummet, nederste lag') : 'I lastrummet') : 'På kajen'}.`);
+  b.title = `Fylder ${c.a}/${c.d} · værd ${c.v} krystaller`;
+  b.dataset.i = i;
+  b.addEventListener('pointerdown', e => startDrag(e, i, b));
+  b.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !locked()) { e.preventDefault(); toggle(i); const n = document.querySelector(`.crate[data-i="${i}"]`); n && n.focus(); } });
+  return b;
+}
+function draw() {
+  const hold = $('hold'), pier = $('pier');
+  hold.querySelectorAll('.crate, .overmsg, .shelf').forEach(e => e.remove());
+  pier.innerHTML = '';
+  const L = T.L; let run = 0;
+  // tall crates first from the front wall, then the flat crates in two layers behind them
+  T.order.forEach(i => { const c = T.cr[i]; if (c.flat) return; const el = crateEl(c, i); el.style.setProperty('--x', run / L); if (run + c.k > L) el.classList.add('out'); run += c.k; hold.appendChild(el); });
+  if (run < L) { const sh = document.createElement('span'); sh.className = 'shelf'; sh.style.setProperty('--x', run / L); hold.appendChild(sh); }
+  const ln = [run, run];
+  T.order.forEach(i => { const c = T.cr[i]; if (!c.flat) return; const y = T.lane[i], el = crateEl(c, i); el.style.setProperty('--x', ln[y] / L); el.style.setProperty('--ln', y); if (ln[y] + 2 * c.k > L) el.classList.add('out'); ln[y] += 2 * c.k; hold.appendChild(el); });
+  T.cr.forEach((c, i) => { if (!T.order.includes(i)) pier.appendChild(crateEl(c, i)); });
+  $('empty').hidden = T.order.length > 0;
+  const s = sumK(), over = isOver();
+  hold.classList.toggle('over', over);
+  if (over) { const m = document.createElement('span'); m.className = 'overmsg'; m.textContent = 'Lasten stikker ud!'; hold.appendChild(m); }
+  $('holdInfo').textContent = over ? 'For meget last' : isFull() ? 'Helt fyldt' : '';
+  const v = loaded().reduce((a, c) => a + c.v, 0);
+  $('sum').innerHTML = T.order.length ? `Lasten: ${loaded().map(c => FR(c.a, c.d)).join(' + ')} &nbsp;·&nbsp; ◆ ${v}` : 'Lastrummet er tomt.';
+  $('calcBtn').disabled = !T.order.length || over || locked();
+  $('calcBtn').textContent = over ? 'Lasten stikker ud. Tag noget ud først' : 'Lasten er klar, regn den ud';
+}
+function toggle(i) {
+  if (locked()) return;
+  const k = T.order.indexOf(i);
+  if (k >= 0) T.order.splice(k, 1);
+  else { const f = layers(); T.lane[i] = f[0] <= f[1] ? 0 : 1; T.order.push(i); }   // a clicked flat crate goes in the emptier layer
+  draw(); hint();
+}
+
+/* drag and drop with pointer events; a click without moving just toggles */
+let drag = null;
+function startDrag(e, i, el) {
+  if (locked() || e.button > 0) return;
+  e.preventDefault();
+  const r = el.getBoundingClientRect();
+  drag = { i, el, sx: e.clientX, sy: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, w: r.width, h: r.height, moved: false, ghost: null, fromHold: T.order.includes(i) };
+  addEventListener('pointermove', moveDrag); addEventListener('pointerup', endDrag); addEventListener('pointercancel', endDrag);
+}
+function overEl(x, y, el) { const r = el.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 40 && y >= r.top - 20 && y <= r.bottom + 20; }
+function moveDrag(e) {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) return;
+  if (!drag.moved) {
+    drag.moved = true;
+    const g = drag.el.cloneNode(true); g.classList.add('ghost'); g.style.width = drag.el.getBoundingClientRect().width + 'px'; g.style.height = drag.el.getBoundingClientRect().height + 'px';
+    g.style.setProperty('--hw', getComputedStyle($('area')).getPropertyValue('--hw'));
+    document.body.appendChild(g); drag.ghost = g; drag.el.style.opacity = '.25';
+  }
+  drag.ghost.style.left = (e.clientX - drag.dx) + 'px'; drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+  $('hold').classList.toggle('drop', overEl(e.clientX, e.clientY, $('hold')));
+  $('pier').classList.toggle('drop', drag.fromHold && !overEl(e.clientX, e.clientY, $('hold')));
+}
+function endDrag(e) {
+  removeEventListener('pointermove', moveDrag); removeEventListener('pointerup', endDrag); removeEventListener('pointercancel', endDrag);
+  if (!drag) return;
+  const d = drag; drag = null;
+  $('hold').classList.remove('drop'); $('pier').classList.remove('drop');
+  if (d.ghost) d.ghost.remove();
+  if (!d.moved) { toggle(d.i); return; }
+  const inHold = overEl(e.clientX, e.clientY, $('hold'));
+  if (!inHold) { if (d.fromHold) T.order.splice(T.order.indexOf(d.i), 1); }
+  else {
+    // place it where it was dropped: a flat crate goes in the layer it was dropped on, and among its neighbours by x
+    const c = T.cr[d.i], hr = $('hold').getBoundingClientRect(), gy = e.clientY - d.dy + d.h / 2;
+    if (c.flat) T.lane[d.i] = gy < hr.top + hr.height / 2 ? 1 : 0;
+    const same = x => T.cr[x].flat === c.flat && (!c.flat || T.lane[x] === T.lane[d.i]);
+    const others = T.order.filter(x => x !== d.i), grp = others.filter(same), gx = e.clientX - d.dx + d.w / 2;
+    let pos = 0; for (const x of grp) { const n = $('hold').querySelector(`.crate[data-i="${x}"]`); if (n) { const r = n.getBoundingClientRect(); if (gx > r.left + r.width / 2) pos++; } }
+    const at = pos < grp.length ? others.indexOf(grp[pos]) : others.length;
+    others.splice(at, 0, d.i); T.order = others;
+  }
+  draw(); hint();
+}
+function hint() {
+  const f = layers(), L = T.L;
+  if (f.some(x => x > L)) {
+    const fl = loaded().some(c => c.flat), room = f.some(x => x < L);
+    say('help', fl && room ? 'Lasten stikker ud i det ene lag, men der er plads i det andet. Prøv at stable de flade kasser, så begge lag bliver brugt.' : 'Lasten stikker ud af lastrummet. Den fylder mere end 1 helt. Træk en kasse ud igen, eller prøv en mindre.', null);
+  } else if (isFull()) say('info', 'Lastrummet ser helt fyldt ud. Er det den mest værdifulde last? Når I er klar, så regn lasten ud.', null);
+  else if (T.order.length) say('info', 'Træk flere kasser ind, eller regn lasten ud, når I er tilfredse. Flade kasser kan stables: træk dem op i det øverste lag.', null);
+}
+
+/* ---------------- the cargo computer ---------------- */
+$('calcBtn').onclick = () => {
+  if (!T.order.length || isOver()) return;
+  T.step = 1; T.tries = 0; draw();
+  $('startRow').hidden = true; $('q').hidden = false;
+  $('qLbl').textContent = 'Hvor stor en del af lastrummet fylder kasserne tilsammen?';
+  $('qT').value = ''; $('qN').value = ''; $('qT').focus();
+  say('info', 'Læg brøkerne sammen. Skriv svaret som en brøk (tæller over nævner). Er det et helt tal, så skriv 1 i nævneren.', null);
+};
+function readFrac() {
+  const t = parseInt($('qT').value, 10), n = $('qN').value.trim() === '' ? 1 : parseInt($('qN').value, 10);
+  return isNaN(t) || isNaN(n) || n <= 0 ? null : [t, n];
+}
+function explainSum() {
+  const ch = loaded(), L = T.L, s = sumK();
+  const same = ch.every(c => c.d === L);
+  return `${ch.map(c => FR(c.a, c.d)).join(' + ')}${same ? '' : ' = ' + ch.map(c => FR(c.k, L)).join(' + ')} = ${FR(s, L)}${gcd(s, L) > 1 ? ' = ' + RF(s, L) : ''}`;
+}
+function askRest(msg, kind) {
+  T.step = 2; T.tries = 0; $('qLbl').textContent = 'Hvor meget plads er der tilbage i lastrummet?'; $('qT').value = ''; $('qN').value = ''; $('qT').focus();
+  say(kind, msg, null);
+}
+function check() {
+  const f = readFrac(); if (!f) { say('help', 'Skriv både en tæller og en nævner.', null); return; }
+  const [t, n] = f, L = T.L, s = sumK();
+  if (T.step === 1) {
+    if (t * L === s * n) {
+      if (s === L) return launch();
+      return askRest(`Rigtigt: lasten fylder ${RF(s, L)}. Hvor meget plads er der så tilbage? 1 helt lastrum er det samme som ${FR(L, L)}.`, 'good');
+    }
+    wrong(`<b>Tip:</b> Gør nævnerne ens først. Alle brøkerne kan laves om til ${L}-dele.`, `Lastcomputeren hoster og regner selv: ${explainSum()}.`);
+  } else {
+    if (t * L === (L - s) * n) return launch();
+    wrong(`<b>Tip:</b> 1 helt lastrum er ${FR(L, L)}. Træk lasten fra.`, `Lastcomputeren hoster og regner selv: ${FR(L, L)} − ${FR(s, L)} = ${FR(L - s, L)}.`);
+  }
+}
+function wrong(hint, full) {
+  T.tries++; T.firstOk = false;
+  if (T.tries === 1) { say('help', 'Det passer ikke helt. ' + hint, null); return; }
+  if (T.step === 1) {
+    if (sumK() === T.L) { say('help', full, null); return launch(); }
+    askRest(`${full} Hvor meget plads er der så tilbage?`, 'help');
+  } else { say('help', full, null); launch(); }
+}
+$('qBtn').onclick = check; ['qT', 'qN'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') check(); }));
+
+function launch() {
+  T.step = 3; draw(); $('q').hidden = true;
+  const ch = loaded(), L = T.L, s = sumK(), full = s === L;
+  const val = ch.reduce((a, c) => a + c.v, 0) + (full ? BONUS : 0);
+  record(T.firstOk);
+  S.crys += val; S.route.got += val; S.route.max += T.best.v; save(); hud();
+  $('holdInfo').innerHTML = full ? 'Helt fyldt!' : `Ledig plads: ${RF(L - s, L)}`;
+  setTimeout(() => $('ship').classList.add('up'), 700);
+  const bestSet = T.cr.filter((c, i) => T.best.set >> i & 1);
+  const pct = Math.round(val / T.best.v * 100);
+  let msg = `Skibet letter! Lasten var ◆ ${val} værd${full ? ` (med ${BONUS} i bonus for et helt fyldt lastrum)` : ''}. `;
+  msg += val >= T.best.v ? 'Det er den mest værdifulde last, man kunne lave. Flot planlagt!' : `Den bedste last havde været ${bestSet.map(c => FR(c.a, c.d)).join(' + ')} til ◆ ${T.best.v}. I fik ${pct} % af det.`;
+  say(val >= T.best.v ? 'good' : 'info', msg, S.trip < 8 ? 'Næste tur' : 'Afslut ruten', nextTrip);
+}
+function nextTrip() {
+  if (S.trip >= 8) {
+    const r = S.route, pct = r.max ? Math.round(r.got / r.max * 100) : 0, rec = S.rec === null || pct > S.rec; if (rec) S.rec = pct;
+    $('eText').innerHTML = `Alle 8 ture er fløjet. I fik ◆ ${r.got} ud af ◆ ${r.max} mulige, altså ${pct} %.${rec ? ' Det er jeres bedste rute!' : ` Jeres bedste rute er ${S.rec} %.`}`;
+    save(); open('endP'); return;
+  }
+  S.trip++; save(); newTrip(); scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('eGo').onclick = () => { close('endP'); S.trip = 1; S.route = { got: 0, max: 0 }; save(); newTrip(); };
+
+/* ---------------- panels ---------------- */
+let lastFocus;
+function open(id) { lastFocus = document.activeElement; $(id).hidden = false; const b = $(id).querySelector('.act .btn'); b && b.focus(); }
+function close(id) { $(id).hidden = true; lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true }); }
+$('inGo').onclick = () => { close('intro'); S.seen = true; save(); };
+$('tBtn').onclick = () => open('teach'); $('tClose').onclick = () => close('teach'); $('tOk').onclick = () => close('teach');
+$('tReset').onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('teach').hidden) close('teach'); });
+
+ready.then(() => {
+  document.querySelectorAll('canvas.fig').forEach(c => c.getContext('2d').drawImage(IMG.laerer, 0, 0));
+  $('cIcon').getContext('2d').drawImage(IMG['krystal-blaa'], 0, 0);
+  const sc = document.createElement('canvas'); sc.width = IMG.raket.width; sc.height = IMG.raket.height; sc.getContext('2d').drawImage(IMG.raket, 0, 0); sc.setAttribute('aria-hidden', 'true'); $('cock').appendChild(sc);
+  layout(); hud(); newTrip();
+  if (!S.seen) open('intro');
+});
+</script>
+</body>
+</html>

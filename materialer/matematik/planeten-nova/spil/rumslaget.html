@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rumslaget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Outfit:wght@400;500;600;700&display=swap">
+<style>
+/* Pixel edition: same colours and layout as before, but square pixel corners, hard shadows, a pixel display font and pixel sprites on the boards. */
+:root {
+  --navy: #1b1b31; --cream: #f7f4ec; --ink: #1f2233; --muted: #5d6175; --line: #d9d4c6; --white: #ffffff;
+  --husk: #c96f12; --huskbg: #fff8ea; --ok: #2f8a5f; --okbg: #e6f4ec; --bad: #c0443b; --badbg: #fbe9e7;
+  --red: #d9534a; --blue: #2f78bd; --amber: #d4930f; --green: #3a9e78; --teal: #2e8b87; --purple: #7d4fb5;
+  --sea: #e3f0f8; --sea2: #cfe4f2; --gridl: #a9c8de; --axis: #1b1b31; --ship: #56607a; --shipdk: #343b50;
+  --display: "Jersey 10", "Outfit", system-ui, sans-serif;
+  --body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+button { font: inherit; cursor: pointer; color: inherit; }
+button:disabled { cursor: not-allowed; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { background: var(--navy); color: var(--white); }
+header.top .wrap { padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.kick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b9bccb; display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.shapes { display: inline-flex; gap: 6px; }
+.shapes svg { width: 11px; height: 11px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(26px, 4.4vw, 36px); line-height: 1; margin: 0; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.15; margin: 0 0 8px; }
+h3 { font-family: var(--display); font-weight: 700; font-size: 17px; margin: 0 0 6px; }
+.hud { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 6px 13px; font-size: 14px; color: #e6e7ef; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip b { color: var(--white); font-size: 16px; letter-spacing: .04em; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #8a8fa3; display: inline-block; }
+.dot.on { background: #6fd39b; } .dot.off { background: #f08a80; }
+
+main { padding-block: 18px 40px; }
+
+/* cards */
+.card { background: var(--white); border: 2px solid var(--line); border-radius: 14px; padding: 18px; }
+.card.blue { border-color: var(--blue); box-shadow: 0 3px 0 #b7d0e8; }
+.card.green { border-color: var(--green); box-shadow: 0 3px 0 #b6dcc9; }
+.card.amber { border-color: var(--amber); box-shadow: 0 3px 0 #ecd59e; }
+.bar { margin: -18px -18px 14px; padding: 10px 18px; color: var(--white); font-family: var(--display); font-weight: 700; font-size: 17px; border-radius: 11px 11px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bar.blue { background: var(--blue); } .bar.green { background: var(--green); } .bar.amber { background: var(--amber); } .bar.navy { background: var(--navy); }
+.bar small { font-family: var(--body); font-weight: 500; font-size: 13.5px; opacity: .92; }
+
+.btn { border: 0; border-radius: 10px; padding: 11px 18px; font-weight: 700; font-size: 16px; background: var(--navy); color: var(--white); box-shadow: 0 3px 0 #000; transition: transform .08s; }
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+.btn.red { background: var(--red); box-shadow: 0 3px 0 #9c3029; }
+.btn.green { background: var(--green); box-shadow: 0 3px 0 #276b52; }
+.btn.blue { background: var(--blue); box-shadow: 0 3px 0 #1d5287; }
+.btn.ghost { background: var(--white); color: var(--ink); border: 2px solid var(--line); box-shadow: none; padding: 9px 14px; }
+.btn:disabled { opacity: .45; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.husk { display: flex; border: 2px solid var(--husk); border-radius: 10px; overflow: hidden; background: var(--huskbg); }
+.husk .hk { flex: none; width: 92px; background: var(--husk); color: var(--white); display: flex; align-items: center; gap: 4px; padding: 4px 6px; font-weight: 700; line-height: 1.15; font-size: 14px; }
+.husk .hk img { height: 54px; width: auto; }
+.husk .hb { padding: 8px 12px; font-size: 14.5px; display: flex; align-items: center; }
+
+/* start screen */
+.start { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .start { grid-template-columns: 1fr; } }
+.lead { font-size: 17px; margin: 0 0 14px; }
+label.f { display: block; font-weight: 600; margin-bottom: 6px; }
+input.t { font: inherit; font-size: 17px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; width: 100%; max-width: 320px; background: var(--white); }
+input.code { text-transform: uppercase; letter-spacing: .25em; font-weight: 700; max-width: 180px; text-align: center; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+@media (max-width: 520px) { .modes { grid-template-columns: 1fr; } }
+.mode { text-align: left; background: var(--white); border: 2px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.mode b { font-family: var(--display); font-size: 18px; }
+.mode span { color: var(--muted); font-size: 14.5px; }
+.mode:hover { border-color: var(--blue); }
+.mode[aria-pressed="true"] { border-color: var(--blue); background: #eef5fc; box-shadow: 0 3px 0 #b7d0e8; }
+.netbox { margin-top: 14px; padding: 14px; border-radius: 12px; background: #f1f0ea; display: grid; gap: 14px; }
+.or { color: var(--muted); font-size: 14px; }
+.msg { font-size: 15px; padding: 8px 12px; border-radius: 9px; }
+.msg.bad { background: var(--badbg); color: #8e2a22; }
+.msg.ok { background: var(--okbg); color: #1f6646; }
+.msg.info { background: #eef5fc; color: #1d4f80; }
+.bigcode { font-family: var(--display); font-weight: 800; font-size: 44px; letter-spacing: .18em; background: var(--white); border: 3px dashed var(--blue); color: var(--navy); border-radius: 12px; padding: 6px 18px; display: inline-block; }
+.rules ol { margin: 0; padding-left: 20px; } .rules li { margin-bottom: 6px; }
+.fleetlist { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.fleetlist li { display: flex; align-items: center; gap: 10px; }
+.fleetlist .pips { width: 76px; }
+.pips { display: inline-flex; gap: 3px; } .pips i { width: 12px; height: 12px; border-radius: 50%; background: var(--ship); display: block; }
+.resume { margin-bottom: 16px; }
+
+/* boards */
+.game { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .game { grid-template-columns: 1fr; } .game .enemy { order: -1; } }
+.board { width: 100%; height: auto; display: block; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.board text { font-family: var(--body); }
+.bwrap { position: relative; }
+.turn { font-family: var(--display); font-weight: 800; font-size: 20px; padding: 10px 14px; border-radius: 12px; text-align: center; margin-bottom: 14px; }
+.turn.me { background: var(--okbg); color: #1f6646; border: 2px solid var(--green); }
+.turn.wait { background: #ecebe5; color: var(--muted); border: 2px solid var(--line); }
+
+/* placement */
+.place { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+@media (max-width: 860px) { .place { grid-template-columns: 1fr; } }
+.ships { display: grid; gap: 8px; margin: 0 0 14px; padding: 0; list-style: none; }
+.shipbtn { width: 100%; display: flex; align-items: center; gap: 12px; background: var(--white); border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px; text-align: left; }
+.sicon { flex: none; width: 104px; display: flex; align-items: center; }
+.sicon svg { height: 19px; width: auto; max-width: 104px; overflow: visible; }
+.sname { display: flex; flex-direction: column; min-width: 0; }
+.sname small { color: var(--muted); font-size: 13px; }
+.fleetlist .sicon { width: 96px; }
+.board .waves { animation: drift 8s steps(16) infinite; } @keyframes drift { from { transform: translateX(-7.6px); } to { transform: translateX(0); } }
+
+.ship { transform-box: fill-box; transform-origin: center; }
+.ship.ok { animation: bob 2.2s steps(1) infinite; } @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(.0625px); } }
+.ship.ghost { opacity: .55; }
+.ship.bad { opacity: .6; filter: sepia(1) saturate(6) hue-rotate(-40deg); }
+.ship.sunk { filter: grayscale(1) brightness(.5); opacity: .85; }
+
+.ripple { transform-box: fill-box; transform-origin: center; opacity: 0; animation: ripple 1s ease-out forwards; } .ripple.r2 { animation-delay: .25s; }
+@keyframes ripple { 0% { transform: scale(.3); opacity: 1; } 100% { transform: scale(2.3); opacity: 0; } }
+.drops { animation: drops .8s ease-out forwards; } @keyframes drops { 0% { transform: translateY(2px); opacity: 1; } 100% { transform: translateY(-2.5px); opacity: 0; } }
+.boom { transform-box: fill-box; transform-origin: center; opacity: 0; animation: boom .85s ease-out forwards; } @keyframes boom { 0% { transform: scale(.2); opacity: 1; } 55% { opacity: 1; } 100% { transform: scale(1.7); opacity: 0; } }
+.aimring { animation: aim 1s steps(1) infinite; } @keyframes aim { 50% { opacity: .55; } }
+.ship.sinking { animation: sink 1.2s .65s steps(5) both; }
+@keyframes sink { 0% { filter: none; transform: none; opacity: 0; } 1% { opacity: 1; } 100% { filter: grayscale(1) brightness(.5); transform: translateY(.0625px) scale(.9); opacity: .85; } }
+.late { opacity: 0; animation: show 0s .65s forwards; } @keyframes show { to { opacity: 1; } }
+
+.fb.late { animation: fadein .3s .65s both; } @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.spark { opacity: 0; animation: spark 5s steps(1) infinite; } @keyframes spark { 0%, 40%, 70%, 100% { opacity: 0; } 45%, 65% { opacity: .95; } }
+.fish { opacity: 0; transform-box: fill-box; transform-origin: center; animation: fish 12s steps(300) infinite; }
+@keyframes fish { 0%, 84% { opacity: 0; transform: translate(0, 0) rotate(-55deg); } 86% { opacity: 1; transform: translate(0, 0) rotate(-55deg); } 91% { transform: translate(1.5px, -2.8px) rotate(0); } 96% { opacity: 1; transform: translate(3px, 0) rotate(55deg); } 97%, 100% { opacity: 0; transform: translate(3px, 0) rotate(55deg); } }
+.fishsplash { opacity: 0; animation: fsplash 12s steps(1) infinite; }
+@keyframes fsplash { 0%, 95% { opacity: 0; } 96%, 99% { opacity: 1; } 100% { opacity: 0; } }
+.gullA { animation: gullA 30s steps(230) infinite; } @keyframes gullA { from { transform: translate(-8px, 22px); } to { transform: translate(102px, 5px); } }
+.gullB { animation: gullB 41s steps(230) -16s infinite; } @keyframes gullB { from { transform: translate(102px, 62px); } to { transform: translate(-8px, 36px); } }
+.smoke { opacity: 0; animation: smoke 2.4s steps(8) infinite; } @keyframes smoke { 0% { opacity: .8; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(1.4px, -5.7px); } }
+#placeBoard { cursor: pointer; }
+.shipbtn[aria-pressed="true"] { border-color: var(--blue); background: #eef5fc; }
+.shipbtn.done { border-color: var(--green); background: var(--okbg); }
+
+/* aiming */
+.aim { margin-top: 14px; display: grid; gap: 10px; }
+.axisrow { display: grid; grid-template-columns: 74px 1fr; gap: 8px; align-items: center; }
+.axisrow > b { font-family: var(--display); font-size: 15px; }
+.nums { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px; }
+.nums button { border: 2px solid var(--line); background: var(--white); border-radius: 8px; padding: 8px 0; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 0; }
+.nums button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--white); }
+.nums.x button[aria-pressed="true"] { background: var(--red); border-color: var(--red); }
+.nums.y button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); }
+@media (max-width: 420px) { .nums button { font-size: 13px; padding: 7px 0; } .axisrow { grid-template-columns: 1fr; gap: 4px; } }
+.fire { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.coord { font-family: var(--display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
+.coord .cx { color: var(--red); } .coord .cy { color: var(--blue); }
+.where { color: var(--muted); font-size: 14.5px; }
+.fb { margin-top: 12px; font-size: 15.5px; padding: 9px 12px; border-radius: 10px; }
+.fb.hit { background: var(--badbg); color: #8e2a22; font-weight: 600; }
+.fb.miss { background: #eef5fc; color: #1d4f80; }
+.fb.sunk { background: var(--red); color: var(--white); font-weight: 700; }
+.log { margin-top: 14px; max-height: 210px; overflow: auto; font-size: 14.5px; border-top: 1px solid var(--line); padding-top: 8px; }
+.log p { margin: 0 0 4px; }
+.log .me { color: var(--ink); } .log .opp { color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; color: var(--muted); margin-top: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend svg { width: 14px; height: 14px; }
+.stat { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 16px; }
+.stat div { background: var(--cream); border: 2px solid var(--line); border-radius: 10px; padding: 8px 14px; }
+.stat b { font-family: var(--display); font-size: 24px; display: block; line-height: 1.1; }
+.end h2 { font-size: 30px; }
+@keyframes pop { 0% { transform: scale(.2); opacity: 0; } 70% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
+.pop { animation: pop .45s ease-out; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } .fish, .fishsplash, .smoke, .sky, .once, .k2 { display: none; } .late { opacity: 1; } }
+
+/* ---------- pixel look ---------- */
+.px, .board image { image-rendering: pixelated; image-rendering: crisp-edges; }
+.board image { image-rendering: pixelated; }
+header.top { position: relative; }
+header.top::after { content: ""; display: block; height: 12px; background: var(--wavestrip) repeat-x left bottom / 48px 12px; image-rendering: pixelated; }
+.card, .btn, .chip, .mode, .shipbtn, .nums button, .msg, .fb, .turn, .husk, .bigcode, input.t, .stat div, .netbox, .bar { border-radius: 0 !important; }
+.card { border-width: 3px; box-shadow: 5px 5px 0 #d9d4c6; }
+.card.blue { box-shadow: 5px 5px 0 #b7d0e8; } .card.green { box-shadow: 5px 5px 0 #b6dcc9; } .card.amber { box-shadow: 5px 5px 0 #ecd59e; }
+.bar { margin: -18px -18px 14px; letter-spacing: .02em; }
+.btn { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .03em; border: 3px solid #000; box-shadow: 4px 4px 0 #000; padding: 9px 16px; }
+.btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+.btn.red { border-color: #7a231d; box-shadow: 4px 4px 0 #7a231d; } .btn.green { border-color: #1e5440; box-shadow: 4px 4px 0 #1e5440; } .btn.blue { border-color: #163f69; box-shadow: 4px 4px 0 #163f69; }
+.btn.ghost { border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--line); padding: 7px 13px; }
+.btn.red:active:not(:disabled) { box-shadow: 1px 1px 0 #7a231d; } .btn.green:active:not(:disabled) { box-shadow: 1px 1px 0 #1e5440; } .btn.blue:active:not(:disabled) { box-shadow: 1px 1px 0 #163f69; }
+.mode { border-width: 3px; box-shadow: 3px 3px 0 var(--line); }
+.mode b { font-family: var(--display); }
+.mode[aria-pressed="true"] { box-shadow: 4px 4px 0 #b7d0e8; }
+.shipbtn { border-width: 3px; }
+.shipbtn[aria-pressed="true"] { box-shadow: 3px 3px 0 #b7d0e8; }
+.sicon { width: 124px; }
+.sicon img { height: 24px; width: auto; display: block; }
+.fleetlist .sicon { width: 124px; }
+.nums button { border-width: 3px; font-family: var(--display); font-size: 16px; }
+.nums button[aria-pressed="true"] { box-shadow: inset 0 -3px 0 rgba(0,0,0,.35); }
+.chip { border-radius: 0; font-family: var(--display); }
+.dot { border-radius: 0; }
+.turn { border-width: 3px !important; box-shadow: 4px 4px 0 rgba(0,0,0,.12); }
+.coord, .bigcode, .stat b { font-family: var(--display); }
+.husk { border-width: 3px; box-shadow: 4px 4px 0 #ecd59e; }
+.husk .hk { width: 108px; }
+.husk .hk img { height: 88px; }
+.legend img { height: 14px; width: auto; }
+input.t { border-width: 3px; }
+.k1 { animation: k1 .9s steps(1) infinite; } .k2 { animation: k2 .9s steps(1) infinite; }
+@keyframes k1 { 0% { opacity: 1; } 50% { opacity: 0; } } @keyframes k2 { 0% { opacity: 0; } 50% { opacity: 1; } }
+.once { opacity: 0; animation-name: once; animation-timing-function: steps(1); animation-fill-mode: none; } @keyframes once { from, to { opacity: 1; } }
+/* Jersey 10 is a heavy, small pixel face with clear digits: bigger sizes, no fake bold */
+h1, h2, h3, .bar, .btn, .chip, .chip b, .mode b, .coord, .bigcode, .turn, .stat b, .nums button, .axisrow > b { font-weight: 400 !important; letter-spacing: .03em; }
+h1 { font-size: clamp(38px, 6vw, 52px); } h2 { font-size: 29px; } h3 { font-size: 23px; } .end h2 { font-size: 40px; }
+.bar { font-size: 23px; } .bar small { font-size: 14px; letter-spacing: 0; }
+.btn { font-size: 23px; padding: 5px 16px 6px; } .btn.ghost { padding: 3px 13px 4px; }
+.chip { font-size: 18px; } .chip b { font-size: 20px; }
+.mode b { font-size: 24px; } .nums button { font-size: 21px; padding: 4px 0 5px; }
+.axisrow { grid-template-columns: 104px 1fr; } .axisrow > b { font-family: var(--display); font-size: 20px; line-height: 1.05; }
+.coord { font-size: 38px; } .bigcode { font-size: 60px; } .turn { font-size: 26px; } .stat b { font-size: 32px; }
+@media (max-width: 420px) { .nums button { font-size: 18px; padding: 3px 0 4px; } }
+@media (prefers-reduced-motion: reduce) { .once { display: none; } .k2 { display: none; } .k1 { opacity: 1; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="kick">
+        <span class="shapes" aria-hidden="true">
+          <svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z" fill="#d9534a"/></svg>
+          <svg viewBox="0 0 10 10"><rect width="10" height="10" fill="#2f78bd"/></svg>
+          <svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path d="M4 0h2v2h1v2h1v2h1v2h1v2h-10v-2h1v-2h1v-2h1v-2h1z" fill="#d4930f"/></svg>
+        </span>
+        Matematik · Koordinatsystemet
+      </div>
+      <h1>Rumslaget</h1>
+    </div>
+    <div class="hud" id="hud"></div>
+  </div>
+</header>
+
+<main class="wrap" lang="da">
+
+  <!-- START -->
+  <section id="sStart">
+    <div class="card amber resume" id="resumeBox" hidden>
+      <div class="row" style="justify-content:space-between">
+        <span id="resumeText"></span>
+        <span class="row"><button class="btn green" id="bResume" type="button">Fortsæt spillet</button><button class="btn ghost" id="bForget" type="button">Nej tak</button></span>
+      </div>
+    </div>
+    <div class="start">
+      <div class="card blue">
+        <div class="bar blue">Forsvar kolonien i fire kvadranter</div>
+        <p class="lead">Rumskibene ligger på punkter i et koordinatsystem ude i rummet over planeten Nova. Du sigter ved at vælge et punkt <b>(x, y)</b>. Hvem ødelægger først hele den anden flåde?</p>
+        <label class="f" for="iName">Dit navn</label>
+        <input class="t" id="iName" maxlength="18" autocomplete="off" placeholder="Skriv dit navn">
+        <div class="modes">
+          <button class="mode" type="button" id="mCpu" aria-pressed="false"><b>Mod computeren</b><span>Spil alene mod computerens flåde.</span></button>
+          <button class="mode" type="button" id="mNet" aria-pressed="false"><b>Mod en klassekammerat</b><span>To skærme. I forbinder med en spilkode.</span></button>
+        </div>
+        <div id="cpuBox" class="netbox" hidden>
+          <div class="row"><button class="btn green" id="bCpuGo" type="button">Start spillet</button></div>
+        </div>
+        <div id="netBox" class="netbox" hidden>
+          <div>
+            <h3>Opret et nyt spil</h3>
+            <div class="row"><button class="btn blue" id="bCreate" type="button">Opret spil og få en kode</button></div>
+          </div>
+          <div class="or">eller</div>
+          <div>
+            <h3>Deltag i et spil</h3>
+            <label class="f" for="iCode">Spilkode fra din klassekammerat</label>
+            <div class="row"><input class="t code" id="iCode" maxlength="4" autocomplete="off" inputmode="text" placeholder="KODE"><button class="btn green" id="bJoin" type="button">Deltag</button></div>
+          </div>
+          <div id="netMsg" hidden></div>
+        </div>
+        <div id="startMsg" class="msg bad" style="margin-top:12px" hidden></div>
+      </div>
+      <div style="display:grid;gap:14px">
+        <div class="husk"><div class="hk"><img class="px" id="figImg" alt=""><span>Husk dette!</span></div><div class="hb"><span>Et punkt skrives <b>(x, y)</b>. Først <b>x</b>: gå hen ad x-aksen (minus = til venstre). Så <b>y</b>: gå op eller ned (minus = nedad). <b>Eksempel:</b> (−3, 2) er 3 til venstre og 2 op.</span></div></div>
+        <div class="card rules">
+          <h3>Sådan spiller I</h3>
+          <ol>
+            <li>Placér dine 5 rumskibe på punkterne i dit koordinatsystem. Skibene må ikke ligge oven i hinanden.</li>
+            <li>I skiftes til at skyde. Vælg x og y, og tryk <b>Fyr!</b></li>
+            <li>Rammer du, får du at vide om det er <b>ramt</b> eller <b>ødelagt</b>. Er det forbi, ser du en lille <b>støvsky</b>.</li>
+            <li>Den, der først ødelægger hele den anden flåde, vinder.</li>
+          </ol>
+          <ul class="fleetlist" id="fleetInfo"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAITING ROOM (host) -->
+  <section id="sWait" hidden>
+    <div class="card blue" style="max-width:640px;margin:0 auto;text-align:center">
+      <div class="bar blue">Venter på din modstander</div>
+      <p class="lead">Giv denne kode til din klassekammerat. De skal vælge <b>Mod en klassekammerat</b> og skrive koden under <b>Deltag i et spil</b>.</p>
+      <div class="bigcode" id="waitCode">----</div>
+      <p class="where" id="waitStatus" style="margin-top:14px">Forbinder …</p>
+      <p style="margin-top:14px"><button class="btn ghost" type="button" id="bWaitCancel">Annullér</button></p>
+    </div>
+  </section>
+
+  <!-- PLACEMENT -->
+  <section id="sPlace" hidden>
+    <div class="place">
+      <div class="card green">
+        <div class="bar green">Din sektor <small id="placeHint">Vælg et skib, og tryk på et punkt</small></div>
+        <div class="bwrap"><svg class="board" id="placeBoard" viewBox="0 0 100 100" role="img" aria-label="Dit koordinatsystem"></svg></div>
+        <div id="placeMsg" class="msg info" style="margin-top:12px" aria-live="polite"></div>
+      </div>
+      <div class="card">
+        <h2>Placér din flåde</h2>
+        <p class="where" style="margin:0 0 10px"><b>Sæt:</b> tryk på et punkt. <b>Flyt:</b> træk skibet. <b>Drej:</b> tryk på skibet.</p>
+        <ul class="ships" id="shipList"></ul>
+        <div class="row" style="margin-bottom:14px">
+          <button class="btn ghost" type="button" id="bRotate">↻ Drej skibet</button>
+          <button class="btn ghost" type="button" id="bRandom">Placér tilfældigt</button>
+          <button class="btn ghost" type="button" id="bClear">Ryd</button>
+        </div>
+        <button class="btn green" type="button" id="bReady" disabled>Klar til kamp!</button>
+        <p class="where" id="readyStatus" style="margin-top:10px"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BATTLE -->
+  <section id="sGame" hidden>
+    <div id="turnBox" class="turn wait">…</div>
+    <div class="game">
+      <div class="card blue enemy">
+        <div class="bar blue"><span id="enemyTitle">Fjendens sektor</span><small id="enemyLeft"></small></div>
+        <div class="bwrap"><svg class="board" id="enemyBoard" viewBox="0 0 100 100" role="img" aria-label="Fjendens koordinatsystem"></svg></div>
+        <div class="legend">
+          <span><img class="px" data-spr="plask-maerke" alt="">Forbi</span>
+          <span><img class="px" data-spr="ramt-ring" alt="">Ramt</span>
+          <span><img class="px" data-spr="patruljebaad" style="filter:grayscale(1) brightness(.5)" alt="">Ødelagt skib (gråt)</span>
+        </div>
+        <div class="aim" id="aimBox">
+          <div class="axisrow"><b style="color:var(--red)">x (hen ad)</b><div class="nums x" id="numsX"></div></div>
+          <div class="axisrow"><b style="color:var(--blue)">y (op/ned)</b><div class="nums y" id="numsY"></div></div>
+          <div class="fire">
+            <div><div class="coord" id="aimCoord">( ?, ? )</div><div class="where" id="aimWhere">Vælg x og y</div></div>
+            <button class="btn red" type="button" id="bFire" disabled>Fyr!</button>
+          </div>
+        </div>
+        <div id="fbBox"></div>
+      </div>
+      <div class="card green">
+        <div class="bar green"><span>Din sektor</span><small id="myLeft"></small></div>
+        <div class="bwrap"><svg class="board" id="myBoard" viewBox="0 0 100 100" role="img" aria-label="Dit koordinatsystem med dine skibe"></svg></div>
+        <div id="oppFb"></div>
+        <div class="log" id="log" aria-live="polite"></div>
+        <p style="margin:12px 0 0"><button class="btn ghost" type="button" id="bQuit">Forlad spillet</button></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section id="sEnd" hidden>
+    <div class="card end" id="endCard" style="max-width:680px;margin:0 auto">
+      <div class="bar navy" id="endBar">Slaget er slut</div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" class="lead"></p>
+      <div class="stat" id="endStat"></div>
+      <div class="row"><button class="btn green" type="button" id="bAgain">Spil igen</button><button class="btn ghost" type="button" id="bShowBoards">Se kortene</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+/* pixel sprites (edit them in Piskel: the .piskel files sit next to this game). name: { w, h, f: [frame data URIs] } */
+const SPR = {"hangarskib":{"w":80,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAQCAYAAACBSfjBAAABwUlEQVR42mNgGAUUAUZCCqSlDf/jknv69DwjLvWBMWEMPt4eBB2wZesOhvVLVuE0b8gEIK6AOnv5CFaNi5ZvYJjY1oNTfUvnJKIdUVOex8DAwMBgrGtDF09TM6JYcAXWouUbGOIiA/BqxhW4DAwMDHJycnj1YzOfFPspkTfWtflPrcBkgjGe7JBh4JhnOSLKrbOXjzDkV5UwnL18hEFa2vA/MiY7Bcp4PGE4e/n4iKsE0HMRcuokJoWiZOELV24x4OOjA2Lkj8sZMFg+ugAXQ+bTQ56Q+9xtDRgaHkL4lo8uMMxdPo+BgYGB4dLlawx6uloMyZFJeLM7C3IW/rgznuGE2UKqxjCy5waCTwjAAg8XgAUoAwMDSmDCApRptCVHpVpYxuMJw9zlCxkUJ1ZDkrBTNFwRTAwZKDIwMNzXbcWpRpGBgYFhHwPD/XzsamDyDAzY1SDLY1ODLo+uxn/fUgx5dDXEpNjkyCS85SFKOzA+MxUuISDIz/Dh/UecBg9X+YXTZ5PUZkQrA2cwdP3IGFFZkNQAw5uF4zMzRlygUdqQZsEXGwwMDAzI2ZpQ7BFST2pqGApdOZoNJgy0x0bBEAEAR6MP/HW158cAAAAASUVORK5CYII="]},"slagskib":{"w":64,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAYAAACm53kpAAABaElEQVR42mNgIBFISxv+ZxhGgJEaAfD06XnGoRoALORoOnv5CMOi5RsY4iIDGBgYGBiMdW3+kxog+FISPQOUhRqGnL18BIVPbICg64PqHZgUQGzexuZoUlMIAwMDQ35VCU692NQTAuSmGhZcnkP2ALVTCMx8YgMQG0CXJycbogTAkx0yDB/nWTKcMFsIl7xw5RZezZTIf/WOYrhw5QKcf1zOgMHy0QWi5ZHNd7c1YEg5eo6BgYEBriY5MomowhoeADIeTxjmLl9It7zHvXUZA4OuFpyP7jlC8sig4SGmWH5VCYMekn5sgfL06XlGJoYRDuBJ4v9l3/8fdyKCchZnOTwELU7FY9WMnF0GQg2yGDpIjkwiqqBkRK4F4jNT4RICgvwMH95/xGnBYJNfOH02A0WFIDZDsAHkQCIWYDMXVzVIrDuoVQ2S1RSOz0zFG0PExAZ6ikPWO+RaguQmP3JierQzNNBguHWHAe9F2RP8Gn89AAAAAElFTkSuQmCC"]},"krydser":{"w":48,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAQCAYAAABQrvyxAAABCklEQVR42mNgwAGkpQ3/MwwBwEjIA/ssJBkYGBgY1NduYxyMHmDBJ3n28hGEh07YwGPk6dPzjEPCA7g8Y6w7eDzDRI6ms5ePMORXlTCcvXyEQVra8P9A5hcWXJk2v6qEpJhBjhVKAKkxyojsgbnL58ElLl2+xqCnq4VTIy3k3W0NGBoeQthzrI2I8hg8Bp7skGH4uDOe4YTZwgFLzzDHw1IAsgeTI5P+Y4stJoYhDuAxIOPxhGHucuyhX77tHRZRCQY9Xeo6xvLRBYbkyCSS8gYjvkz84f1HnJYJCPKjyC+cPpthQDMxtpo4PjOVoAdgDh+o+oCFHE3IoT3QFRnLUHT0sGrMMQz15jQASeJ4hpvP2iwAAAAASUVORK5CYII="]},"ubaad":{"w":48,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAQCAYAAABQrvyxAAABZklEQVR42mNgoBGwmlfxn4EOgIVYhdLShjgd9PTpeUZ0MaOb/AzHBpMHGBgYGM5ePgJnL1q+gSEuMoDBWNeGYSABC7Ehjux4dHFjXZv/pMYaPoAtRon2AMzS/KoShrjIAJJjBjmGcHkaOQaxAViAEOMRJmSHS0sb/j97+Qhei+kBzl4+wpBfVQJ3E76YhPvw/2Xf/x93PmQ4YbaQgYGBgeHS5WsMerpaOC05LmfAYPnoAtX4MOBua8DQ8BDCRpZPjkzCmsQYkWNg7vJ5cEWEPEAr+eNyBnA2Ng8ie+bp0/OMTAxDHGAkIS8hLwYGBgaGgO+68BBqurMSq+Y6lXA4m5pq6lTCMWKIqCTEwMDAEJ+ZysDAwMAgIMjP8OH9R5w+p4f8xLYegkUrC7qChdNnw4vRgQILp88muj5gJLYig8UMthCEWUgtQEpFRrRCaWnD/8iegHlg4fTZJFlIs0xM7cbcKCASAADvUMOV/d1WugAAAABJRU5ErkJggg=="]},"patruljebaad":{"w":32,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAABDUlEQVR42mNgGOmAEZeEtLThf3Sxp0/PM1LbASz4JM9ePgJnG+va0CQEWHD5OL+qBMMxxro2/0m1gFCoseDy8aLlG/CGyKLlGxjiIgNwGgyTR3Y0NsegOODClVsM+PjoAJu8u60BQ8NDBgYG7yiGC1cuMMxdPg8ulxyZhOEYuAOe7JBh+LgznuGE2UKK4rThIW45dMc8fXqekWmgsyE8BGQ8njDMXb6QwV2wjoGBgYHhEkMEIlihYihBbcfAsPN9E4Ya988Q8UuXrzEw6Gqh6EmOTMJInIzIuSA+MxWuQECQn+HD+484XU6s/MLps/HmCEZ82RDdAmTDqJUN8ZaEyCGycPpsmpSEA14UjwIAoft6g/N1OGwAAAAASUVORK5CYII="]},"kolvand":{"w":8,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAQCAYAAAArij59AAAANElEQVR42mNgGAKAEV1Av2Lvf6wK4h9c+I/ThP0/PmBIOrDzMzAwMDAwEe0GvFbgc+SQAADY8Q7mWkaC9gAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAQCAYAAAArij59AAAANElEQVR42mNgGAKAEZeEfsXe/1gVxD+48B+nCft/fIBLOrDzMzAwMDAwkewGvFZgc+SQAABksQ7mON3chgAAAABJRU5ErkJggg=="]},"plask-maerke":{"w":8,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAOklEQVR42mNkgIKdm5/9Z0AC7r5SjAy4JFHEsEkiK2JCFvgPBchiTAwEAAsyh5GRkRGnXbjEGAl5EwBp5SPtJ0KsFwAAAABJRU5ErkJggg=="]},"plask":{"w":16,"h":16,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAOUlEQVR42mNgGAW0A/+hYOfmZ3CaJM3oGkg2hGLnY7MNmzgTKYbu2vKcwd1XipFkV1Dkf/oG3tAEAOzBTLTsESocAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVR42mNgGJ7g/////3dufvYfRiOL0cdmStUMgsCjlrqhHIjYbCHb5kEe7wwMDACLd1ed3tELdQAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALUlEQVR42mNgoDbYufnZf2xsbPxBBMhx2iD2Dt3CYJCFwzCLRnxOI8vZhDQBAByNJ83+yWVOAAAAAElFTkSuQmCC"]},"ramt-ring":{"w":10,"h":10,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOElEQVR42mNkQAI3g73+I/PV125jZEBXgK4Iqzg2RRhy+BQhK2ZiIBJQXyHRnmHCpxhZjJHYAAcA+pYlhw/SJdYAAAAASUVORK5CYII="]},"krater":{"w":8,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAVklEQVR42mNkgAIrLbX/DEjg2LVbjAwMDAxMMElDBRG4pKGCCFwDI7pOZEXnH7yBmICsGwbOP3jDALcCxkHWDQNM2ASRNTDBXIssCFN87NotRkZC3gQACw0hYfMizykAAAAASUVORK5CYII="]},"kryds":{"w":8,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAT0lEQVR42mOYY6D5nwEHgMvNMdD8fzPYC67wZrDXf5gkI7JqW2VFBgYGBobDd+8zpFy4zsjAwMDABFMAE0BnMzEQAEwYDkJjE3QkAyFvAgCkDyh8AKAzVQAAAABJRU5ErkJggg=="]},"eksplosion":{"w":20,"h":20,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAcUlEQVR42mNgGAVDH3zo0fuPT56RXM0CJZcYSTIQZhi/uzyG3MedD3EayoLPhXDDdDYhBK/4MfC7y8MNRQdMBL2KbBgRgImg67AAXK7DayBWcMUPb/jhDcOPOx9CwqpXH8O1uAwjmGxwJR98Bo6CkQAAe44pNHBdN+4AAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAqElEQVR42mNgGOyAEZfEzWCv/8h89bXbGMk2EN0wbACXBYz4DBO3fIIi9/K4DEFDmXC5AN0wmBiyODafMGJzHTbDsAGYi5FdyoJPA7+7PIbYx50P8VrCRGqywGYJXgOJ9S7RBqLHJMUGUgrwGvhx50OMSCApUmDR//K4DIrXYYYQMoyorIcrkrClQbyFA66EjuxybFmPYAmCq6DAVTgwkVOqEFuUDU4AAP8JSZLS74vwAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAq0lEQVR42mNgoDJgxCaYnV/xH11s6sQORpINxGYQNoDPcEZchuU9uQRnT5LRI9pgrAYiG6a+dhuKppvBXv/RLUA2mBGXYegGoQN0g2GGMmHzJiHDYGqQfQIDTNRKLjBfMmGzmVhDsLmSidoJewgaeDPY6z+xmrGppa0LYQmVGFfC1KDnGrKyHq48PnViByPe0gZbTsBnGNbykNgiDG/hQK6heIsvQnmU2AIWAEsVXZInzFYrAAAAAElFTkSuQmCC"]},"flamme":{"w":8,"h":11,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAALCAYAAABCm8wlAAAAa0lEQVR42oWQuw3AIAxEH1Z62IAFUNagItMwRqbJKMkibOBURHyE8srz3dkyNJRzVwZkFEaTtAMbPb8NNvquRVa7K1ubBCBcWA4KqMu3kS4drulg6dKNsWqySk9V+iT9eJLW1Wb1IJdvA/ACx8IzneQfSyoAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAALCAYAAABCm8wlAAAAZElEQVR42mNgQAMfevT+I/OZ8EliKGBgYGDgd5dHUciErJvfXZ6BoAno1jGh6NbZBLcGbgKGw6CKYBqZ4DqQJJBNwe4GNMUMH3r0/v+/7PsfDi77/odZzYgrkARKLjEyMDAwAABzWzMWf5jb2AAAAABJRU5ErkJggg=="]},"roeg":{"w":4,"h":4,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAALUlEQVR42m3LoQHAMAgAsKwPsXsRaM5pL2J2ovEBWT1ZPfBk9ZyzQcRrufmXD5ISEV+30ZfzAAAAAElFTkSuQmCC"]},"kanonkugle":{"w":4,"h":4,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJElEQVR42mNgYGBgiH9w4X/8gwv/GWAcGIh/cOE/EwM2gKwFAPEHGk+GfWeZAAAAAElFTkSuQmCC"]},"sigte":{"w":18,"h":18,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAXElEQVR42mNgIABePPn//8WT//8JqWNioBKgmkGM+LyETVxChpGRaNNxhQux4YXXJYTUMJFqCFFqKTGIhZBmmDy2QEbWS7Xop5rXmKgVaww0M4jcBEnbLDI8ihEAStlumaG1g6UAAAAASUVORK5CYII="]},"fyrtaarn":{"w":14,"h":17,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAARCAYAAADtyJ2fAAAAxUlEQVR42mNgwAGkpQ3/S0sb/sclz8SAB+yzkGQgS6PTiec45VjQnfP06XlGXE7HsFHEpYdBxKUHRVHfzIkMfTMnomhAVseEzeS+mRMZzIx0GcyMdDE04/QjTNOCXwIMC34JwDWTFDj4AIbGovR8hlPnLjMksH1gSGD7wHDq3GWGovR8whqfPj3PCNMM04QtpBlxRQdMHJ1PEBBKcjg1rdxy6P/KLYdwambBpTlMvhsSWLiSHC6Nqx6WQln5DCQ7l2Q/EgMAVhhXA7+o6xwAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAARCAYAAADtyJ2fAAAAxUlEQVR42mNgwAGkpQ3/S0sb/sclz8SABzwxkmEgS6PMuSc45VjQnfP06XlGXE7HsFHEpYdBxKUHRVHfzIkMfTMnomhAVseEzeS+mRMZzIx0GcyMdDE04/QjTNOCXwIMC34JwDWTFDj4AIbGovR8hlPnLjMksH1gSGD7wHDq3GWGovR8whqfPj3PCNMM04QtpBlxRQdMHJ1PEBBKcjg1rdxy6P/KLYdwambBpTlMvhsSWLiSHC6Nqx6WQln5DCQ7l2Q/EgMAXeNXA5J+5UAAAAAASUVORK5CYII="]},"palmeoe":{"w":18,"h":13,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAANCAYAAACkTj4ZAAAAhklEQVR42mNgGGyAEZfE/1lX/6OL3dp5lEF9bRpWPUykGMLAwMBwM3jWf4Iu+v///3+GS2+J84q+CIpexk/PjqDYwPtagyyDWPikbBhxeQvmHWIAEy4JZEMkJ2sxSE7WIi3W/s+6+h+XS5ANQ/cJ1qjEFTMwoL42DSNscaYjXIbhSkeDDwAAGXc3YqwLOW4AAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAANCAYAAACkTj4ZAAAAhUlEQVR42mNgGGyAEZfE/1lX/6OL3dp5lEF9bRpWPUykGMLAwMBwM3jWf6Jc9P/im/9EeUVfBEUvy6dnR1A1viYvjFj4pGwYcXkL5h1iABMuCWRDJCdrMUhO1oLz1dakEhFGs67+x+USZMPQfYI1KnHFDAyor01jRA9bnOkIl2G40tHgAwDikTYiw41bgwAAAABJRU5ErkJggg=="]},"boeje":{"w":7,"h":10,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAKCAYAAAB4zEQNAAAAVklEQVR42mNgQALS0ob/kflMDHgAi3783v8MDAwMFxc6M8IEYWJMyEYeOb0PxWi8xsIlnz49z2hj6sTw9Ol5RgxV0tKG/+8/e/8f3cXEeWWfhSQD0QAA2ukbs86+d2oAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAKCAYAAAB4zEQNAAAAZklEQVR42mNgQALS0ob/kflMDHgAi3783v8MDAwMFxc6M8IEYWJMyEYeOb0PxWi8xsIlnz49z2hj6sTw9Ol5RgxV0tKG/+8/e/8f3cU4vQI34maw13+1X8wMt9j+Mqiv3cbIQAgAANONIaM2v74fAAAAAElFTkSuQmCC"]},"saelsten":{"w":16,"h":9,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAYAAAA7KqwyAAAAmklEQVR42mNkwAHyUzr+S0tLMDAwMDCUNSYw4lLHiE8jMnj69AXDxDkVjAwMDAz5l2f/n6ibysjAwMDAhKyxq37Bf2lpCYYLFy9gGCAtLcGQn9Lxn4GBgeH06btwcSZctuIzxPSYAMILuJyMbpiBvgFWLzERshWXHMw1jDAvwASJBTAXMCIHIrLpuDTBACxGGHGlAVw2wzTCAAD3r0g/i3cwBwAAAABJRU5ErkJggg=="]},"maage":{"w":9,"h":5,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAFCAYAAACXU8ZrAAAAQElEQVR42mNkQAL1D/7/h7EbFRgZGdBB/YP/KABZA+PKLYf+MxAATAwMDAxh8t1wAWxsuL3YTAz3sWNkYGBgAABoliDSKcGC2QAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAFCAYAAACXU8ZrAAAAQUlEQVR42mNkQAL1D/7/h7EbFRgZGdBB/YP/KABZA+PKLYf+MxAATDBGmHw3AzY2AwMDA9xebCaG+9gxMjAwMAAANMsf0phAoa4AAAAASUVORK5CYII="]},"fisk":{"w":8,"h":5,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAYAAAB4ka1VAAAAOElEQVR42mNkwAH+////n4GBgYERJhD/4MJ/BgYGhgQJBQYHdn64QkZkCQYGBhRJhit+RJhAyA0AuJAVFMS/3ewAAAAASUVORK5CYII="]},"glimt":{"w":3,"h":3,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAIElEQVR42j3IsQ0AMAjAMKv/v8VNHcPGZhlUwavy5+KwWR0Rr1uUy/IAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAEklEQVR42mNgQAf/////jyEIAE3ZA/039crgAAAAAElFTkSuQmCC"]},"laerer":{"w":18,"h":44,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAsCAYAAABovuiKAAABvUlEQVR42mNkwAG0VZX/o4tdvX2XEZd6RmIMIMZAJlINwaWOiVRDcKlnYqASYEEXONoUA2db1y3BEEMWxxrY2qrK/9E14APWdUtQAp2RgYGB4WZ32v+gWXsZPnzjQ42dHj9EmJRsQpET4PrEsC7NmUG9dBYjiteONsUwaJdsYnjy5BwDAwMDg4yMEYZmZLmjTTEML588xx1GDAwMDMqq+gwMDMxYXQSTwxlGH5bX/0fWADPk5ZPnDOIykgzY5AQiGxmJDmxkg/AFNhOhaMVlCN7oR09PR1cfQGgOdcAwACP6ycki6AYxEVNEEFMCMBFb3hBSx0izgg0ZwNIWepoh2qBvr8/DDdCxjGe4cnwhXI5L1BCrHiZ0A5ANQTaMkBombK4gBqCrp1oJiWLQ8yc3idaIrpY2LhpcBv3as4FB+MZ1osLp+ZObDMI3rqMkWIyi1jW0Datm5LTEwMDAcK45EH/KVlLRIyo93btziXFgAltCUmaQRf+xw9sY0cNjiCXIUYOIN4iYBIhNDYZBL54/IWgQNjXw3C8tbfifgYGB4ed37Jp/fkdtXMHUP316nhGe+7nVHUIpCZ+vNw+sBgAYpsZCbyk5GgAAAABJRU5ErkJggg=="]}};
+const SHIPN = ['hangarskib', 'slagskib', 'krydser', 'ubaad', 'patruljebaad'];
+const MIN = -5, MAX = 5;
+const FLEET = [
+  { name: 'Moderskibet', len: 5 },
+  { name: 'Fragatten', len: 4 },
+  { name: 'Jageren', len: 3 },
+  { name: 'Spejderskibet', len: 3 },
+  { name: 'Rumkapslen', len: 2 },
+];
+const TOTAL = FLEET.length;
+const key = (x, y) => x + ',' + y;
+const fmtN = n => n < 0 ? '−' + Math.abs(n) : String(n);
+const fmtP = (x, y) => '(' + fmtN(x) + ', ' + fmtN(y) + ')';
+function where(x, y) {
+  if (x === 0 && y === 0) return 'i origo (0, 0)';
+  if (y === 0) return 'på x-aksen';
+  if (x === 0) return 'på y-aksen';
+  if (x > 0 && y > 0) return 'i 1. kvadrant';
+  if (x < 0 && y > 0) return 'i 2. kvadrant';
+  if (x < 0 && y < 0) return 'i 3. kvadrant';
+  return 'i 4. kvadrant';
+}
+function gen(n) { return /[sxz]$/i.test(n) ? n + "'" : n + 's'; }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+const store = {
+  get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { sessionStorage.removeItem(k); } catch (e) {} },
+  lget(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  lset(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+function rid(n, abc) { let s = ''; const a = new Uint32Array(n); crypto.getRandomValues(a); for (const v of a) s += abc[v % abc.length]; return s; }
+const CODE_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/* ---------- fleet helpers ---------- */
+function shipPts(x, y, len, horiz) {
+  const pts = [];
+  for (let i = 0; i < len; i++) pts.push(horiz ? [x + i, y] : [x, y - i]);
+  return pts;
+}
+function inside(p) { return p[0] >= MIN && p[0] <= MAX && p[1] >= MIN && p[1] <= MAX; }
+function fitStart(x, y, len, horiz) { // nudge the ship back inside the system
+  if (horiz) x = Math.min(x, MAX - len + 1); else y = Math.max(y, MIN + len - 1);
+  return [x, y];
+}
+function occupied(fleet, except) {
+  const s = new Set();
+  fleet.forEach((sh, i) => { if (sh && i !== except) sh.pts.forEach(p => s.add(key(p[0], p[1]))); });
+  return s;
+}
+function randomFleet() {
+  for (;;) {
+    const fleet = []; let ok = true;
+    for (let i = 0; i < FLEET.length && ok; i++) {
+      let placed = false;
+      for (let t = 0; t < 200 && !placed; t++) {
+        const horiz = Math.random() < .5;
+        const [x, y] = fitStart(MIN + Math.floor(Math.random() * 11), MIN + Math.floor(Math.random() * 11), FLEET[i].len, horiz);
+        const pts = shipPts(x, y, FLEET[i].len, horiz);
+        const occ = occupied(fleet);
+        if (pts.every(p => inside(p) && !occ.has(key(p[0], p[1])))) { fleet[i] = { pts, horiz }; placed = true; }
+      }
+      if (!placed) ok = false;
+    }
+    if (ok) return fleet;
+  }
+}
+/* answers to a list of shots against a fleet: [{r:'m'|'h'|'s', i, pts}] */
+function answerShots(fleet, shots) {
+  const hitSet = new Set(); const out = [];
+  shots.forEach(([x, y]) => {
+    const k = key(x, y);
+    const idx = fleet.findIndex(sh => sh.pts.some(p => key(p[0], p[1]) === k));
+    if (idx < 0 || hitSet.has(k)) { out.push({ r: 'm' }); hitSet.add(k); return; }
+    hitSet.add(k);
+    const sunk = fleet[idx].pts.every(p => hitSet.has(key(p[0], p[1])));
+    out.push(sunk ? { r: 's', i: idx, pts: fleet[idx].pts } : { r: 'h' });
+  });
+  return out;
+}
+const sunkCount = ans => ans.filter(a => a.r === 's').length;
+
+/* ---------- board drawing (pixel edition) ----------
+   One board pixel U is 1/16 of a step, so the ship sprites (16 px per point) line up with the board's pixel grid. */
+const S = 7.6, U = S / 16, PAD = 17 * U; // svg units per step, per pixel, margin
+const NPX = 194;                        // board size in pixels
+const vb = 2 * PAD + (MAX - MIN) * S;
+const sx = x => PAD + (x - MIN) * S;
+const sy = y => PAD + (MAX - y) * S;
+const px = x => 17 + (x - MIN) * 16, py = y => 17 + (MAX - y) * 16; // the same in board pixels
+function canvasURL(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); return c.toDataURL(); }
+function seeded(seed) { let r = seed; return () => (r = (r * 16807) % 2147483647) / 2147483647; }
+const BOARD_IMG = canvasURL(NPX, NPX, g => {
+  const f = (c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const N = NPX, rnd = seeded(11);
+  f('#1d1a3a', 0, 0, N, N);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if ((x + y) % 2 === 0 && rnd() < .2) f('#25204a', x, y);
+  [[0, 0], [N - 2, 0], [0, N - 2], [N - 2, N - 2]].forEach(([x, y]) => { g.clearRect(x + (x ? 1 : 0), y, 1, 2); g.clearRect(x, y + (y ? 1 : 0), 2, 1); });
+  for (let v = MIN; v <= MAX; v++) {
+    if (v === 0) continue;
+    f('#3a3470', px(v), py(MAX) - 4, 1, py(MIN) - py(MAX) + 8);
+    f('#3a3470', px(MIN) - 4, py(v), px(MAX) - px(MIN) + 8, 1);
+  }
+  const A = '#e8e4ff';
+  f(A, px(MIN) - 7, py(0) - 1, px(MAX) - px(MIN) + 16, 2);              // x-axis
+  f(A, px(0) - 1, py(MAX) - 9, 2, py(MIN) - py(MAX) + 16);              // y-axis
+  for (let i = 0; i < 5; i++) {                                         // stepped arrow heads
+    f(A, px(MAX) + 9 + i, py(0) - (5 - i), 1, 2 * (5 - i));
+    f(A, px(0) - (5 - i), py(MAX) - 10 - i, 2 * (5 - i), 1);
+  }
+  for (let v = MIN; v <= MAX; v++) {
+    if (v === 0) continue;
+    f(A, px(v) - 1, py(0) - 3, 2, 6); f(A, px(0) - 3, py(v) - 1, 6, 2);   // ticks
+  }
+  for (let x = MIN; x <= MAX; x++) for (let y = MIN; y <= MAX; y++) if (x && y) f('#8f86c0', px(x) - 1, py(y) - 1, 2, 2);
+});
+const WAVE_IMG = canvasURL(NPX + 16, NPX, g => {
+  const rnd = seeded(5); g.fillStyle = 'rgba(255,255,255,.75)';
+  for (let y = 4; y < NPX; y += 9) for (let x0 = (y * 7) % 16; x0 < NPX + 16; x0 += 16) {
+    if (rnd() < .55) continue;
+    const x = x0 + Math.floor(rnd() * 6); g.fillRect(x, y, 1, 1);
+  }
+});
+document.documentElement.style.setProperty('--wavestrip', 'url(' + canvasURL(16, 4, g => {
+  g.fillStyle = '#241d45'; g.fillRect(0, 0, 16, 4); g.fillStyle = '#3a3470'; g.fillRect(0, 2, 16, 2);
+  g.fillStyle = '#1b1b31'; g.fillRect(0, 0, 16, 1); g.fillRect(6, 1, 4, 1);
+  g.fillStyle = '#ffffff'; g.fillRect(2, 2, 3, 1); g.fillRect(11, 3, 2, 1);
+}) + ')');
+const pxs = v => (Math.round(v / U) * U).toFixed(3);
+/* a sprite drawn at board pixel (x, y) (top left), frame f */
+function spr(name, x, y, cls = '', f = 0, style = '') {
+  const d = SPR[name];
+  return `<image href="${d.f[f]}" x="${(x * U).toFixed(3)}" y="${(y * U).toFixed(3)}" width="${(d.w * U).toFixed(3)}" height="${(d.h * U).toFixed(3)}" preserveAspectRatio="none"${cls ? ` class="${cls}"` : ''}${style ? ` style="${style}"` : ''}/>`;
+}
+/* two-frame animation (frames swap in steps) */
+function spr2(name, x, y, dur = .9, delay = 0) {
+  const st = `animation-duration:${dur}s;animation-delay:-${delay}s`;
+  return spr(name, x, y, 'k1', 0, st) + spr(name, x, y, 'k2', 1, st);
+}
+/* frames played once after delay (seconds), each for dt */
+function sprOnce(name, x, y, delay, dt) {
+  return SPR[name].f.map((_, i) => spr(name, x, y, 'once', i, `animation-delay:${(delay + i * dt).toFixed(2)}s;animation-duration:${dt}s`)).join('');
+}
+function baseBoard() {
+  let g = `<image href="${BOARD_IMG}" x="0" y="0" width="${vb}" height="${vb}" preserveAspectRatio="none"/>`;
+  g += `<g class="waves"><image href="${WAVE_IMG}" x="0" y="0" width="${((NPX + 16) * U).toFixed(3)}" height="${vb}" preserveAspectRatio="none" opacity=".8"/></g>`;
+  const q = [[1, 1, '1. kvadrant'], [-1, 1, '2. kvadrant'], [-1, -1, '3. kvadrant'], [1, -1, '4. kvadrant']];
+  q.forEach(([a, b, t]) => {
+    g += `<text x="${sx(a * 3)}" y="${sy(b * 2.5) + 1.1}" text-anchor="middle" font-size="4.4" fill="#b9b3e6" opacity=".6" style="font-family:var(--display)">${t}</text>`;
+  });
+  g += `<text x="${sx(MAX) + 5}" y="${sy(0) + 5}" font-size="5.2" fill="#ff9a8f" text-anchor="middle" style="font-family:var(--display)">x</text>`;
+  g += `<text x="${sx(0) - 3.6}" y="${sy(MAX) - 3.2}" font-size="5.2" fill="#8fc4ff" text-anchor="middle" style="font-family:var(--display)">y</text>`;
+  for (let v = MIN; v <= MAX; v++) {
+    if (v === 0) continue;
+    g += `<text x="${sx(v)}" y="${sy(0) + 4.4}" font-size="3.7" text-anchor="middle" fill="#ff9a8f" style="font-family:var(--display)">${fmtN(v)}</text>`;
+    g += `<text x="${sx(0) - 1.8}" y="${sy(v) + 1.2}" font-size="3.7" text-anchor="end" fill="#8fc4ff" style="font-family:var(--display)">${fmtN(v)}</text>`;
+  }
+  g += `<text x="${sx(0) - 1.6}" y="${sy(0) + 4.4}" font-size="3.7" text-anchor="end" fill="#e8e4ff" style="font-family:var(--display)">0</text>`;
+  return g;
+}
+/* the board's static layer (sea, axes, decoration) is drawn once so its animations keep running; only the top layer is redrawn */
+function decor() {
+  let g = '';
+  g += spr2('fyrtaarn', 179, 0, 1.6);        // lighthouse, top right (the lamp blinks)
+  g += spr('saelsten', 1, 3);                 // seal on a rock, top left
+  g += spr2('palmeoe', 0, 180, 1.8);          // palm island, bottom left
+  g += spr2('boeje', 184, 182, 1.2, .4);      // buoy, bottom right
+  [[-4.5, 3.5], [2.5, 4.5], [4.5, -1.5], [-1.5, -4.5], [-3.5, .5], [1.5, 1.5], [3.5, -3.5], [-2.5, -2.5]].forEach(([x, y], i) => {
+    g += `<g class="spark" style="animation-delay:-${(i * 1.37).toFixed(2)}s">${spr2('glimt', Math.round(px(x)) - 1, Math.round(py(y)) - 1, .5)}</g>`;
+  });
+  [[2.5, -3.5, 0], [-3.5, 2.5, 6.5]].forEach(([x, y, d]) => {
+    g += `<g transform="translate(${sx(x) - 1.5} ${sy(y)})"><g class="fish" style="animation-delay:${d}s">${spr('fisk', -4, -2)}</g><g class="fishsplash" style="animation-delay:${d}s">${spr('plask', 0, -8, '', 1)}</g></g>`;
+  });
+  return g;
+}
+function sky() {
+  return `<g class="gullA">${spr2('maage', -4, -2, .5)}</g><g class="gullB">${spr2('maage', -4, -2, .6, .2)}</g>`;
+}
+function setBoard(id, top) {
+  const svg = $(id);
+  if (!svg.querySelector('.top')) svg.innerHTML = baseBoard() + decor() + '<g class="top"></g><g class="sky" pointer-events="none">' + sky() + '</g><g class="fx" pointer-events="none"></g>';
+  svg.querySelector('.top').innerHTML = top;
+}
+
+/* ships: one sprite per type, 16 px per point, bow to the right; turned 90° when the ship lies vertically */
+function shipSVG(t, pts, state) {
+  const n = pts.length, horiz = n < 2 || pts[0][1] === pts[1][1];
+  const ox = sx(pts[0][0]), oy = sy(pts[0][1]);
+  const d = SPR[SHIPN[t]], w = SPR.kolvand;
+  const wake = state === 'ok' ? [0, 1].map(f => `<image href="${w.f[f]}" x="-1" y="-.5" width=".5" height="1" preserveAspectRatio="none" class="k${f + 1}"/>`).join('') : '';
+  const delay = (t * .63 % 2.2).toFixed(2);
+  return `<g transform="translate(${ox} ${oy}) rotate(${horiz ? 0 : 90}) scale(${S})"><g class="ship ${state}" style="animation-delay:${state === 'sinking' ? '' : '-' + delay + 's'}">${wake}<image href="${d.f[0]}" x="-.5" y="-.5" width="${n}" height="1" preserveAspectRatio="none"/></g></g>`;
+}
+function shipIcon(i) { return `<img class="px" src="${SPR[SHIPN[i]].f[0]}" alt="">`; }
+/* shots */
+function miss(x, y, anim) {
+  const X = px(x), Y = py(y);
+  let g = spr('plask-maerke', X - 4, Y - 4);
+  if (anim) g += sprOnce('plask', X - 8, Y - 8, .65, .16);
+  return anim ? `<g class="late">${g}</g>` : g;
+}
+function hit(x, y, anim, burning) {
+  const X = px(x), Y = py(y);
+  let g = spr('krater', X - 4, Y - 4);
+  if (burning) {
+    g += [0, .8, 1.6].map(d => `<g class="smoke" style="animation-delay:-${d}s">${spr('roeg', X - 1, Y - 9)}</g>`).join('');
+    g += spr2('flamme', X - 4, Y - 10, .45);
+  } else g += spr('kryds', X - 4, Y - 4);
+  g += spr('ramt-ring', X - 5, Y - 5);
+  if (anim) g += sprOnce('eksplosion', X - 10, Y - 10, .65, .14);
+  return anim ? `<g class="late">${g}</g>` : g;
+}
+/* a shell flies to the target before the result shows (the result is drawn at once but revealed after FLIGHT ms) */
+const FLIGHT = 650;
+function flyShell(boardId, x, y) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const fx = $(boardId).querySelector('.fx'); if (!fx) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  const fromTop = boardId === 'myBoard';
+  const x0 = vb / 2, y0 = fromTop ? -6 : vb + 6, x1 = sx(x), y1 = sy(y);
+  const sh = document.createElementNS(ns, 'rect'); sh.setAttribute('fill', '#0b2740'); sh.setAttribute('opacity', '.3');
+  const b = document.createElementNS(ns, 'image'); b.setAttribute('href', SPR.kanonkugle.f[0]); b.setAttribute('preserveAspectRatio', 'none');
+  const trail = []; for (let i = 0; i < 5; i++) { const r = document.createElementNS(ns, 'rect'); r.setAttribute('fill', '#fff'); r.setAttribute('opacity', (.2 + i * .15).toFixed(2)); trail.push(r); }
+  fx.append(sh, ...trail, b);
+  const hist = []; const t0 = performance.now();
+  (function step(now) {
+    const t = Math.min(1, (now - t0) / FLIGHT), lx = x0 + (x1 - x0) * t, ly = y0 + (y1 - y0) * t, h = Math.sin(Math.PI * t);
+    const size = (4 + Math.round(h * 4)) * U, bx = +pxs(lx - size / 2), by = +pxs(ly - h * 14 - size / 2);
+    sh.setAttribute('x', pxs(lx - 3 * U)); sh.setAttribute('y', pxs(ly - U)); sh.setAttribute('width', 6 * U); sh.setAttribute('height', 2 * U);
+    b.setAttribute('x', bx); b.setAttribute('y', by); b.setAttribute('width', size); b.setAttribute('height', size);
+    hist.push([bx + size / 2, by + size / 2]); if (hist.length > 5) hist.shift();
+    trail.forEach((r, i) => { const p = hist[i] || hist[0]; const s2 = (1 + i * .4) * U * 2; r.setAttribute('x', pxs(p[0] - s2 / 2)); r.setAttribute('y', pxs(p[1] - s2 / 2)); r.setAttribute('width', s2); r.setAttribute('height', s2); });
+    if (t < 1) requestAnimationFrame(step); else { sh.remove(); b.remove(); trail.forEach(r => r.remove()); }
+  })(t0);
+}
+function crosshair(x, y) {
+  let g = '';
+  const dash = `stroke-dasharray="${2 * U} ${2 * U}"`, w = 2 * U;
+  if (x !== null) g += `<line x1="${sx(x)}" y1="${sy(0)}" x2="${sx(x)}" y2="${sy(y === null ? 0 : y)}" stroke="var(--red)" stroke-width="${w}" ${dash}/><rect x="${sx(x) - 2 * U}" y="${sy(0) - 2 * U}" width="${4 * U}" height="${4 * U}" fill="var(--red)"/>`;
+  if (y !== null) g += `<line x1="${sx(0)}" y1="${sy(y)}" x2="${sx(x === null ? 0 : x)}" y2="${sy(y)}" stroke="var(--blue)" stroke-width="${w}" ${dash}/><rect x="${sx(0) - 2 * U}" y="${sy(y) - 2 * U}" width="${4 * U}" height="${4 * U}" fill="var(--blue)"/>`;
+  if (x !== null && y !== null) g += `<g class="aimring">${spr('sigte', px(x) - 9, py(y) - 9)}</g>`;
+  return g;
+}
+function boardToPoint(svg, ev) {
+  const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  const x = Math.round((p.x - PAD) / S) + MIN, y = MAX - Math.round((p.y - PAD) / S);
+  return (x < MIN || x > MAX || y < MIN || y > MAX) ? null : [x, y];
+}
+['placeBoard', 'enemyBoard', 'myBoard'].forEach(id => $(id).setAttribute('viewBox', `0 0 ${vb} ${vb}`));
+$('figImg').src = SPR.laerer.f[0];
+document.querySelectorAll('img[data-spr]').forEach(im => { im.src = SPR[im.dataset.spr].f[0]; });
+
+/* ---------- game state ---------- */
+let G = null; // current game
+function newGame(mode) {
+  return {
+    mode, role: 'h', name: myName(), oppName: mode === 'cpu' ? 'Computeren' : '',
+    fleet: FLEET.map(() => null), ready: false, oppReady: mode === 'cpu',
+    myShots: [], myRes: [], oppShots: [], myAns: [], oppFleet: null,
+    code: null, id: rid(10, 'abcdefghijkmnpqrstuvwxyz23456789'), over: false, lastSeen: 0,
+  };
+}
+function myName() { return ($('iName').value.trim() || 'Spiller').slice(0, 18); }
+function show(id) { ['sStart', 'sWait', 'sPlace', 'sGame', 'sEnd'].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
+
+/* ---------- HUD ---------- */
+function hud() {
+  const h = $('hud'); if (!G) { h.innerHTML = ''; return; }
+  let s = '';
+  if (G.mode === 'cpu') s += `<span class="chip">Mod <b>computeren</b></span>`;
+  else s += `<span class="chip">Spilkode <b>${esc(G.code || '')}</b></span><span class="chip"><span class="dot ${NET && NET.ok ? 'on' : 'off'}"></span>${NET && NET.ok ? 'Forbundet' : 'Ikke forbundet'}</span>`;
+  if (G.oppName && G.mode === 'net') s += `<span class="chip">Mod <b>${esc(G.oppName)}</b>${G.mode === 'net' && G.oppOnline === false ? ' (væk)' : ''}</span>`;
+  h.innerHTML = s;
+}
+
+/* ---------- start screen ---------- */
+$('fleetInfo').innerHTML = FLEET.map((f, i) => `<li><span class="sicon">${shipIcon(i)}</span>${f.name} (${f.len} punkter)</li>`).join('');
+$('iName').value = store.lget('rumslag-name') || '';
+$('iName').addEventListener('change', () => store.lset('rumslag-name', $('iName').value.trim()));
+function pickMode(m) {
+  $('mCpu').setAttribute('aria-pressed', m === 'cpu'); $('mNet').setAttribute('aria-pressed', m === 'net');
+  $('cpuBox').hidden = m !== 'cpu'; $('netBox').hidden = m !== 'net'; $('startMsg').hidden = true;
+}
+$('mCpu').onclick = () => pickMode('cpu');
+$('mNet').onclick = () => pickMode('net');
+function needName() {
+  if ($('iName').value.trim()) { store.lset('rumslag-name', $('iName').value.trim()); return true; }
+  $('startMsg').textContent = 'Skriv dit navn først.'; $('startMsg').hidden = false; $('iName').focus(); return false;
+}
+$('bCpuGo').onclick = () => { if (!needName()) return; G = newGame('cpu'); startPlacement(); };
+function netMsg(text, kind) { const m = $('netMsg'); m.className = 'msg ' + kind; m.textContent = text; m.hidden = !text; }
+$('bCreate').onclick = async () => {
+  if (!needName()) return;
+  G = newGame('net'); G.role = 'h'; G.code = rid(4, CODE_ABC);
+  $('waitCode').textContent = G.code; $('waitStatus').textContent = 'Forbinder …'; show('sWait'); hud();
+  try {
+    await netStart();
+    $('waitStatus').textContent = 'Spillet er oprettet. Venter på, at din klassekammerat skriver koden …';
+    publish(); hud();
+  } catch (e) {
+    $('waitStatus').innerHTML = '<span class="msg bad" style="display:inline-block">Kunne ikke få forbindelse til spilserveren. Tjek internettet, eller spil mod computeren.</span>';
+  }
+};
+$('bWaitCancel').onclick = () => { leaveNet(true); G = null; hud(); show('sStart'); };
+$('iCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('bJoin').click(); });
+$('bJoin').onclick = async () => {
+  if (!needName()) return;
+  const code = $('iCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length !== 4) { netMsg('Koden har 4 tegn. Tjek den igen.', 'bad'); return; }
+  netMsg('Leder efter spillet …', 'info'); $('bJoin').disabled = true;
+  G = newGame('net'); G.role = 'g'; G.code = code;
+  try {
+    const found = await netJoin();
+    if (found === 'full') { netMsg('Det spil er allerede i gang med to spillere.', 'bad'); leaveNet(false); G = null; }
+    else if (!found) { netMsg('Fandt ikke et spil med koden ' + code + '. Tjek koden, og at din klassekammerat har oprettet spillet.', 'bad'); leaveNet(false); G = null; }
+    else { netMsg('', 'info'); publish(); startPlacement(); }
+  } catch (e) { netMsg('Kunne ikke få forbindelse til spilserveren. Tjek internettet.', 'bad'); G = null; }
+  $('bJoin').disabled = false; hud();
+};
+
+/* ---------- placement ---------- */
+/* Tap a point: the chosen ship is put so it covers that point (it slides or turns by itself if there is no room).
+   Drag a ship to move it. Tap a ship to turn it. When something can't be done, the page says why. */
+let P = { sel: 0, horiz: true, hover: null, drag: null, msg: '', msgKind: '' };
+function startPlacement() {
+  P = { sel: 0, horiz: true, hover: null, drag: null, msg: '', msgKind: '' };
+  G.ready = false; show('sPlace'); renderPlace(); hud(); save();
+}
+function why(i, pts) { // null when the ship may lie there
+  if (!pts.every(inside)) return 'Skibet skal ligge helt inde i koordinatsystemet.';
+  for (const p of pts) {
+    const j = G.fleet.findIndex((sh, k) => sh && k !== i && sh.pts.some(q => q[0] === p[0] && q[1] === p[1]));
+    if (j >= 0) return 'Skibet vil ligge oven i ' + FLEET[j].name.toLowerCase() + ' i ' + fmtP(...p) + '.';
+  }
+  return null;
+}
+function placeAt(i, pt, horiz, keepK) { // positions that cover pt; keepK = which point of the ship should sit on pt
+  const len = FLEET[i].len; let first = null;
+  for (const h of [horiz, !horiz]) {
+    const ks = [...Array(len).keys()]; if (keepK != null) { ks.splice(ks.indexOf(keepK), 1); ks.unshift(keepK); }
+    for (const k of ks) {
+      const pts = h ? shipPts(pt[0] - k, pt[1], len, true) : shipPts(pt[0], pt[1] + k, len, false);
+      const w = why(i, pts);
+      if (!w) return { pts, horiz: h };
+      if (!first) first = w;
+    }
+  }
+  return { fail: first };
+}
+function shipAt(pt) { return pt ? G.fleet.findIndex(sh => sh && sh.pts.some(p => p[0] === pt[0] && p[1] === pt[1])) : -1; }
+function setMsg(t, kind) { P.msg = t; P.msgKind = kind || ''; }
+function renderShipList() {
+  $('shipList').innerHTML = FLEET.map((f, i) => {
+    const placed = !!G.fleet[i];
+    return `<li><button type="button" class="shipbtn ${placed ? 'done' : ''}" data-i="${i}" aria-pressed="${P.sel === i}">
+      <span class="sicon">${shipIcon(i)}</span>
+      <span class="sname"><b>${f.name}</b><small>${placed ? (G.fleet[i].horiz ? 'Vandret' : 'Lodret') + ' fra ' + fmtP(...G.fleet[i].pts[0]) + ' til ' + fmtP(...G.fleet[i].pts[f.len - 1]) : f.len + ' punkter · ikke placeret'}</small></span></button></li>`;
+  }).join('');
+  $('shipList').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i; if (G.ready) return;
+    if (G.fleet[i]) { P.horiz = G.fleet[i].horiz; G.fleet[i] = null; setMsg('Tryk på et punkt for at sætte ' + FLEET[i].name.toLowerCase() + ' igen.'); }
+    else setMsg('');
+    P.sel = i; renderPlace(); save();
+  });
+}
+function renderPlace() {
+  let g = '';
+  const d = P.drag;
+  G.fleet.forEach((sh, i) => { if (sh && !(d && d.i === i && d.moved)) g += shipSVG(i, sh.pts, 'ok'); });
+  if (d && d.moved && d.cur) {
+    const pts = d.horiz ? shipPts(d.cur[0] - d.k, d.cur[1], FLEET[d.i].len, true) : shipPts(d.cur[0], d.cur[1] + d.k, FLEET[d.i].len, false);
+    g += shipSVG(d.i, pts, why(d.i, pts) ? 'bad' : 'ghost');
+  } else if (!d && P.sel !== null && P.hover && shipAt(P.hover) < 0) {
+    const r = placeAt(P.sel, P.hover, P.horiz);
+    if (r.pts) g += shipSVG(P.sel, r.pts, 'ghost');
+  }
+  if (P.hover) g += `<text x="${sx(P.hover[0])}" y="${sy(P.hover[1]) - 3.2}" font-size="4" text-anchor="middle" fill="var(--navy)" paint-order="stroke" stroke="#fff" stroke-width=".9" style="font-family:var(--display)">${fmtP(...P.hover)}</text>`;
+  setBoard('placeBoard', g);
+  renderShipList();
+  const all = G.fleet.every(Boolean);
+  $('bReady').disabled = !all || G.ready;
+  $('placeHint').textContent = G.ready ? 'Flåden er klar' : P.sel !== null ? 'Sæt ' + FLEET[P.sel].name.toLowerCase() : 'Alle skibe er på plads';
+  $('bRotate').textContent = P.horiz ? '↻ Næste skib: vandret' : '↻ Næste skib: lodret';
+  $('bRotate').disabled = G.ready || P.sel === null;
+  ['bRandom', 'bClear'].forEach(id => $(id).disabled = G.ready);
+  let m = P.msg, kind = P.msgKind;
+  if (!m && !G.ready) {
+    if (P.sel !== null) { m = 'Tryk på et punkt for at sætte ' + FLEET[P.sel].name.toLowerCase() + ' (' + FLEET[P.sel].len + ' punkter). Træk et skib for at flytte det. Tryk på et skib for at dreje det.'; kind = 'info'; }
+    else { m = 'Alle skibe er på plads. Du kan stadig trække og dreje dem. Tryk så på Klar til kamp!'; kind = 'ok'; }
+  }
+  $('placeMsg').className = 'msg ' + (kind || 'info'); $('placeMsg').textContent = G.ready ? 'Din flåde er klar.' : m;
+  $('readyStatus').textContent = G.ready ? (G.oppReady ? '' : 'Venter på, at ' + (G.oppName || 'din modstander') + ' bliver klar …') : (G.mode === 'net' && G.oppReady ? (G.oppName || 'Din modstander') + ' er klar og venter på dig.' : '');
+}
+const pb = $('placeBoard');
+pb.addEventListener('touchstart', e => { // keep the page from scrolling while a ship is dragged
+  if (G && !G.ready && e.touches.length === 1 && shipAt(boardToPoint(pb, e.touches[0])) >= 0) e.preventDefault();
+}, { passive: false });
+pb.addEventListener('pointerdown', e => {
+  if (!G || G.ready) return;
+  const pt = boardToPoint(pb, e); const i = shipAt(pt);
+  if (i < 0) return;
+  const sh = G.fleet[i];
+  P.drag = { i, k: sh.pts.findIndex(p => p[0] === pt[0] && p[1] === pt[1]), horiz: sh.horiz, start: pt, cur: pt, moved: false };
+  try { pb.setPointerCapture(e.pointerId); } catch (err) {}
+  e.preventDefault();
+});
+pb.addEventListener('pointermove', e => {
+  if (!G || G.ready) return;
+  const p = boardToPoint(pb, e);
+  if (P.drag) {
+    if (p && String(p) !== String(P.drag.cur)) { P.drag.cur = p; P.drag.moved = String(p) !== String(P.drag.start); P.hover = p; renderPlace(); }
+    return;
+  }
+  if (e.pointerType === 'mouse' && String(p) !== String(P.hover)) { P.hover = p; renderPlace(); }
+});
+pb.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !P.drag && G) { P.hover = null; renderPlace(); } });
+pb.addEventListener('pointercancel', () => { P.drag = null; if (G) renderPlace(); });
+pb.addEventListener('pointerup', e => {
+  if (!G || G.ready) return;
+  const pt = boardToPoint(pb, e);
+  const d = P.drag;
+  if (d) {
+    P.drag = null;
+    const name = FLEET[d.i].name;
+    if (!d.moved) { // tap on a ship: turn it around the point you touched
+      const r = placeAt(d.i, d.start, !d.horiz, d.k);
+      if (r.pts && r.horiz !== d.horiz) { G.fleet[d.i] = r; setMsg(name + ' er drejet.', 'ok'); }
+      else setMsg('Der er ikke plads til at dreje ' + name.toLowerCase() + ' her. Træk det et andet sted hen først.', 'bad');
+    } else {
+      const pts = d.horiz ? shipPts(d.cur[0] - d.k, d.cur[1], FLEET[d.i].len, true) : shipPts(d.cur[0], d.cur[1] + d.k, FLEET[d.i].len, false);
+      const w = why(d.i, pts);
+      if (!w) { G.fleet[d.i] = { pts, horiz: d.horiz }; setMsg(name + ' er flyttet.', 'ok'); }
+      else setMsg('Det kan ikke lade sig gøre: ' + w, 'bad');
+    }
+    P.hover = e.pointerType === 'mouse' ? pt : null;
+    renderPlace(); save(); return;
+  }
+  if (!pt) return;
+  if (P.sel === null) { setMsg('Alle skibe er placeret. Træk et skib for at flytte det, eller tryk på det for at dreje det.', 'info'); renderPlace(); return; }
+  const r = placeAt(P.sel, pt, P.horiz);
+  if (r.fail) { setMsg('Der er ikke plads til ' + FLEET[P.sel].name.toLowerCase() + ' ved ' + fmtP(...pt) + '. ' + r.fail, 'bad'); renderPlace(); return; }
+  G.fleet[P.sel] = r;
+  setMsg(FLEET[P.sel].name + ' ligger nu ' + (r.horiz ? 'vandret' : 'lodret') + ' fra ' + fmtP(...r.pts[0]) + ' til ' + fmtP(...r.pts[r.pts.length - 1]) + '.', 'ok');
+  const next = G.fleet.findIndex(s => !s); P.sel = next >= 0 ? next : null;
+  P.hover = e.pointerType === 'mouse' ? pt : null;
+  renderPlace(); save();
+});
+function rotate() { if (G.ready || P.sel === null) return; P.horiz = !P.horiz; setMsg(''); renderPlace(); }
+$('bRotate').onclick = rotate;
+document.addEventListener('keydown', e => { if ((e.key === 'r' || e.key === 'R') && !$('sPlace').hidden && document.activeElement.tagName !== 'INPUT') rotate(); });
+$('bRandom').onclick = () => { G.fleet = randomFleet(); P.sel = null; setMsg('Skibene er placeret tilfældigt. Du kan trække og dreje dem.', 'ok'); renderPlace(); save(); };
+$('bClear').onclick = () => { G.fleet = FLEET.map(() => null); P.sel = 0; setMsg(''); renderPlace(); save(); };
+$('bReady').onclick = () => {
+  if (!G.fleet.every(Boolean)) return;
+  G.ready = true; P.sel = null; P.hover = null;
+  if (G.mode === 'cpu') { G.oppFleet = randomFleet(); CPU = cpuNew(); startBattle(); }
+  else { publish(); renderPlace(); maybeStartNet(); }
+  save();
+};
+
+/* ---------- battle ---------- */
+let A = { x: null, y: null };
+let lastFb = '';
+function numButtons(el, axis) {
+  let h = '';
+  for (let v = MIN; v <= MAX; v++) h += `<button type="button" data-v="${v}" aria-pressed="false" aria-label="${axis} = ${fmtN(v)}">${fmtN(v)}</button>`;
+  el.innerHTML = h;
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { A[axis] = +b.dataset.v; renderBattle(); });
+}
+numButtons($('numsX'), 'x'); numButtons($('numsY'), 'y');
+let SEEN = { e: 0, m: 0 };
+function startBattle() { SEEN = { e: G.myRes.length, m: G.myAns.length }; A = { x: null, y: null }; lastFb = ''; $('oppFb').innerHTML = ''; show('sGame'); renderBattle(); hud(); }
+let LOCK = 0; // while an enemy shell is in the air
+function lockFor() { LOCK = Date.now() + FLIGHT; setTimeout(() => { if (G && !$('sGame').hidden) renderBattle(); }, FLIGHT + 60); }
+function myTurn() {
+  if (!G || G.over || !G.ready || !G.oppReady || Date.now() < LOCK) return false;
+  if (G.myRes.length < G.myShots.length) return false; // waiting for an answer
+  return G.role === 'h' ? G.myShots.length === G.oppShots.length : G.oppShots.length > G.myShots.length;
+}
+function alreadyShot(x, y) { return G.myShots.some(s => s[0] === x && s[1] === y); }
+function renderBattle() {
+  const turn = myTurn();
+  // enemy board
+  const sunkE = new Set(), sunkPtsE = new Set();
+  G.myRes.forEach(r => { if (r.r === 's') { sunkE.add(r.i); r.pts.forEach(p => sunkPtsE.add(key(...p))); } });
+  let e = '';
+  G.myRes.forEach((r, idx) => { if (r.r === 's') e += shipSVG(r.i, r.pts, idx >= SEEN.e ? 'sinking' : 'sunk'); });
+  if (G.over && G.oppFleet) G.oppFleet.forEach((sh, i) => { if (!sunkE.has(i)) e += shipSVG(i, sh.pts, 'ghost'); });
+  G.myShots.forEach((s, i) => { const r = G.myRes[i]; if (!r) return; const an = i >= SEEN.e; e += r.r === 'm' ? miss(s[0], s[1], an) : hit(s[0], s[1], an, !sunkPtsE.has(key(...s))); });
+  SEEN.e = G.myRes.length;
+  if (turn) e += crosshair(A.x, A.y);
+  setBoard('enemyBoard', e);
+  // my board
+  const sunkM = new Set(); G.myAns.forEach(a => { if (a.r === 's') sunkM.add(a.i); });
+  let m = '';
+  const sunkAt = new Map(); G.myAns.forEach((a, idx) => { if (a.r === 's') sunkAt.set(a.i, idx); });
+  G.fleet.forEach((sh, i) => { m += shipSVG(i, sh.pts, sunkAt.has(i) ? (sunkAt.get(i) >= SEEN.m ? 'sinking' : 'sunk') : 'ok'); });
+  G.oppShots.forEach((s, i) => { const a = G.myAns[i]; if (!a) return; const an = i >= SEEN.m; const ship = shipAt(s); m += a.r === 'm' ? miss(s[0], s[1], an) : hit(s[0], s[1], an, !sunkM.has(ship)); });
+  SEEN.m = G.myAns.length;
+  setBoard('myBoard', m);
+  // titles
+  $('enemyTitle').textContent = (G.mode === 'cpu' ? 'Computerens' : gen(G.oppName || 'Modstanderen')) + ' sektor';
+  $('enemyLeft').textContent = (TOTAL - sunkCount(G.myRes)) + ' af ' + TOTAL + ' skibe tilbage';
+  $('myLeft').textContent = (TOTAL - sunkCount(G.myAns)) + ' af ' + TOTAL + ' skibe tilbage';
+  // turn box
+  const tb = $('turnBox');
+  if (G.over) { tb.className = 'turn wait'; tb.textContent = 'Slaget er slut'; }
+  else if (turn) {
+    tb.className = 'turn me'; tb.textContent = 'Din tur: vælg x og y, og fyr!';
+    const i = G.oppShots.length - 1, a = G.myAns[i];
+    if (a) tb.textContent = (G.mode === 'cpu' ? 'Computeren' : (G.oppName || 'Modstanderen')) + ' skød på ' + fmtP(...G.oppShots[i]) + ': ' + (a.r === 'm' ? 'forbi.' : a.r === 'h' ? 'ramt!' : 'ødelagt!') + ' Nu er det din tur.';
+  }
+  else if (G.mode === 'net' && G.oppOnline === false) { tb.className = 'turn wait'; tb.textContent = (G.oppName || 'Modstanderen') + ' har mistet forbindelsen. Venter …'; }
+  else { tb.className = 'turn wait'; tb.textContent = (G.mode === 'cpu' ? 'Computeren' : (G.oppName || 'Modstanderen')) + ' sigter …'; }
+  // aim panel
+  $('aimBox').hidden = G.over;
+  $('numsX').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', +b.dataset.v === A.x); b.disabled = !turn; });
+  $('numsY').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', +b.dataset.v === A.y); b.disabled = !turn; });
+  const cx = A.x === null ? '?' : fmtN(A.x), cy = A.y === null ? '?' : fmtN(A.y);
+  $('aimCoord').innerHTML = `( <span class="cx">${cx}</span>, <span class="cy">${cy}</span> )`;
+  let w = 'Vælg x og y';
+  const both = A.x !== null && A.y !== null;
+  if (both) w = alreadyShot(A.x, A.y) ? 'Du har allerede skudt på ' + fmtP(A.x, A.y) + '. Vælg et andet punkt.' : 'Punktet ligger ' + where(A.x, A.y) + '.';
+  else if (A.x !== null) w = 'Vælg nu y';
+  else if (A.y !== null) w = 'Vælg nu x';
+  $('aimWhere').textContent = w;
+  $('bFire').disabled = !turn || !both || alreadyShot(A.x, A.y);
+  if ($('fbBox').dataset.v !== lastFb) { $('fbBox').innerHTML = lastFb; $('fbBox').dataset.v = lastFb; }
+  renderLog();
+}
+function renderLog() {
+  const items = [];
+  const n = Math.max(G.myShots.length, G.oppShots.length);
+  const first = G.role === 'h' ? 'me' : 'opp';
+  for (let i = 0; i < n; i++) {
+    const order = first === 'me' ? ['me', 'opp'] : ['opp', 'me'];
+    order.forEach(who => {
+      const s = who === 'me' ? G.myShots[i] : G.oppShots[i];
+      const r = who === 'me' ? G.myRes[i] : G.myAns[i];
+      if (!s || !r) return;
+      const name = who === 'me' ? 'Du' : (G.mode === 'cpu' ? 'Computeren' : (G.oppName || 'Modstanderen'));
+      const res = r.r === 'm' ? 'forbi' : r.r === 'h' ? 'ramt!' : 'ødelagde ' + FLEET[r.i].name.toLowerCase() + '!';
+      items.push(`<p class="${who}"><b>${esc(name)}</b> skød på ${fmtP(s[0], s[1])}: ${res}</p>`);
+    });
+  }
+  $('log').innerHTML = items.reverse().join('');
+}
+function resultText(r, x, y) {
+  const p = fmtP(x, y);
+  if (r.r === 'm') return { cls: 'miss', t: `Forbi! Der var ikke noget rumskib i ${p}.` };
+  if (r.r === 'h') return { cls: 'hit', t: `Ramt i ${p}! Prøv punkterne lige ved siden af.` };
+  return { cls: 'sunk', t: `Ødelagt! Du ødelagde ${FLEET[r.i].name.toLowerCase()} i ${p}.` };
+}
+$('bFire').onclick = () => {
+  if (!myTurn() || A.x === null || A.y === null || alreadyShot(A.x, A.y)) return;
+  const shot = [A.x, A.y];
+  G.myShots.push(shot);
+  flyShell('enemyBoard', shot[0], shot[1]);
+  if (G.mode === 'cpu') {
+    G.myRes = answerShots(G.oppFleet, G.myShots);
+    afterMyResult();
+    if (!G.over) setTimeout(cpuShoot, 2000);
+  } else {
+    lastFb = `<div class="fb miss">Skud mod ${fmtP(...shot)} er sendt …</div>`;
+    publish();
+  }
+  A = { x: null, y: null };
+  renderBattle(); save();
+};
+function afterMyResult() {
+  const i = G.myShots.length - 1, r = G.myRes[i];
+  if (r) { const t = resultText(r, ...G.myShots[i]); lastFb = `<div class="fb late ${t.cls}">${t.t}</div>`; }
+  checkOver();
+}
+function oppShotFeedback() {
+  const i = G.oppShots.length - 1; const a = G.myAns[i]; if (!a) return;
+  const s = G.oppShots[i], who = G.mode === 'cpu' ? 'Computeren' : (G.oppName || 'Modstanderen');
+  const t = a.r === 'm' ? `${esc(who)} skød på ${fmtP(...s)}: forbi.` : a.r === 'h' ? `${esc(who)} ramte dit skib i ${fmtP(...s)}!` : `${esc(who)} ødelagde ${FLEET[a.i].name.toLowerCase()} i ${fmtP(...s)}!`;
+  $('oppFb').innerHTML = `<div class="fb late ${a.r === 'm' ? 'miss' : a.r === 'h' ? 'hit' : 'sunk'}">${t}</div>`;
+}
+function checkOver() {
+  if (G.over) return;
+  const won = sunkCount(G.myRes) === TOTAL, lost = sunkCount(G.myAns) === TOTAL;
+  if (!won && !lost) return;
+  G.over = true; G.won = won;
+  if (G.mode === 'net') publish();
+  save();
+  setTimeout(showEnd, 1300);
+}
+function showEnd() {
+  const shots = G.myShots.length, hits = G.myRes.filter(r => r.r !== 'm').length;
+  const pct = shots ? Math.round(hits / shots * 100) : 0;
+  const opp = G.mode === 'cpu' ? 'computeren' : (G.oppName || 'din modstander');
+  $('endBar').className = 'bar ' + (G.won ? 'green' : 'navy');
+  $('endTitle').textContent = G.won ? 'Du vandt, ' + G.name + '!' : 'Du tabte denne gang';
+  $('endText').textContent = G.won ? 'Du ødelagde hele flåden hos ' + opp + '.' : opp.charAt(0).toUpperCase() + opp.slice(1) + ' ødelagde din flåde først. Prøv igen!';
+  $('endStat').innerHTML = `<div><b>${shots}</b>skud</div><div><b>${hits}</b>træffere</div><div><b>${pct} %</b>af dine skud ramte</div>`;
+  show('sEnd');
+}
+$('bQuit').onclick = () => { if (!G.over && !confirmQuit()) return; $('bAgain').click(); };
+let quitArmed = 0;
+function confirmQuit() { if (Date.now() - quitArmed < 4000) return true; quitArmed = Date.now(); $('bQuit').textContent = 'Tryk igen for at forlade'; setTimeout(() => { $('bQuit').textContent = 'Forlad spillet'; }, 4000); return false; }
+$('bShowBoards').onclick = () => { show('sGame'); renderBattle(); };
+$('bAgain').onclick = () => {
+  const mode = G.mode; leaveNet(true); store.del('rumslag-game');
+  G = null; hud(); show('sStart'); pickMode(mode);
+};
+
+/* ---------- computer opponent ---------- */
+let CPU = null;
+function cpuNew() { return { thinkMiss: 0 }; }
+function cpuPick() {
+  const tried = new Set(G.oppShots.map(s => key(...s)));
+  const sunkPts = new Set(); G.myAns.forEach(a => { if (a.r === 's') a.pts.forEach(p => sunkPts.add(key(...p))); });
+  const open = G.oppShots.filter((s, i) => G.myAns[i] && G.myAns[i].r !== 'm' && !sunkPts.has(key(...s)));
+  const free = p => inside(p) && !tried.has(key(...p));
+  const cand = [];
+  if (open.length >= 2) { // try along the line of hits
+    const sameX = open.every(p => p[0] === open[0][0]), sameY = open.every(p => p[1] === open[0][1]);
+    if (sameX || sameY) {
+      const vals = open.map(p => sameX ? p[1] : p[0]); const lo = Math.min(...vals), hi = Math.max(...vals);
+      const ends = sameX ? [[open[0][0], lo - 1], [open[0][0], hi + 1]] : [[lo - 1, open[0][1]], [hi + 1, open[0][1]]];
+      ends.filter(free).forEach(p => cand.push(p));
+    }
+  }
+  if (!cand.length) open.forEach(([x, y]) => [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].filter(free).forEach(p => cand.push(p)));
+  if (cand.length) return cand[Math.floor(Math.random() * cand.length)];
+  const all = [];
+  for (let x = MIN; x <= MAX; x++) for (let y = MIN; y <= MAX; y++) if (!tried.has(key(x, y))) all.push([x, y]);
+  const par = all.filter(([x, y]) => (x + y) % 2 === 0); // ships are at least 2 long
+  const pool = par.length ? par : all;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function cpuShoot() {
+  if (!G || G.over || G.mode !== 'cpu') return;
+  const cs = cpuPick(); G.oppShots.push(cs); flyShell('myBoard', cs[0], cs[1]); lockFor();
+  G.myAns = answerShots(G.fleet, G.oppShots);
+  oppShotFeedback(); checkOver(); renderBattle(); save();
+}
+
+/* ---------- network: tiny MQTT 3.1.1 client over WebSocket ---------- */
+/* Free public MQTT brokers relay small JSON messages between the two screens.
+   Each player publishes its whole state (retained) on its own topic; nothing secret leaves the device except the shots and answers.
+   The fleet itself never leaves the device, the answers are computed locally. */
+const BROKERS = (new URLSearchParams(location.search).get('broker') || '').split('|').filter(Boolean).concat(location.search.includes('broker=') ? [] : ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt', 'wss://test.mosquitto.org:8081/mqtt']);
+const TOPIC = 'mortensmaterialebank/rumslag/v1/';
+const te = new TextEncoder(), td = new TextDecoder();
+function mStr(s) { const b = te.encode(s); return [b.length >> 8, b.length & 255, ...b]; }
+function mLen(n) { const o = []; do { let d = n % 128; n = Math.floor(n / 128); if (n > 0) d |= 128; o.push(d); } while (n > 0); return o; }
+function mPkt(type, body) { return new Uint8Array([type, ...mLen(body.length), ...body]); }
+class Mqtt {
+  constructor(url) { this.url = url; this.handlers = []; this.ok = false; this.buf = new Uint8Array(0); this.pid = 1; this.onclose = null; }
+  connect(clientId, will) {
+    return new Promise((res, rej) => {
+      let ws; try { ws = new WebSocket(this.url, ['mqtt']); } catch (e) { rej(e); return; }
+      this.ws = ws; ws.binaryType = 'arraybuffer';
+      const to = setTimeout(() => { try { ws.close(); } catch (e) {} rej(new Error('timeout')); }, 7000);
+      ws.onopen = () => {
+        let flags = 0x02; let pay = mStr(clientId);
+        if (will) { flags |= 0x04 | 0x20; pay = pay.concat(mStr(will.topic), [0, 0]); }
+        ws.send(mPkt(0x10, [...mStr('MQTT'), 4, flags, 0, 45, ...pay]));
+      };
+      ws.onmessage = ev => {
+        const d = new Uint8Array(ev.data); const nb = new Uint8Array(this.buf.length + d.length); nb.set(this.buf); nb.set(d, this.buf.length); this.buf = nb;
+        for (;;) {
+          if (this.buf.length < 2) break;
+          let mult = 1, len = 0, i = 1, b;
+          do { if (i >= this.buf.length) return; b = this.buf[i++]; len += (b & 127) * mult; mult *= 128; } while (b & 128);
+          if (this.buf.length < i + len) break;
+          const type = this.buf[0], body = this.buf.slice(i, i + len); this.buf = this.buf.slice(i + len);
+          if ((type >> 4) === 2) { clearTimeout(to); if (body[1] === 0) { this.ok = true; this.ping = setInterval(() => { try { ws.send(new Uint8Array([0xC0, 0])); } catch (e) {} }, 25000); res(this); } else rej(new Error('refused')); }
+          else if ((type >> 4) === 3) {
+            const tl = (body[0] << 8) | body[1]; const topic = td.decode(body.slice(2, 2 + tl));
+            let p = 2 + tl; if ((type >> 1) & 3) p += 2;
+            const msg = td.decode(body.slice(p));
+            this.handlers.forEach(h => h(topic, msg));
+          }
+        }
+      };
+      ws.onerror = () => { clearTimeout(to); if (!this.ok) rej(new Error('ws')); };
+      ws.onclose = () => { clearTimeout(to); clearInterval(this.ping); const was = this.ok; this.ok = false; if (!was) rej(new Error('closed')); if (this.onclose) this.onclose(); };
+    });
+  }
+  sub(filter) { const id = this.pid++; this.ws.send(mPkt(0x82, [id >> 8, id & 255, ...mStr(filter), 0])); }
+  pub(topic, msg, retain) { if (!this.ok) return; this.ws.send(mPkt(0x30 | (retain ? 1 : 0), [...mStr(topic), ...te.encode(msg)])); }
+  on(fn) { this.handlers.push(fn); }
+  close() { this.onclose = null; try { this.ws.send(new Uint8Array([0xE0, 0])); this.ws.close(); } catch (e) {} this.ok = false; clearInterval(this.ping); }
+}
+let NET = null; // {m: Mqtt, url}
+const otherRole = () => G.role === 'h' ? 'g' : 'h';
+function base() { return TOPIC + G.code + '/'; }
+async function openBroker(url) {
+  const m = new Mqtt(url);
+  await m.connect('rumslag-' + G.id + '-' + rid(4, 'abcdefghijk'), { topic: TOPIC + G.code + '/on-' + G.role });
+  return m;
+}
+function attach(m, url) {
+  NET = { m, url, ok: true };
+  m.on(onNetMsg);
+  m.sub(base() + '+');
+  m.pub(base() + 'on-' + G.role, G.id, true);
+  m.onclose = () => { if (NET && NET.m === m) { NET.ok = false; hud(); reconnectSoon(); } };
+}
+async function netStart(preferred) {
+  const list = preferred ? [preferred, ...BROKERS.filter(b => b !== preferred)] : BROKERS;
+  for (const url of list) {
+    try { const m = await openBroker(url); attach(m, url); G.broker = url; return; } catch (e) { /* try next */ }
+  }
+  throw new Error('no broker');
+}
+/* The guest does not know which broker the host reached, so it listens on all of them and keeps the one that has the game. */
+function netJoin() {
+  return new Promise(resolve => {
+    const opened = []; let done = false; let pending = BROKERS.length;
+    const finish = (val, keep) => {
+      if (done) return; done = true;
+      opened.forEach(o => { if (o.m !== keep) o.m.close(); });
+      if (keep) { const o = opened.find(x => x.m === keep); attach(keep, o.url); G.broker = o.url; }
+      resolve(val);
+    };
+    BROKERS.forEach(url => {
+      const m = new Mqtt(url);
+      m.connect('rumslag-' + G.id + '-' + rid(4, 'abcdefghijk'), { topic: TOPIC + G.code + '/on-g' }).then(() => {
+        if (done) { m.close(); return; }
+        opened.push({ m, url });
+        m.on((topic, msg) => {
+          if (done || !msg) return;
+          if (topic === TOPIC + G.code + '/st-h') {
+            const st = parse(msg); if (!st || Date.now() - (st.t || 0) > 12 * 3600e3) return;
+            finish(true, m);
+          } else if (topic === TOPIC + G.code + '/st-g') {
+            const st = parse(msg); if (st && st.id !== G.id && Date.now() - (st.t || 0) < 3 * 3600e3) finish('full', null);
+          }
+        });
+        m.sub(TOPIC + G.code + '/+');
+      }).catch(() => {}).finally(() => { pending--; });
+    });
+    setTimeout(() => finish(false, null), 6500);
+  });
+}
+let reconTimer = null;
+function reconnectSoon() {
+  if (reconTimer || !G || G.mode !== 'net') return;
+  reconTimer = setTimeout(async () => {
+    reconTimer = null;
+    if (!G || G.mode !== 'net' || (NET && NET.ok)) return;
+    try { await netStart(G.broker); publish(); hud(); } catch (e) { reconnectSoon(); }
+  }, 2500);
+}
+function parse(s) { try { return JSON.parse(s); } catch (e) { return null; } }
+function publish() {
+  if (!G || G.mode !== 'net' || !NET || !NET.ok) return;
+  const st = { id: G.id, name: G.name, ready: G.ready, shots: G.myShots, ans: G.myAns, over: G.over, t: Date.now() };
+  if (G.over) st.fleet = G.fleet.map(s => s.pts); // reveal at the end so the other board can show the remaining ships
+  NET.m.pub(base() + 'st-' + G.role, JSON.stringify(st), true);
+}
+function leaveNet(clear) {
+  if (!NET) return;
+  if (clear && G) { NET.m.pub(base() + 'st-' + G.role, '', true); NET.m.pub(base() + 'on-' + G.role, '', true); }
+  NET.m.close(); NET = null;
+}
+function onNetMsg(topic, msg) {
+  if (!G || G.mode !== 'net' || !topic.startsWith(base())) return;
+  const t = topic.slice(base().length);
+  if (t === 'on-' + otherRole()) { G.oppOnline = !!msg; hud(); if (!$('sGame').hidden) renderBattle(); return; }
+  if (t !== 'st-' + otherRole() || !msg) return;
+  const st = parse(msg); if (!st || typeof st !== 'object') return;
+  if (G.oppId && st.id !== G.oppId) return; // a third device
+  if (Date.now() - (st.t || 0) > 12 * 3600e3) return;
+  G.oppId = st.id; G.oppName = String(st.name || 'Modstanderen').slice(0, 18); G.oppOnline = true;
+  if (G.role === 'h' && !$('sWait').hidden) startPlacement();
+  const wasReady = G.oppReady; G.oppReady = !!st.ready;
+  const shots = Array.isArray(st.shots) ? st.shots.filter(s => Array.isArray(s) && inside(s)).map(s => [s[0] | 0, s[1] | 0]) : [];
+  const newOpp = shots.length > G.oppShots.length;
+  if (newOpp && !$('sGame').hidden) { flyShell('myBoard', shots[shots.length - 1][0], shots[shots.length - 1][1]); lockFor(); }
+  const newRes = Array.isArray(st.ans) && st.ans.length > G.myRes.length;
+  G.oppShots = shots;
+  if (Array.isArray(st.ans)) G.myRes = st.ans.slice(0, G.myShots.length).map(a => a && a.r === 's' ? { r: 's', i: a.i | 0, pts: a.pts } : { r: a && a.r === 'h' ? 'h' : 'm' });
+  if (st.fleet) G.oppFleet = st.fleet.map(pts => ({ pts }));
+  if (G.fleet.every(Boolean) && G.ready) {
+    const before = G.myAns.length;
+    G.myAns = answerShots(G.fleet, G.oppShots);
+    if (G.myAns.length !== before) { oppShotFeedback(); publish(); }
+  }
+  if (newRes) afterMyResult();
+  if (newOpp || newRes) checkOver();
+  save();
+  hud();
+  if (!$('sPlace').hidden) { renderPlace(); maybeStartNet(); }
+  else if (!$('sGame').hidden) renderBattle();
+  if (!wasReady && G.oppReady) maybeStartNet();
+}
+function maybeStartNet() { if (G.ready && G.oppReady && !$('sPlace').hidden) startBattle(); }
+
+/* ---------- resume after an accidental reload ---------- */
+function save() { if (G && !G.over) store.set('rumslag-game', { ...G, savedAt: Date.now() }); else store.del('rumslag-game'); }
+(function offerResume() {
+  const g = store.get('rumslag-game');
+  if (!g || Date.now() - (g.savedAt || 0) > 3 * 3600e3) { store.del('rumslag-game'); return; }
+  $('resumeText').textContent = g.mode === 'cpu' ? 'Du har et spil i gang mod computeren.' : 'Du har et spil i gang med koden ' + g.code + '.';
+  $('resumeBox').hidden = false;
+  $('bForget').onclick = () => { store.del('rumslag-game'); $('resumeBox').hidden = true; };
+  $('bResume').onclick = async () => {
+    G = g; $('resumeBox').hidden = true;
+    if (G.mode === 'net') { try { await netStart(G.broker); publish(); } catch (e) { reconnectSoon(); } }
+    if (!G.ready) startPlacement();
+    else if (G.mode === 'cpu' || G.oppReady) { startBattle(); if (G.mode === 'cpu' && !myTurn()) setTimeout(cpuShoot, 900); }
+    else { show('sPlace'); renderPlace(); }
+    hud();
+  };
+})();
+window.addEventListener('pagehide', () => { if (NET) NET.m.close(); });
+</script>
+</body>
+</html>

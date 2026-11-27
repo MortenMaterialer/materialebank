@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rumbasaren</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Outfit:wght@400;500;600;700;800&display=swap">
+<style>
+/* Kolonien Nova look, shared base below. Layout: today's order on top, three market stalls side by side, then the receipt. */
+:root {
+  --space: #15122b; --space2: #241d45; --cream: #f4f1fa; --ink: #1f1d33; --muted: #5d5a75; --line: #d6d0e6; --white: #ffffff;
+  --cyan: #5fe0d0; --pink: #ff7ac8; --yellow: #ffd34d; --green: #3a9e78; --red: #d9534a; --lilac: #9a82c0; --blue: #2f78bd;
+  --display: "Jersey 10", "Outfit", system-ui, sans-serif;
+  --body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, button.tag:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { position: relative; background: var(--space); color: var(--white); overflow: hidden; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+header.top .wrap { position: relative; padding-block: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; }
+.kick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b9b3d6; margin-bottom: 2px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 5.6vw, 50px); line-height: .9; margin: 0; letter-spacing: .02em; }
+.stats { display: flex; gap: 10px; font-family: var(--display); font-size: 24px; line-height: 1; }
+.stat { background: var(--space2); border: 3px solid var(--white); padding: 5px 12px 7px; display: flex; align-items: center; gap: 8px; }
+.stat canvas { width: 21px; height: 21px; image-rendering: pixelated; }
+
+footer { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.linkbtn { background: none; border: 0; padding: 0; color: #5b3f94; text-decoration: underline; font-size: 14px; }
+
+/* panels */
+.dim { position: fixed; inset: 0; background: rgba(21,18,43,.6); display: grid; place-items: center; padding: 16px; z-index: 20; overflow: auto; }
+.panel { background: var(--cream); border: 4px solid var(--space); box-shadow: 8px 8px 0 var(--space); max-width: 600px; width: 100%; }
+.panel .bar { background: var(--space); color: var(--white); font-family: var(--display); font-size: 28px; line-height: 1; padding: 8px 14px 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel .bar button { background: transparent; border: 0; color: var(--white); font-family: var(--display); font-size: 26px; padding: 0 4px; }
+.panel .body { display: flex; gap: 14px; padding: 16px; align-items: flex-start; }
+.panel .body > div { min-width: 0; flex: 1; }
+.panel .body p { margin: 6px 0 0; }
+.fig { flex: none; width: 54px; height: 132px; image-rendering: pixelated; }
+.act { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 16px 16px; justify-content: flex-end; }
+.btn { border: 3px solid var(--space); background: var(--green); color: var(--white); font-family: var(--display); font-size: 24px; line-height: 1; padding: 8px 18px 10px; box-shadow: 4px 4px 0 var(--space); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--space); }
+.btn.ghost { background: var(--white); color: var(--space); }
+.btn.small { font-size: 20px; padding: 5px 12px 7px; box-shadow: 3px 3px 0 var(--space); }
+.btn:disabled { background: #cfc9dd; color: #6f6a85; cursor: not-allowed; box-shadow: 2px 2px 0 var(--space); }
+.shop { display: grid; gap: 8px; margin-top: 10px; }
+.item { display: flex; align-items: center; gap: 12px; background: var(--white); border: 3px solid var(--space); padding: 8px 10px; }
+.item .d { flex: 1; min-width: 0; }
+.item .d b { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: 1; display: block; }
+.item .d span { color: var(--muted); font-size: 14px; }
+.swb { width: 40px; height: 40px; border: 3px solid var(--space); font-weight: 800; font-size: 13px; color: var(--space); box-shadow: 2px 2px 0 var(--space); padding: 0; }
+.swb.on { outline: 3px solid var(--space); outline-offset: 2px; }
+.swb:disabled { opacity: .4; cursor: not-allowed; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1; font-size: .8em; margin: 0 .08em; }
+.fr i { font-style: normal; padding: 0 .14em; }
+.fr i:first-child { border-bottom: .12em solid currentColor; padding-bottom: .06em; margin-bottom: .06em; }
+.fb { padding: 10px 14px; border: 3px solid; font-size: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fb .t { flex: 1; min-width: 220px; }
+.fb.info { background: var(--white); border-color: var(--line); color: var(--muted); }
+.fb.bad { background: #fbe9e7; border-color: var(--red); color: #6e2219; }
+.fb.good { background: #e1f8f4; border-color: var(--green); color: #1a5a45; }
+.fb.help { background: #fff4d1; border-color: #e6c35a; color: #5c3f00; }
+.fb b { font-weight: 800; }
+main { padding-block: 16px 40px; }
+@media (max-width: 560px) { .panel .body .fig { display: none; } .stats { font-size: 20px; } }
+
+.order { display: flex; gap: 14px; align-items: flex-end; margin-bottom: 16px; }
+.bubble { position: relative; background: var(--white); border: 3px solid var(--space); box-shadow: 4px 4px 0 var(--space); padding: 10px 16px; margin-bottom: 24px; min-width: 0; flex: 1; }
+.bubble::before { content: ""; position: absolute; left: -15px; bottom: 12px; border: 6px solid transparent; border-right: 9px solid var(--space); }
+.bubble .k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.bubble .o { font-weight: 800; font-size: clamp(22px, 3.6vw, 32px); line-height: 1.15; }
+.bubble .b { color: var(--muted); margin-top: 4px; }
+.stalls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .stalls { grid-template-columns: 1fr; } }
+.stall { background: var(--white); border: 3px solid var(--space); box-shadow: 4px 4px 0 var(--space); display: flex; flex-direction: column; }
+.stall .roof { height: 18px; background: repeating-linear-gradient(90deg, var(--pink) 0 18px, var(--white) 18px 36px); border-bottom: 3px solid var(--space); }
+.stall.c2 .roof { background: repeating-linear-gradient(90deg, var(--cyan) 0 18px, var(--white) 18px 36px); }
+.stall.c3 .roof { background: repeating-linear-gradient(90deg, var(--yellow) 0 18px, var(--white) 18px 36px); }
+.stall .pic { background: var(--lilac); height: 96px; display: flex; align-items: flex-end; justify-content: center; border-bottom: 3px solid var(--space); }
+.stall .pic canvas { image-rendering: pixelated; height: 72px; width: auto; }
+.stall .in { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.stall h3 { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1; margin: 0; }
+.stall .np { color: var(--muted); font-size: 15px; }
+.stall .np b { color: var(--ink); font-size: 20px; }
+.deal { font-weight: 800; font-size: 20px; background: #fff4d1; border: 2px dashed #c99a1e; padding: 6px 10px; color: #5c3f00; }
+.deal.up { background: #fbe9e7; border-color: var(--red); color: #8f2f25; }
+.stall .go { margin-top: auto; }
+.stall.picked { outline: 4px solid var(--blue); outline-offset: 3px; }
+.stall.best { background: #e9fbf6; }
+.stall .res { font-size: 15px; border-top: 2px solid var(--line); padding-top: 8px; }
+.stall .res b { font-size: 18px; }
+.stall .tagbest { display: inline-block; background: var(--green); color: var(--white); font-weight: 700; font-size: 13px; padding: 1px 8px; margin-bottom: 4px; }
+.pay { background: var(--white); border: 3px solid var(--space); padding: 12px 14px; margin-top: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pay label { font-weight: 700; font-size: 18px; }
+.pay input { width: 130px; font-size: 22px; font-weight: 700; padding: 6px 10px; border: 3px solid var(--space); }
+#fb { margin-top: 12px; }
+.stars { font-family: var(--display); font-size: 22px; display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.stars span { background: var(--white); border: 3px solid var(--space); padding: 3px 10px 5px; }
+.stars span.on { background: var(--yellow); }
+.shelf { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; align-items: flex-end; }
+.shelf canvas { image-rendering: pixelated; height: 42px; width: auto; }
+.shelf .lbl { font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="top">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div><div class="kick">Kolonien Nova · Talforståelse</div><h1>Rumbasaren</h1></div>
+    <div class="stats">
+      <div class="stat"><span>Dag</span><span id="sDay">1</span><span>/ 8</span></div>
+      <div class="stat" title="Kolonikassen"><span>Kassen</span><span id="sCash">0</span><span>cr</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="order">
+    <canvas class="fig" width="18" height="44" aria-hidden="true"></canvas>
+    <div class="bubble"><div class="k" id="oKick">Dagens indkøb</div><div class="o" id="oText">…</div><div class="b" id="oSub"></div></div>
+  </div>
+  <div class="stalls" id="stalls"></div>
+  <div class="pay" id="pay" hidden>
+    <label for="payIn" id="payLbl">Hvad skal du betale?</label>
+    <input id="payIn" inputmode="decimal" autocomplete="off"><span style="font-weight:700">cr</span>
+    <button class="btn small" id="payBtn">Betal</button>
+    <button class="btn small ghost" id="payBack">Vælg en anden handler</button>
+  </div>
+  <div class="fb info" id="fb"><div class="t" id="fbT">Find det billigste tilbud. Klik på "Køb her" hos den handler, du vælger.</div><button class="btn small" id="fbBtn" hidden>Næste dag</button></div>
+  <div class="stars" id="stars" hidden><span id="st1">★ Billigste tilbud</span><span id="st2">★ Rigtig pris første gang</span></div>
+  <div class="shelf" id="shelf"></div>
+  <footer><span>Kassen og jeres køb gemmes i denne browser på denne computer.</span><button class="linkbtn" id="tBtn">Til læreren</button></footer>
+</main>
+
+<div class="dim" id="intro" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="inT">
+    <div class="bar"><span id="inT">Kaptajnens log: markedsdag</span></div>
+    <div class="body"><canvas class="fig" width="18" height="44" aria-hidden="true"></canvas><div>
+      <p style="margin-top:0">Hver dag kommer handlere fra hele galaksen til Rumbasaren. Kolonien mangler forsyninger, og I er kolonistens indkøbere.</p>
+      <p>Alle handlere sælger det samme, men de giver tilbud på hver sin måde: rabat i procent, "betal kun 3/4" eller "0,8 gange prisen". Nogle lægger endda et gebyr oveni.</p>
+      <p>Find det billigste tilbud, og regn ud, hvad I skal betale. Kolonien giver jer et dagsbudget. Det, I sparer, kommer i kolonikassen, og for den kan I købe ting til kolonien.</p>
+    </div></div>
+    <div class="act"><button class="btn" id="inGo">Åbn basaren</button></div>
+  </div>
+</div>
+
+<div class="dim" id="weekP" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="wT">
+    <div class="bar"><span id="wT">Ugen er slut</span></div>
+    <div class="body"><canvas class="fig" width="18" height="44" aria-hidden="true"></canvas><div>
+      <p style="margin-top:0" id="wText"></p>
+      <div class="shop" id="shop" style="display:grid;gap:8px;margin-top:10px"></div>
+    </div></div>
+    <div class="act"><button class="btn" id="wGo">Ny uge</button></div>
+  </div>
+</div>
+
+<div class="dim" id="teach" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tT">
+    <div class="bar"><span id="tT">Til læreren</span><button id="tClose" aria-label="Luk">✕</button></div>
+    <div class="body"><div>
+      <p style="margin-top:0"><b>Mål:</b> Jeg kan finde en procentdel af et tal. Jeg kan omskrive mellem brøker, decimaltal og procent. Jeg kan sammenligne størrelser.</p>
+      <p>Hver dag skal eleven vælge det billigste af tre tilbud (rabat i procent, brøk af prisen, decimaltal gange prisen og senere gebyrer) og regne prisen ud. Tallene bliver sværere eller lettere efter, hvordan det går, uden at eleven kan se det.</p>
+      <p class="note"><button class="linkbtn" id="tReset">Nulstil alt på denne computer</button></p>
+    </div></div>
+    <div class="act"><button class="btn" id="tOk">Luk</button></div>
+  </div>
+</div>
+
+<script>
+/* ======================================================================
+   RUMBASAREN – procent, brøk og decimaltal som rabatter.
+   DEALS bestemmer, hvilke tilbud der kan komme på hvert skjult niveau 0-3.
+   ====================================================================== */
+// ==GEN==
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const P = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+const lcm = (a, b) => a / gcd(a, b) * b;
+const dk = x => String(Math.round(x * 10000) / 10000).replace('.', ',');
+const FR = (n, d) => `<span class="fr"><i>${n}</i><i>${d}</i></span>`;
+
+const ITEMS = [
+  { navn: 'mad', tekst: n => `${n} kg mad`, n: [20, 30, 40, 50, 60] },
+  { navn: 'vand', tekst: n => `${n} liter vand`, n: [100, 150, 200, 250] },
+  { navn: 'ilt', tekst: n => `${n} flasker ilt`, n: [8, 10, 12, 16, 20] },
+  { navn: 'dele', tekst: n => `${n} reservedele til roveren`, n: [5, 6, 8, 10] },
+  { navn: 'braend', tekst: n => `${n} liter raketbrændstof`, n: [40, 60, 80] },
+  { navn: 'frø', tekst: n => `${n} poser frø til drivhuset`, n: [12, 15, 24] },
+  { navn: 'kabel', tekst: n => `${n} meter kabel`, n: [50, 75, 100] },
+];
+// a deal = [type, ...]; the price paid is P * num / den (see factor).
+// Every level mixes all kinds of deals; the level only changes how hard the numbers are.
+const DEALS = [
+  { rabat: [10, 20, 25, 30, 40, 60, 70, 75], broek: [[1, 2], [3, 4], [1, 4], [4, 5], [3, 5], [2, 5], [9, 10], [7, 10]], dec: [5, 6, 7, 8, 9], gebyr: [10, 20, 50] },
+  { rabat: [5, 15, 20, 30, 35, 40, 45, 60, 65, 80], broek: [[2, 3], [3, 4], [4, 5], [3, 5], [7, 10], [3, 10], [5, 6], [3, 8]], dec: [6, 7, 9, 75, 85, 35, 65], gebyr: [5, 10, 15, 25] },
+  { rabat: [12, 15, 18, 35, 45, 55, 65, 85, 8], broek: [[5, 8], [3, 8], [7, 8], [5, 6], [7, 12], [9, 20], [11, 20], [2, 3]], dec: [15, 35, 45, 55, 65, 85, 95, 25], gebyr: [8, 12, 15, 25, 35] },
+  { rabat: [12, 16, 18, 22, 35, 37, 45, 62, 85], broek: [[5, 8], [7, 8], [3, 16], [7, 12], [11, 12], [13, 20], [17, 20], [4, 9]], dec: [12, 32, 48, 64, 85, 95, 125], gebyr: [6, 12, 18, 24, 35] },
+];
+const recent = [];   // deals used in the last days, so the same offer does not keep coming back
+function pickDeal(l, type) {
+  const T = DEALS[l];
+  if (type === 'ingen') return ['ingen'];
+  for (let t = 0; t < 30; t++) {
+    const v = P(T[type]), d = type === 'broek' ? ['broek', v[0], v[1]] : [type, v];
+    if (!recent.includes(d.join())) return d;
+  }
+  const v = P(T[type]); return type === 'broek' ? ['broek', v[0], v[1]] : [type, v];
+}
+function factor(d) {
+  if (d[0] === 'rabat') return [100 - d[1], 100];
+  if (d[0] === 'broek') return [d[1], d[2]];
+  if (d[0] === 'dec') return d[1] < 10 ? [d[1], 10] : [d[1], 100];   // 125 means 1,25
+  if (d[0] === 'gebyr') return [100 + d[1], 100];
+  return [1, 1];
+}
+function dealText(d) {
+  if (d[0] === 'rabat') return `${d[1]}&nbsp;% rabat`;
+  if (d[0] === 'broek') return `Betal kun ${FR(d[1], d[2])} af prisen`;
+  if (d[0] === 'dec') return d[1] > 100 ? `Luksusvare: du betaler ${dk(d[1] / 100)} · prisen` : `Du betaler ${dk(d[1] < 10 ? d[1] / 10 : d[1] / 100)} · prisen`;
+  if (d[0] === 'gebyr') return `Lav pris, men +${d[1]}&nbsp;% i leveringsgebyr`;
+  return 'Fast lavpris, ingen rabat';
+}
+function explain(d, p) {
+  const [a, b] = factor(d), F = p * a / b;
+  if (d[0] === 'rabat') return `${d[1]} % af ${p} er ${dk(p * d[1] / 100)}. ${p} − ${dk(p * d[1] / 100)} = <b>${dk(F)} cr</b>.`;
+  if (d[0] === 'broek') return `${p} : ${d[2]} = ${dk(p / d[2])}. ${dk(p / d[2])} · ${d[1]} = <b>${dk(F)} cr</b>.`;
+  if (d[0] === 'dec') return `${dk(a / b)} · ${p} = <b>${dk(F)} cr</b>.`;
+  if (d[0] === 'gebyr') return `${d[1]} % af ${p} er ${dk(p * d[1] / 100)}. ${p} + ${dk(p * d[1] / 100)} = <b>${dk(F)} cr</b>.`;
+  return `Prisen er <b>${p} cr</b>.`;
+}
+function hintFor(d, p) {
+  if (d[0] === 'rabat') return d[1] % 10 === 0 ? `Find 10 % af ${p} ved at dele med 10. Gang med ${d[1] / 10}, og træk det fra prisen.` : d[1] % 5 === 0 ? `Find 10 % af ${p}, og tag halvdelen, så har du 5 %. Gang op til ${d[1]} %, og træk det fra prisen.` : `Find 1 % af ${p} ved at dele med 100. Gang med ${d[1]}, og træk det fra prisen.`;
+  if (d[0] === 'broek') return `Del prisen med nævneren (${d[2]}), og gang med tælleren (${d[1]}).`;
+  if (d[0] === 'dec') return `${dk(factor(d)[0] / factor(d)[1])} er det samme som ${factor(d)[0] * 100 / factor(d)[1]} %. Find så mange procent af ${p}.`;
+  if (d[0] === 'gebyr') return `Find ${d[1]} % af ${p}, og læg det til prisen.`;
+  return 'Der er ingen rabat. Du betaler bare prisen.';
+}
+function makeDay(l) {
+  for (let t = 0; t < 3000; t++) {
+    const item = P(ITEMS), n = P(item.n);
+    // three different kinds of offer every day; a plain price or a fee shows up now and then
+    const kinds = shuffle(['rabat', 'broek', 'dec', Math.random() < .35 ? 'gebyr' : (Math.random() < .3 ? 'ingen' : 'rabat')]).filter((k, i, a) => a.indexOf(k) === i).slice(0, 3);
+    if (kinds.length < 3) continue;
+    const deals = kinds.map(k => pickDeal(l, k));
+    const base = R(12, 48) * 10;
+    const tr = deals.map(d => {
+      const [a, b] = factor(d); const m = lcm(b / gcd(a, b), 10);
+      const p = Math.max(m, Math.round(base * (1 + R(-30, 30) / 100) / m) * m);
+      return { d, p, F: p * a / b };
+    });
+    if (tr.some(x => x.F % 1 !== 0 || x.p < 40)) continue;
+    const Fs = tr.map(x => x.F).sort((a, b) => a - b);
+    if (Fs[1] - Fs[0] < Math.max(4, Fs[0] * .04) || Fs[2] - Fs[1] < 2) continue;
+    deals.forEach(d => { recent.push(d.join()); if (recent.length > 12) recent.shift(); });
+    return { item, n, tr };
+  }
+}
+// ==/GEN==
+
+/* ---------------- state ---------------- */
+const KEY = 'rumbasaren-v1';
+const DEF = () => ({ cash: 0, day: 1, week: 1, wk: { save: 0, stars: 0 }, lvl: { l: 0, st: 0, mi: 0 }, bought: [], best: null, seen: false });
+let S = DEF();
+try { S = Object.assign(DEF(), JSON.parse(localStorage.getItem(KEY) || '{}') || {}); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+function record(ok) {
+  const s = S.lvl;
+  if (ok) { s.st++; s.mi = 0; if (s.st >= 3 && s.l < 3) { s.l++; s.st = 0; } }
+  else { s.st = 0; s.mi++; if (s.mi >= 2 && s.l > 0) { s.l--; s.mi = 0; } }
+}
+const TRADERS = [
+  { navn: 'Zorb', s: 'blob-groen' }, { navn: 'Pip', s: 'blob-pink' }, { navn: 'R-7', s: 'robot' },
+  { navn: 'Glimmer', s: 'krystal-pink' }, { navn: 'Rusty', s: 'rover' },
+];
+const UPGR = [
+  { id: 'plante', navn: 'Plantekasser til basaren', pris: 120, s: 'plante' },
+  { id: 'sten', navn: 'Stenhave med lys', pris: 200, s: 'sten' },
+  { id: 'krystal', navn: 'Krystalfontæne', pris: 300, s: 'krystal-pink' },
+  { id: 'robot', navn: 'Hjælperobot', pris: 450, s: 'robot' },
+  { id: 'rover', navn: 'Ny rover', pris: 650, s: 'rover' },
+  { id: 'raket', navn: 'Eget fragtskib', pris: 1000, s: 'raket' },
+];
+
+/* ---------------- sprites ---------------- */
+const SPR = {"laerer":{"w":18,"h":44,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAsCAYAAABovuiKAAABvUlEQVR42mNkwAG0VZX/o4tdvX2XEZd6RmIMIMZAJlINwaWOiVRDcKlnYqASYEEXONoUA2db1y3BEEMWxxrY2qrK/9E14APWdUtQAp2RgYGB4WZ32v+gWXsZPnzjQ42dHj9EmJRsQpET4PrEsC7NmUG9dBYjiteONsUwaJdsYnjy5BwDAwMDg4yMEYZmZLmjTTEML588xx1GDAwMDMqq+gwMDMxYXQSTwxlGH5bX/0fWADPk5ZPnDOIykgzY5AQiGxmJDmxkg/AFNhOhaMVlCN7oR09PR1cfQGgOdcAwACP6ycki6AYxEVNEEFMCMBFb3hBSx0izgg0ZwNIWepoh2qBvr8/DDdCxjGe4cnwhXI5L1BCrHiZ0A5ANQTaMkBombK4gBqCrp1oJiWLQ8yc3idaIrpY2LhpcBv3as4FB+MZ1osLp+ZObDMI3rqMkWIyi1jW0Datm5LTEwMDAcK45EH/KVlLRIyo93btziXFgAltCUmaQRf+xw9sY0cNjiCXIUYOIN4iYBIhNDYZBL54/IWgQNjXw3C8tbfifgYGB4ed37Jp/fkdtXMHUP316nhGe+7nVHUIpCZ+vNw+sBgAYpsZCbyk5GgAAAABJRU5ErkJggg=="]},"robot":{"w":7,"h":9,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAJCAYAAAD+WDajAAAAX0lEQVR42mNgQALS0ob/GbABaWnD//efvf+PrIARJpFy9Bxc4RxrI4anT88zssAEEtg+ICShNBOy0Qpv41CsQpF8ILwIq3sYcvIr/iPTDNi8geFaLUUHY3TF1+4fOAsAZsQfUv0d1IsAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAJCAYAAAD+WDajAAAAZ0lEQVR42mNgQALS0ob/GbABaWnD//efvf+PrIARJpFy9Bxc4RxrI4anT88zssAEEtg+ICShNBOy0Qpv41CsQpF8ILwIq3sYcvIr/iPTOL0A47MwMDAw8LPxm/ArOhgjyZs8ZWBgAABl3R1pvgkFywAAAABJRU5ErkJggg=="]},"blob-groen":{"w":12,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAfElEQVR42mNkQAPS0ob/kflPn55nROYzoisM2ZGFYsAaj2mYGqWlDf/nX579P//y7P//////D+Mjs2EGMjEQCUJ2ZDFISxv+Z5SWNvyP7gxcYI3HNAYWdMHTp++i8E1NlRkwPI0eMrjA06fnGVkYGBgY+Nn4TYjSwMDAAAB8ATOO94vkzAAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAbElEQVR42mNgIBEwInOkpQ3/Y1P09Ol5FHUM0tKG/6WlDf/nX579/////1jZMMNYpKUN/4fsyCLolJAdWQxrPKb9ZyRWAwMDA8Maj2kMLOiCp0/fReGbmiqjehqXR/GGkpaigzExiq/dP3AWAKPBLz7yCzVWAAAAAElFTkSuQmCC"]},"blob-pink":{"w":12,"h":8,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAd0lEQVR42mNkQAPS0ob/kflPn55nROYzoit8Ur8ExQCZxhhMjdLShv//z7oKwf///4fzkdgwA5kYiARP6pcwSEsb/meUljb8j+4MXECmMYaBBV3w1s6jKHw1d2sGDE+jhwwu8PTpeUYWBgYGBn42fhOiNDAwMAAAdx82Y16ufHUAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAbElEQVR42mNgIBEwInOkpQ3/Y1P09Ol5FHUM0tKG/6WlDf//n3X1/////7GyYYaxSEsb/n9Sv4SgU57UL2GQaYz5z0isBgYGBgaZxhgGFnTBWzuPovDV3K1RPY3Lo3hDSUvRwZgYxdfuHzgLAAtFMYKxrqHUAAAAAElFTkSuQmCC"]},"krystal-blaa":{"w":7,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAASklEQVR42mNgQALxDy78Z8AG4h9c+L//x4f/yAqYGHCA+AcX/jNhMyr+wYX/CRIKEJ37f3zAahdWYxMkFBgWvHjAwCgtbfgfl70AFqoeqJzBKQcAAAAASUVORK5CYII="]},"krystal-pink":{"w":7,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAARUlEQVR42nWNIQEAIBDEDmpgKUAaunwjmrzFE4EOQ2AQz/TdJj1gjiIwh7l5B1kfMCdHKsxRr/fJ3GEr1vYqjaVUSuPXPaYlHuGz34ClAAAAAElFTkSuQmCC"]},"raket":{"w":28,"h":58,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA6CAYAAACj+Dm/AAABgUlEQVR42mNgGAWDAUhLG/6Xljb8T45eFnIs22chycDAwMDgdILh/9On5xlJ0c9E79BhItd3DAwMDPssJBlIDVomci0j19LBGaS4fEeOLwefDwn5jlRf0t2HjIR8d+fmboKGXDp3BM4OimxkwFcYDO6MP7wsJDb+GBgYGPSMbODsdcvr8aZWkmsLFXVXFD6xjiLLQhV1V4aUo+fQxIxIspSJVMsa5FHFU46ew/A1VRNNw8PRbEElC+/c3M0wx9oIQ3yONWmJhqRUeufmbgYVdSP6ZQtyLBhNNKMWUgzwplKLloskGMU7BH14okafaINQGlKLh0qieRQfx/AoPo4kAwUmzsLbKB4cPiS2eU9O03/gfUgN3+Hz5cD6kJq+w+XLgfMhLXyHzZcD2yHF1wkJjAnDa9D6JavwysM6qSzYBLFlFWJcT8ww2MBWT+g+IXXgjhhzWJAV6RupoOv9//TpecanT88zrl/C8J+Y4MRnDkkNYXJ9O9pMHH4WMtI7W9AdAAAkb6G1FvtHlgAAAABJRU5ErkJggg=="]},"rover":{"w":17,"h":10,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAKCAYAAABSfLWiAAAAkElEQVR42mNgQAM3g73+M5AIWNAFJqvYMkhLP8dq0NOn5xmxiaMISksb/k85eg5DUSbfNwYGBgYGY10brAYxIhtw9vIRgk431rXBcBUjzICrhX9JCgftfma4QfAw+ZF0nLTQ7LfB7p3AEHcGBgYGhvVrdjI8fXqekVgxlNi5d+8uhoXEiqHEjrS04X9yxCgGAAzfRkvpcu6+AAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAKCAYAAABSfLWiAAAAjklEQVR42mNgoAX4f9n3P6l6WNAFcpdYMUhLP8Fq0NOn5xmxiaMISksb/k85eg5DUSbfNwYGBgYGY10brAYxIhtw9vIRgk431rXBcBUjzICrhX9JCgftfma4QfAw+ZF0nLTQ7LfB7p3AEHcGBgYGhvVrdjI8fXqekVgxlNi5d+8uhoXEiqHEjrS04X9SxQBXSEdI0ESV0AAAAABJRU5ErkJggg=="]},"plante":{"w":9,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHCAYAAADam2dgAAAATUlEQVR42mNggIL/VSf+MyABdD7D/6oT//9ffPMfJoHOhwP9HQv+4+IzMaABDN3oQH/Hgv//L775j24qVoXoYozIHGlpQ7iCp0/Pw+UAPAMyk4QvakwAAAAASUVORK5CYII="]},"sten":{"w":10,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAAX0lEQVR42mNgIBIwwhhd9Qv+I0s8ffqCgYGBgWHinApGBgYGBsb8lI7/0tISDAwMDAy6ugYMly9fwFDMwMDAwIRsCrIidMCErhObaQwMDAwsuCRweiY/peM/NgUwzwAAEAkd8jpNsu8AAAAASUVORK5CYII="]}};
+const IMG = {};
+const ready = Promise.all(Object.entries(SPR).map(([n, s]) => new Promise(res => { const im = new Image(); im.onload = () => { IMG[n] = im; res(); }; im.src = s.f[0]; })));
+function sprCanvas(name, scale = 1) { const im = IMG[name], c = document.createElement('canvas'); c.width = im.width; c.height = im.height; c.getContext('2d').drawImage(im, 0, 0); c.setAttribute('aria-hidden', 'true'); return c; }
+function sky() {
+  const c = document.getElementById('sky'), r = c.getBoundingClientRect();
+  const w = Math.max(1, Math.ceil(r.width / 3)), h = Math.max(1, Math.ceil(r.height / 3));
+  c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#15122b'; g.fillRect(0, 0, w, h);
+  let s = 7; const RR = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < w * h / 40; i++) { g.fillStyle = RR() < .2 ? '#ffd34d' : RR() < .5 ? '#8f86c0' : '#ffffff'; g.fillRect(Math.floor(RR() * w), Math.floor(RR() * h), 1, 1); }
+}
+addEventListener('resize', sky);
+
+/* ---------------- day ---------------- */
+const $ = id => document.getElementById(id);
+let D = null;
+function hud() { $('sDay').textContent = S.day; $('sCash').textContent = S.cash; }
+function say(kind, html, btn, act) { $('fb').className = 'fb ' + kind; $('fbT').innerHTML = html; $('fbBtn').hidden = !btn; if (btn) $('fbBtn').textContent = btn; fbAct = act; }
+let fbAct = null; $('fbBtn').onclick = () => fbAct && fbAct();
+
+function newDay() {
+  const g = makeDay(S.lvl.l);
+  const who = shuffle([...TRADERS]).slice(0, 3);
+  g.tr.forEach((t, i) => Object.assign(t, who[i]));
+  const min = Math.min(...g.tr.map(t => t.F));
+  g.budget = Math.ceil(min * 1.15 / 10) * 10;
+  g.pick = null; g.tries = 0; g.done = false;
+  D = g;
+  $('oKick').textContent = `Dag ${S.day} · uge ${S.week}`;
+  $('oText').textContent = `Kolonien skal bruge ${g.item.tekst(g.n)}.`;
+  $('oSub').innerHTML = `Dagsbudget: <b>${g.budget} cr</b>. Det, I sparer, kommer i kolonikassen.`;
+  $('pay').hidden = true; $('stars').hidden = true;
+  say('info', 'Find det billigste tilbud, og klik på "Køb her" hos den handler.', null);
+  drawStalls(); hud();
+}
+function drawStalls() {
+  const box = $('stalls'); box.innerHTML = '';
+  D.tr.forEach((t, i) => {
+    const el = document.createElement('div'); el.className = `stall c${i + 1}` + (D.pick === t ? ' picked' : '') + (D.done && t.F === Math.min(...D.tr.map(x => x.F)) ? ' best' : '');
+    const pic = document.createElement('div'); pic.className = 'pic'; pic.appendChild(sprCanvas(t.s));
+    el.innerHTML = '<div class="roof"></div>'; el.appendChild(pic);
+    const inn = document.createElement('div'); inn.className = 'in';
+    inn.innerHTML = `<h3>${t.navn}</h3><div class="np">Normalpris for det hele: <b>${t.p} cr</b></div><div class="deal${t.d[0] === 'gebyr' ? ' up' : ''}">${dealText(t.d)}</div>`;
+    if (D.done) inn.innerHTML += `<div class="res">${D.tr.every(x => x.F >= t.F) ? '<span class="tagbest">Billigst</span><br>' : ''}${explain(t.d, t.p)}</div>`;
+    else { const b = document.createElement('button'); b.className = 'btn small go'; b.textContent = D.pick === t ? 'Valgt' : 'Køb her'; b.disabled = !!D.pick; b.onclick = () => choose(t); inn.appendChild(b); }
+    el.appendChild(inn); box.appendChild(el);
+  });
+}
+function choose(t) {
+  D.pick = t; D.tries = 0; drawStalls();
+  $('pay').hidden = false; $('payLbl').innerHTML = `Hvad skal I betale hos ${t.navn}?`; $('payIn').value = ''; $('payIn').focus();
+  say('info', `${t.navn}: normalpris ${t.p} cr, ${dealText(t.d).toLowerCase()}. Regn prisen ud.`, null);
+}
+$('payBack').onclick = () => { if (D.done || D.tries) return; D.pick = null; $('pay').hidden = true; drawStalls(); say('info', 'Find det billigste tilbud, og klik på "Køb her" hos den handler.', null); };
+function pay() {
+  if (!D || D.done || !D.pick) return;
+  const t = D.pick, v = parseFloat($('payIn').value.replace(',', '.').replace(/\s/g, ''));
+  if (isNaN(v)) { say('help', 'Skriv et tal i feltet.', null); return; }
+  if (Math.abs(v - t.F) < 1e-6) return finish(true);
+  D.tries++; $('payBack').hidden = true;
+  if (D.tries === 1) say('help', `${t.navn} ryster på hovedet: "Det er ikke den rigtige pris." <b>Tip:</b> ${hintFor(t.d, t.p)}`, null);
+  else finish(false);
+}
+$('payBtn').onclick = pay; $('payIn').addEventListener('keydown', e => { if (e.key === 'Enter') pay(); });
+function finish(right) {
+  const t = D.pick, min = Math.min(...D.tr.map(x => x.F)), cheapest = t.F === min, first = right && D.tries === 0;
+  D.done = true; $('pay').hidden = true; $('payBack').hidden = false;
+  record(cheapest && first);
+  const saved = D.budget - t.F; S.cash += saved; S.wk.save += saved; S.wk.stars += (cheapest ? 1 : 0) + (first ? 1 : 0);
+  save(); hud(); drawStalls();
+  $('stars').hidden = false; $('st1').className = cheapest ? 'on' : ''; $('st2').className = first ? 'on' : '';
+  const best = D.tr.find(x => x.F === min);
+  let msg = right ? `Rigtigt: ${t.navn} fik ${t.F} cr. ` : `Prisen hos ${t.navn} var ${explain(t.d, t.p)} `;
+  msg += cheapest ? 'Det var det billigste tilbud! ' : `${best.navn} var billigere med ${best.F} cr. I betalte ${t.F - min} cr for meget. `;
+  msg += saved >= 0 ? `I sparede ${saved} cr af dagsbudgettet.` : `I brugte ${-saved} cr mere end dagsbudgettet.`;
+  say(cheapest && right ? 'good' : 'help', msg + ' Se alle tre udregninger ovenfor.', S.day < 8 ? 'Næste dag' : 'Afslut ugen', nextDay);
+}
+function nextDay() {
+  if (S.day >= 8) return weekEnd();
+  S.day++; save(); newDay(); scrollTo({ top: 0, behavior: 'smooth' });
+}
+function weekEnd() {
+  const w = S.wk; const rec = S.best === null || w.save > S.best; if (rec) S.best = w.save;
+  $('wT').textContent = `Uge ${S.week} er slut`;
+  $('wText').innerHTML = `I fik ${w.stars} af 16 stjerner og sparede ${w.save} cr i denne uge.${rec ? ' Det er jeres bedste uge!' : ` Jeres bedste uge er ${S.best} cr.`} Kolonikassen har nu <b>${S.cash} cr</b>. Vil I købe noget til kolonien?`;
+  shop(); open('weekP');
+}
+function shop() {
+  $('shop').innerHTML = '';
+  for (const u of UPGR) {
+    const own = S.bought.includes(u.id), d = document.createElement('div'); d.className = 'item';
+    const c = sprCanvas(u.s); c.style.cssText = 'height:34px;width:auto;image-rendering:pixelated';
+    d.appendChild(c);
+    const t = document.createElement('div'); t.className = 'd'; t.innerHTML = `<b>${u.navn}</b><span>${own ? 'Købt' : u.pris + ' cr'}</span>`; d.appendChild(t);
+    const b = document.createElement('button'); b.className = 'btn small'; b.textContent = own ? 'Købt' : 'Køb'; b.disabled = own || S.cash < u.pris;
+    b.onclick = () => { S.cash -= u.pris; S.bought.push(u.id); save(); hud(); shop(); shelf(); };
+    d.appendChild(b); $('shop').appendChild(d);
+  }
+}
+function shelf() {
+  const el = $('shelf'); el.innerHTML = '';
+  if (!S.bought.length) return;
+  const l = document.createElement('span'); l.className = 'lbl'; l.textContent = 'Kolonien har købt:'; el.appendChild(l);
+  for (const id of S.bought) { const u = UPGR.find(x => x.id === id); if (u) { const c = sprCanvas(u.s); c.title = u.navn; el.appendChild(c); } }
+}
+$('wGo').onclick = () => { close('weekP'); S.week++; S.day = 1; S.wk = { save: 0, stars: 0 }; save(); newDay(); };
+
+/* ---------------- panels ---------------- */
+let lastFocus;
+function open(id) { lastFocus = document.activeElement; $(id).hidden = false; const b = $(id).querySelector('.act .btn'); b && b.focus(); }
+function close(id) { $(id).hidden = true; lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true }); }
+$('inGo').onclick = () => { close('intro'); S.seen = true; save(); };
+$('tBtn').onclick = () => open('teach'); $('tClose').onclick = () => close('teach'); $('tOk').onclick = () => close('teach');
+$('tReset').onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('teach').hidden) close('teach'); });
+
+ready.then(() => {
+  document.querySelectorAll('canvas.fig').forEach(c => c.getContext('2d').drawImage(IMG.laerer, 0, 0));
+  sky(); hud(); shelf(); newDay();
+  if (!S.seen) open('intro');
+});
+</script>
+</body>
+</html>

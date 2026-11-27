@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meteorskjoldet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Outfit:wght@400;500;600;700;800&display=swap">
+<style>
+/* Kolonien Nova look (same palette as the colony map and pixel-Søslaget). One deliberate light look. */
+:root {
+  --space: #15122b; --space2: #241d45; --cream: #f4f1fa; --ink: #1f1d33; --muted: #5d5a75; --line: #d6d0e6; --white: #ffffff;
+  --cyan: #5fe0d0; --pink: #ff7ac8; --yellow: #ffd34d; --green: #3a9e78; --red: #d9534a; --lilac: #9a82c0; --blue: #2f78bd;
+  --display: "Jersey 10", "Outfit", system-ui, sans-serif;
+  --body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, button.tag:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { position: relative; background: var(--space); color: var(--white); overflow: hidden; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+header.top .wrap { position: relative; padding-block: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; }
+.kick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b9b3d6; margin-bottom: 2px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 5.6vw, 50px); line-height: .9; margin: 0; letter-spacing: .02em; }
+.stats { display: flex; gap: 10px; font-family: var(--display); font-size: 24px; line-height: 1; }
+.stat { background: var(--space2); border: 3px solid var(--white); padding: 5px 12px 7px; display: flex; align-items: center; gap: 8px; }
+.stat canvas { width: 21px; height: 21px; image-rendering: pixelated; }
+
+main { padding-block: 16px 40px; }
+.stage { border: 4px solid var(--space); box-shadow: 6px 6px 0 rgba(21,18,43,.3); background: var(--space); }
+.screen { position: relative; line-height: 0; overflow: hidden; }
+#sc { display: block; width: 100%; height: auto; aspect-ratio: 640 / 240; image-rendering: pixelated; }
+#tags { position: absolute; inset: 0; pointer-events: none; }
+.tag { position: absolute; transform: translate(-50%, 0); white-space: nowrap; line-height: 1.1; pointer-events: none;
+  font-family: var(--body); font-weight: 800; color: var(--space); background: var(--white); border: 3px solid var(--space);
+  box-shadow: 3px 3px 0 rgba(0,0,0,.45); padding: 4px 10px; font-size: clamp(15px, 2.6vw, 26px); display: flex; align-items: center; gap: .25em; }
+.tag::after { content: ""; position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); border: 6px solid transparent; border-bottom: 7px solid var(--space); }
+button.tag { pointer-events: auto; cursor: crosshair; }
+button.tag:hover, button.tag:focus-visible { background: var(--yellow); transform: translate(-50%, -3px); outline: none; }
+.tag.wrong { background: #ffd9d4; animation: shake .3s steps(3); }
+@keyframes shake { 0%,100% { margin-left: 0 } 33% { margin-left: -6px } 66% { margin-left: 6px } }
+.banner { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); font-family: var(--display); color: var(--yellow);
+  font-size: clamp(32px, 7vw, 68px); line-height: 1; text-shadow: 3px 3px 0 var(--space), -2px -2px 0 var(--space), 2px -2px 0 var(--space), -2px 2px 0 var(--space);
+  pointer-events: none; white-space: nowrap; transition: opacity .3s; opacity: 0; }
+.banner.on { opacity: 1; }
+
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1; font-size: .8em; margin: 0 .08em; }
+.fr i { font-style: normal; padding: 0 .14em; }
+.fr i:first-child { border-bottom: .12em solid currentColor; padding-bottom: .06em; margin-bottom: .06em; }
+
+.console { background: var(--cream); border-top: 4px solid var(--space); padding: 10px 0 12px; }
+.row1 { display: flex; align-items: center; gap: 10px 16px; padding: 0 16px; flex-wrap: wrap; }
+.shield { display: flex; gap: 4px; align-items: center; font-family: var(--display); font-size: 20px; line-height: 1; }
+.shield i { width: 18px; height: 18px; border: 3px solid var(--space); background: var(--white); display: inline-block; }
+.shield i.on { background: var(--cyan); }
+.job { flex: 1; min-width: 200px; font-weight: 600; font-size: 16.5px; }
+.left { font-family: var(--display); font-size: 20px; line-height: 1; color: var(--muted); }
+
+.opgbox { padding: 14px 16px 10px; text-align: center; }
+.opgkick { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.opg { font-weight: 800; font-size: clamp(24px, 4.4vw, 40px); line-height: 1.2; color: var(--space); min-height: 1.3em; }
+.opg u { text-decoration-thickness: 3px; text-underline-offset: 4px; }
+.opg .small { font-size: 18px; font-weight: 500; color: var(--muted); }
+.tag.show { background: #c9f3e8; border-color: var(--green); }
+.tag.gone { opacity: .3; text-decoration: line-through; cursor: default; }
+.fb { margin: 4px 16px 0; padding: 10px 14px; border: 3px solid; font-size: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fb .t { flex: 1; min-width: 220px; }
+.fb.info { background: var(--white); border-color: var(--line); color: var(--muted); }
+.fb.bad { background: #fbe9e7; border-color: var(--red); color: #6e2219; }
+.fb.good { background: #e1f8f4; border-color: var(--green); color: #1a5a45; }
+.fb.help { background: #fff4d1; border-color: #e6c35a; color: #5c3f00; }
+.fb b { font-weight: 800; }
+
+footer { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.linkbtn { background: none; border: 0; padding: 0; color: #5b3f94; text-decoration: underline; font-size: 14px; }
+
+/* panels */
+.dim { position: fixed; inset: 0; background: rgba(21,18,43,.6); display: grid; place-items: center; padding: 16px; z-index: 20; overflow: auto; }
+.panel { background: var(--cream); border: 4px solid var(--space); box-shadow: 8px 8px 0 var(--space); max-width: 600px; width: 100%; }
+.panel .bar { background: var(--space); color: var(--white); font-family: var(--display); font-size: 28px; line-height: 1; padding: 8px 14px 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel .bar button { background: transparent; border: 0; color: var(--white); font-family: var(--display); font-size: 26px; padding: 0 4px; }
+.panel .body { display: flex; gap: 14px; padding: 16px; align-items: flex-start; }
+.panel .body > div { min-width: 0; flex: 1; }
+.panel .body p { margin: 6px 0 0; }
+.fig { flex: none; width: 54px; height: 132px; image-rendering: pixelated; }
+.act { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 16px 16px; justify-content: flex-end; }
+.btn { border: 3px solid var(--space); background: var(--green); color: var(--white); font-family: var(--display); font-size: 24px; line-height: 1; padding: 8px 18px 10px; box-shadow: 4px 4px 0 var(--space); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--space); }
+.btn.ghost { background: var(--white); color: var(--space); }
+.btn.small { font-size: 20px; padding: 5px 12px 7px; box-shadow: 3px 3px 0 var(--space); }
+.btn:disabled { background: #cfc9dd; color: #6f6a85; cursor: not-allowed; box-shadow: 2px 2px 0 var(--space); }
+.shop { display: grid; gap: 8px; margin-top: 10px; }
+.item { display: flex; align-items: center; gap: 12px; background: var(--white); border: 3px solid var(--space); padding: 8px 10px; }
+.item .d { flex: 1; min-width: 0; }
+.item .d b { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: 1; display: block; }
+.item .d span { color: var(--muted); font-size: 14px; }
+.swb { width: 40px; height: 40px; border: 3px solid var(--space); font-weight: 800; font-size: 13px; color: var(--space); box-shadow: 2px 2px 0 var(--space); padding: 0; }
+.swb.on { outline: 3px solid var(--space); outline-offset: 2px; }
+.swb:disabled { opacity: .4; cursor: not-allowed; }
+.sw { width: 18px; height: 18px; border: 3px solid var(--space); display: inline-block; vertical-align: -3px; margin-right: 4px; }
+.topics { display: grid; gap: 6px; margin-top: 8px; }
+.topics label { display: flex; gap: 10px; align-items: flex-start; background: var(--white); border: 2px solid var(--line); padding: 7px 10px; cursor: pointer; }
+.topics input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--green); flex: none; }
+.topics small { display: block; color: var(--muted); }
+.note { font-size: 14px; color: var(--muted); }
+@media (max-width: 560px) {
+  .panel .body .fig { display: none; }
+  .stats { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .tag.wrong { animation: none; } .banner { transition: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <div class="kick">Kolonien Nova · Talforståelse</div>
+      <h1>Meteorskjoldet</h1>
+    </div>
+    <div class="stats">
+      <div class="stat" title="Bølge"><span>Bølge</span><span id="sWave">1</span></div>
+      <div class="stat" title="Krystaller"><canvas id="cIcon" width="7" height="7" aria-hidden="true"></canvas><span id="sCrys">0</span><span class="sr" style="position:absolute;left:-9999px">krystaller</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="stage" aria-label="Spillet">
+    <div class="screen">
+      <canvas id="sc" width="640" height="240" role="img" aria-label="Kolonien under et skjold. Flere meteorer med tal daler ned mod skjoldet."></canvas>
+      <div id="tags"></div>
+      <div class="banner" id="banner" aria-live="polite"></div>
+    </div>
+    <div class="console">
+      <div class="row1">
+        <div class="shield" id="shield" aria-label="Skjold"></div>
+        <div class="job" id="job">Find svaret på opgaven, og skyd den meteor, der har det.</div>
+        <div class="left" id="left"></div>
+      </div>
+      <div class="opgbox" aria-live="polite"><div class="opgkick" id="opgKick">Opgave</div><div class="opg" id="opg"><span class="small">Tryk på Start for at gå i gang.</span></div></div>
+      <div class="fb info" id="fb" aria-live="polite"><div class="t" id="fbT">Regn opgaven, og klik på meteoren med svaret.</div><button class="btn small" id="fbBtn">Start</button></div>
+    </div>
+  </section>
+
+  <footer><span>Jeres krystaller og køb gemmes i denne browser på denne computer.</span><button class="linkbtn" id="tBtn">Til læreren</button></footer>
+</main>
+
+<div class="dim" id="intro" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="inTitle">
+    <div class="bar"><span id="inTitle">Kaptajnens log: meteorstorm!</span></div>
+    <div class="body">
+      <canvas class="fig" width="18" height="44" aria-hidden="true"></canvas>
+      <div>
+        <p style="margin-top:0">Kolonien Nova flyver ind i en meteorstorm. Heldigvis har vi et skjold og en laserkanon.</p>
+        <p>Flere meteorer daler langsomt ned mod skjoldet på én gang. Hver meteor har et tal på sig, og hvert tal er svaret på én opgave.</p>
+        <p>Opgaven står nederst på skærmen. Regn den, og klik på den meteor, der har svaret. Så skyder kanonen den ned. Derefter kommer en ny opgave til en af de andre meteorer, indtil hele bølgen er skudt ned.</p>
+        <p>Kun meteoren til den opgave, I er i gang med, kan bryde igennem skjoldet. De andre bliver liggende oven på skjoldet og venter. Skyder I forkert, preller laseren af.</p>
+<p>Rammer I, får I krystaller. Dem kan I bruge på udstyr mellem bølgerne.</p>
+      </div>
+    </div>
+    <div class="act"><button class="btn" id="inGo">Start første bølge</button></div>
+  </div>
+</div>
+
+<div class="dim" id="shopP" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <div class="bar"><span id="shTitle">Bølgen er klaret!</span></div>
+    <div class="body">
+      <canvas class="fig" width="18" height="44" aria-hidden="true"></canvas>
+      <div>
+        <p style="margin-top:0" id="shText"></p>
+        <div class="shop" id="shop"></div>
+      </div>
+    </div>
+    <div class="act"><button class="btn" id="shGo">Næste bølge</button></div>
+  </div>
+</div>
+
+<div class="dim" id="failP" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="fTitle">
+    <div class="bar"><span id="fTitle">Skjoldet brød sammen</span></div>
+    <div class="body">
+      <canvas class="fig" width="18" height="44" aria-hidden="true"></canvas>
+      <div><p style="margin-top:0">Der kom for mange meteorer igennem. Ingen er kommet til skade, men generatoren skal genstarte.</p>
+      <p>I beholder alle jeres krystaller. Bølgen starter forfra, og bygningerne bliver repareret.</p></div>
+    </div>
+    <div class="act"><button class="btn" id="fGo">Prøv bølgen igen</button></div>
+  </div>
+</div>
+
+<div class="dim" id="teach" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="tTitle">
+    <div class="bar"><span id="tTitle">Til læreren</span><button id="tClose" aria-label="Luk">✕</button></div>
+    <div class="body"><div>
+      <p style="margin-top:0">Vælg hvilke mål meteorerne træner. Spillet blander de valgte emner og tilpasser selv sværhedsgraden til eleven uden at vise det.</p>
+      <div class="topics" id="topics"></div>
+      <div class="topics" style="margin-top:12px"><label><input type="checkbox" id="calm"><span><b>Rolig tilstand</b><small>Meteorerne stopper lige før skjoldet og venter, så der ikke er tidspres.</small></span></label></div>
+      <p class="note">Ændringer gælder fra næste bølge. Forløb: Talforståelse 6. årgang.</p>
+      <p class="note"><button class="linkbtn" id="tReset">Nulstil alt på denne computer</button></p>
+    </div></div>
+    <div class="act"><button class="btn" id="tOk">Gem</button></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   METEORSKJOLDET – træner målene i forløbet "Talforståelse 6. årgang".
+   En bølge er 8 meteorer i ét emne; op til 4 falder samtidig. Hver meteor
+   bærer svaret på sin egen opgave. Opgaven nederst hører til én meteor.
+   Hvert emne er en funktion i GEN, der laver en ny opgave ud fra et
+   skjult niveau 0-3 og returnerer { task, ans, wrong, hint, explain }.
+   Nyt emne = ny funktion i GEN + en linje i SKILLS.
+   ===================================================================== */
+// ==GEN==
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const P = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+const lcm = (a, b) => a / gcd(a, b) * b;
+const dk = x => String(Math.round(x * 10000) / 10000).replace('.', ',');
+const FR = (n, d) => d === 1 ? `${n}` : `<span class="fr"><i>${n}</i><i>${d}</i></span>`;
+const pc = v => dk(v * 100) + '&nbsp;%';
+const RF = (n, d) => { const g = gcd(n, d); return FR(n / g, d / g); };   // reduced fraction
+
+const SKILLS = [
+  { id: 'omskriv', navn: 'Brøk, decimaltal og procent', mål: 'Jeg kan omskrive mellem brøker, decimaltal og procent' },
+  { id: 'sammenlign', navn: 'Sammenlign brøkers størrelse', mål: 'Jeg kan sammenligne brøkers størrelse' },
+  { id: 'procent', navn: 'Procentdel af et tal', mål: 'Jeg kan finde en procentdel af et tal' },
+  { id: 'broekplus', navn: 'Plus og minus med brøker', mål: 'Jeg kan regne med brøker' },
+  { id: 'broekgange', navn: 'Brøk gange og divideret med helt tal', mål: 'Jeg kan regne med brøker' },
+  { id: 'decimal', navn: 'De fire regnearter med decimaltal', mål: 'Jeg kan regne med decimaltal' },
+];
+
+/* A task: { task, ans:{html,v}, wrong:[{html,v}], hint, explain }.
+   pickWrong takes candidate answers (typical mistakes first) and keeps
+   those with a value different from the answer and from each other. */
+function pickWrong(ans, cands, count, near) {
+  const out = [], seen = new Set([ans.v.toFixed(6)]), seenH = new Set([ans.html]);
+  const add = c => { if (!c || !(c.v > 0) || c.v > 1e6) return; const k = c.v.toFixed(6); if (seen.has(k) || seenH.has(c.html)) return; seen.add(k); seenH.add(c.html); out.push(c); };
+  // typical mistakes first (in random order), then random near values
+  shuffle(cands.slice(0, 4)).forEach(c => out.length < count && add(c));
+  shuffle(cands.slice(4)).forEach(c => out.length < count && add(c));
+  for (let t = 0; out.length < count && t < 200; t++) add(near());
+  return out;
+}
+const num = v => ({ html: dk(v), v });
+const fr = (n, d) => ({ html: RF(n, d), v: n / d });
+const inFmt = (v, f) => ({ html: f === 'pct' ? pc(v) : f === 'dec' ? dk(v) : null, v });
+const count = l => l >= 2 ? 5 : 4;
+
+const GEN = {
+  omskriv(l) {
+    const dens = [[2, 4, 5, 10], [4, 5, 10, 20], [4, 5, 8, 20, 25], [8, 20, 25, 40]][l];
+    const den = P(dens), over = l >= 2 && den <= 20 && Math.random() < .3;
+    let k; do { k = R(1, over ? 2 * den - 1 : den - 1); } while (k === den || (over && k < den));
+    const g = gcd(k, den), n = k / g, d = den / g, v = n / d;
+    const fm = ['frac', 'dec', 'pct'], from = P(fm), to = P(fm.filter(f => f !== from));
+    const src = from === 'frac' ? FR(n * (l >= 2 && Math.random() < .3 && d <= 25 ? 2 : 1), d * (l >= 2 && Math.random() < .3 && d <= 25 ? 1 : 1)) : inFmt(v, from).html;
+    const word = { frac: 'en brøk', dec: 'et decimaltal', pct: 'procent' }[to];
+    const task = `Skriv ${src} som ${word}`;
+    let ans, cands, near;
+    const p = Math.round(v * 100 * 10) / 10;            // percent value
+    if (to === 'frac') {
+      ans = fr(n, d);
+      cands = [fr(n, d + 1), fr(d, n), fr(Math.round(p) % 100 || 1, 10), fr(n + 1, d), fr(Math.max(1, n - 1), d), fr(n, 10), fr(1, n + d), fr(d - n > 0 ? d - n : n + 2, d)];
+      near = () => fr(R(1, 2 * d), d === 1 ? R(2, 9) : d + R(-2, 3) || 3);
+      cands = cands.filter(c => c.v % 1 !== 0); const nr = near; near = () => { const c = nr(); return c.v % 1 ? c : null; };
+    } else {
+      ans = inFmt(v, to);
+      const raw = [v * 10, v / 10, n / 10, n < 10 && d < 10 ? Number(`${n}${d}`) / 100 : v + .2, (d - n) / d, v + .1, v - .1, d / 100, n / 100, v + .05, v - .05];
+      cands = raw.map(x => inFmt(x, to));
+      near = () => inFmt(v + R(-8, 8) * .05, to);
+    }
+    const to100 = 100 % d === 0;
+    const hints = {
+      pct: from === 'frac' ? (to100 ? 'Forlæng brøken, så nævneren bliver 100. Så er tælleren lig med procenten.' : 'Divider tælleren med nævneren, og gang så med 100.') : 'Gang decimaltallet med 100. Fx er 0,4 det samme som 40 %.',
+      dec: from === 'frac' ? 'Divider tælleren med nævneren. Eller forlæng brøken til tiendedele eller hundrededele.' : 'Divider procenten med 100. Fx er 35 % det samme som 0,35.',
+      frac: 'Skriv tallet som hundrededele, fx 0,35 = 35/100. Forkort så brøken så meget som muligt.',
+    };
+    let chain = FR(n, d);
+    if (to100 && d !== 100) chain += ` = ${FR(n * 100 / d, 100)}`;
+    chain += ` = ${dk(v)} = ${pc(v)}`;
+    return { task, ans, wrong: pickWrong(ans, cands, count(l) - 1, near), hint: hints[to], explain: `${src} er det samme som ${chain}.` };
+  },
+
+  sammenlign(l) {
+    const cnt = count(l);
+    let items, mode;
+    for (let t = 0; t < 300; t++) {
+      items = []; mode = l === 0 ? P(['den', 'num']) : l === 1 ? 'fam' : 'mix';
+      if (mode === 'den') { const d = R(5, 12); const ks = new Set(); while (ks.size < cnt) ks.add(R(1, d - 1)); for (const k of ks) items.push({ html: FR(k, d), v: k / d }); }
+      else if (mode === 'num') { const n = R(1, 3); const ds = new Set(); while (ds.size < cnt) ds.add(R(n + 1, 12)); for (const d of ds) items.push({ html: FR(n, d), v: n / d }); }
+      else if (mode === 'fam') { const F = P([[2, 4, 8], [2, 3, 6, 12], [2, 4, 5, 10, 20], [3, 6, 9], [3, 4, 6, 12]]); for (let i = 0; i < cnt; i++) { const d = P(F); let k; do { k = R(1, d - 1); } while (gcd(k, d) !== 1 && d > 2); items.push({ html: FR(k, d), v: k / d }); } }
+      else {
+        const dens = l === 2 ? [2, 4, 5, 10, 20, 25] : [3, 4, 5, 6, 8, 10, 20, 25];
+        for (let i = 0; i < cnt; i++) {
+          const d = P(dens), big = l === 3 && Math.random() < .2;
+          let k; do { k = R(1, big ? 2 * d - 1 : d - 1); } while (k === d);
+          const v = k / d, ok = d % 3 !== 0;
+          const f = ok ? P(['frac', 'dec', 'pct']) : 'frac';
+          items.push({ html: f === 'frac' ? RF(k, d) : inFmt(v, f).html, v });
+        }
+      }
+      const vs = items.map(i => i.v).sort((a, b) => a - b);
+      const gap = l >= 3 ? .02 : .04;
+      let good = true; for (let i = 1; i < vs.length; i++) if (vs[i] - vs[i - 1] < gap) good = false;
+      if (new Set(items.map(i => i.html)).size < items.length) good = false;
+      if (mode === 'mix') { const fs = new Set(items.map(i => i.html.includes('%') ? 'p' : i.html.includes('fr') ? 'f' : 'd')); if (fs.size < 2) good = false; }
+      if (good) break;
+    }
+    const big = Math.random() < .6;
+    const sorted = [...items].sort((a, b) => b.v - a.v);
+    const ans = big ? sorted[0] : sorted[sorted.length - 1];
+    const hint = mode === 'den' ? 'Brøkerne har samme nævner. Så er den med den største tæller størst.'
+      : mode === 'num' ? 'Brøkerne har samme tæller. Jo mindre nævneren er, jo større er stykkerne.'
+      : mode === 'fam' ? 'Forlæng brøkerne, så de får samme nævner. Så kan du sammenligne tællerne.'
+      : 'Lav alle tallene om til procent (eller decimaltal). Så er de nemme at sammenligne.';
+    const pv = v => { const p = v * 100; return Math.abs(p * 10 - Math.round(p * 10)) < 1e-6 ? pc(v) : 'ca. ' + Math.round(p) + '&nbsp;%'; };
+    const explain = 'Fra størst til mindst: ' + sorted.map(i => `${i.html} (${pv(i.v)})`).join(' &gt; ') + '.';
+    return { task: big ? 'Skyd det <u>største</u> tal' : 'Skyd det <u>mindste</u> tal', ans, wrong: items.filter(i => i !== ans), hint, explain };
+  },
+
+  procent(l) {
+    let p, N, ans;
+    for (let t = 0; t < 500; t++) {
+      if (l === 0) { p = P([10, 20, 25, 50, 75]); N = P([40, 60, 80, 100, 120, 200, 400]); }
+      else if (l === 1) { p = P([5, 15, 30, 40, 60, 70, 75, 80, 90]); N = 20 * R(2, 15); }
+      else { N = P([80, 120, 150, 160, 200, 240, 250, 300, 360, 400, 450, 500, 600]); p = l === 2 ? 5 * R(1, 19) : P([12, 15, 35, 45, 65, 110, 120, 150]); }
+      ans = p * N / 100; if (ans % 1 === 0) break;
+    }
+    const A = num(ans);
+    const cands = [num(p * N / 10), num(ans / 10), num(N - ans), num(ans + N / 10), num(N % p === 0 ? N / p : ans * 2), num(p + N / 10), num(ans * 10), num(ans - N / 10), num(ans + 5), num(ans - 5)];
+    const near = () => num(ans + R(-6, 6) * (N / 20));
+    const hint = p === 50 ? 'Halvdelen er 50 %. Del med 2.' : p === 25 ? '25 % er en fjerdedel. Del med 4.' : p === 75 ? '75 % er tre fjerdedele. Find en fjerdedel først, og gang med 3.'
+      : p === 10 ? 'Find 10 % ved at dele med 10.' : p % 10 === 0 ? `Find 10 % ved at dele med 10. Gang så med ${p / 10}.` : p % 5 === 0 ? `Find 10 %, og tag halvdelen. Så har du 5 %. Gang med ${p / 5}.` : `Find 1 % ved at dele med 100. Gang så med ${p}.`;
+    const explain = p % 10 === 0 ? `10 % af ${N} er ${dk(N / 10)}, så ${p} % er ${p / 10} · ${dk(N / 10)} = <b>${dk(ans)}</b>.`
+      : `1 % af ${N} er ${dk(N / 100)}, så ${p} % er ${p} · ${dk(N / 100)} = <b>${dk(ans)}</b>.`;
+    return { task: `Hvad er ${p}&nbsp;% af ${N}?`, ans: A, wrong: pickWrong(A, cands, count(l) - 1, near), hint, explain };
+  },
+
+  broekplus(l) {
+    for (let t = 0; t < 500; t++) {
+      let d1, d2;
+      if (l === 0) { d1 = d2 = R(3, 10); }
+      else if (l === 1) { d1 = P([2, 3, 4, 5]); d2 = d1 * P([2, 3]); if (Math.random() < .5) [d1, d2] = [d2, d1]; }
+      else { [d1, d2] = P([[2, 3], [3, 4], [2, 5], [4, 6], [3, 5], [4, 5], [2, 7], [6, 8]]); if (Math.random() < .5) [d1, d2] = [d2, d1]; }
+      const D = lcm(d1, d2); if (D > 24) continue;
+      const minus = Math.random() < (l === 0 ? .3 : .45);
+      const a = R(1, (l === 3 ? 2 * d1 : d1) - 1), b = R(1, d2 - 1);
+      if (l >= 1 && (gcd(a, d1) !== 1 || gcd(b, d2) !== 1)) continue;
+      const A = a * D / d1, B = b * D / d2, S = minus ? A - B : A + B;
+      if (S <= 0 || (l === 0 && S > D) || S > 2 * D) continue;
+      const op = minus ? '−' : '+';
+      const ans = fr(S, D);
+      const sum = minus ? a - b : a + b;
+      const cands = [
+        sum > 0 && (minus ? (d1 - d2 > 0 ? fr(sum, d1 - d2) : null) : fr(sum, d1 + d2)),
+        d1 !== d2 && sum > 0 ? fr(sum, D) : null,
+        minus ? fr(A + B, D) : (A > B ? fr(A - B, D) : fr(B - A || 1, D)),
+        fr(a * b, d1 * d2),
+        fr(S + 1, D), fr(Math.max(1, S - 1), D), fr(S, D * 2), fr(S + 2, D),
+      ].filter(Boolean);
+      const near = () => fr(Math.max(1, S + R(-4, 4)), D);
+      const hint = d1 === d2 ? `Nævnerne er ens. ${minus ? 'Træk tællerne fra hinanden' : 'Læg tællerne sammen'}, og behold nævneren.` : `Gør nævnerne ens først. Forlæng begge brøker til ${D}-dele.`;
+      const step = d1 === d2 ? '' : ` = ${FR(A, D)} ${op} ${FR(B, D)}`;
+      const red = gcd(S, D) > 1 ? ` = ${RF(S, D)}` : '';
+      return { task: `Regn ${FR(a, d1)} ${op} ${FR(b, d2)}`, ans, wrong: pickWrong(ans, cands, count(l) - 1, near), hint, explain: `${FR(a, d1)} ${op} ${FR(b, d2)}${step} = ${FR(S, D)}${red}.` };
+    }
+  },
+
+  broekgange(l) {
+    for (let t = 0; t < 500; t++) {
+      const div = l >= 1 && Math.random() < .45;
+      if (!div) {
+        const b = P(l === 0 ? [3, 4, 5, 6, 8, 10] : [3, 4, 5, 6, 7, 8, 9, 10, 12]), n = R(2, l === 0 ? 4 : 6), a = R(1, b - 1);
+        const S = n * a; if (S > (l === 0 ? 2 : 3) * b) continue;
+        const ans = fr(S, b);
+        const cands = [fr(a, n * b), fr(n + a, b), fr(S, n + b), fr(b, S), fr(S + 1, b), fr(Math.max(1, S - 1), b), fr(a, b), fr(S, 2 * b)];
+        const near = () => fr(Math.max(1, S + R(-3, 3)), b + P([0, 0, 1, -1]));
+        const q = (l >= 2 && Math.random() < .5) ? `${FR(a, b)} · ${n}` : `${n} · ${FR(a, b)}`;
+        const red = gcd(S, b) > 1 ? ` = ${RF(S, b)}` : '';
+        return { task: `Regn ${q}`, ans, wrong: pickWrong(ans, cands, count(l) - 1, near), hint: `Gang kun tælleren med ${n}. Nævneren bliver den samme.`, explain: `${q} = ${FR(n + ' · ' + a, b)} = ${FR(S, b)}${red}.` };
+      } else {
+        const n = R(2, 4), b = P([3, 4, 5, 6, 8, 10]), a = R(1, b - 1);
+        const even = a % n === 0;
+        if (l === 1 && !even) continue;
+        if (l >= 2 && even && Math.random() < .6) continue;
+        const ans = fr(a, b * n);
+        const cands = [fr(a * n, b), fr(a, b + n), even ? fr(a / n, b * n) : fr(a + n, b * n), fr(b * n, a), fr(a, b), fr(a + 1, b * n), fr(a, b * n + 1)];
+        const near = () => fr(Math.max(1, a + R(-2, 3)), b * n + P([0, -1, 1, n]));
+        const q = `${FR(a, b)} : ${n}`;
+        return even
+          ? { task: `Regn ${q}`, ans, wrong: pickWrong(ans, cands, count(l) - 1, near), hint: `Del tælleren med ${n}. Nævneren bliver den samme.`, explain: `${q} = ${FR(a + ' : ' + n, b)} = ${FR(a / n, b)}.` }
+          : { task: `Regn ${q}`, ans, wrong: pickWrong(ans, cands, count(l) - 1, near), hint: `${a} kan ikke deles med ${n}. Gang i stedet nævneren med ${n}: stykkerne bliver ${n} gange mindre.`, explain: `${q} = ${FR(a, b + ' · ' + n)} = ${FR(a, b * n)}.` };
+      }
+    }
+  },
+
+  decimal(l) {
+    for (let t = 0; t < 500; t++) {
+      let q, T, U, hint, cands;   // answer = T / U  (U = 10 or 100)
+      const ops = l === 0 ? ['+', '−'] : l === 1 ? ['·', ':'] : l === 2 ? ['+', '−'] : ['·', ':', '+', '−'];
+      const op = P(ops);
+      if (op === '+' || op === '−') {
+        U = l === 0 ? 10 : 100;
+        T = l === 0 ? R(5, 99) : 5 * R(4, 160);
+        if (T % U === 0) continue;
+        let a, b;
+        if (op === '+') { a = R(1, T - 1); b = T - a; } else { b = U === 10 ? R(1, 45) : R(10, 400); a = T + b; }
+        if (U === 100 && a % 10 === 0 && b % 10 === 0) continue;
+        q = `${dk(a / U)} ${op} ${dk(b / U)}`;
+        // comma mistake: a number with one decimal read as hundredths
+        const tA = U === 100 && a % 10 === 0 ? a / 10 : a, tB = U === 100 && b % 10 === 0 ? b / 10 : b;
+        const comma = op === '+' ? (tA + tB) / U : Math.abs(tA - tB) / U;
+        cands = [num(comma), num(T / U + 1), num(T / U + .1), num(Math.abs(T / U - .1)), num(T / U * 10), num(T / U / 10), num(op === '+' ? Math.abs(a - b) / U : (a + b) / U), num(Math.abs(T / U - 1))];
+        hint = `Stil tallene op, så kommaerne står lige under hinanden. ${op === '+' ? 'Læg sammen' : 'Træk fra'} som med hele tal.`;
+      } else {
+        U = l === 1 ? 10 : 100;
+        const n = R(2, l === 1 ? 6 : 8);
+        const x = l === 1 ? R(2, 25) : 5 * R(1, 50);
+        if (x % U === 0) continue;
+        const Tp = n * x; if (Tp % U === 0 || Tp / U > 12) continue;
+        if (op === '·') { q = `${dk(x / U)} · ${n}`; T = Tp; hint = `Regn uden komma først (${x} · ${n}). Sæt kommaet tilbage bagefter, så der er lige så mange decimaler som før.`; cands = [num(Tp / U * 10), num(Tp / U / 10), num(x / U + n), num(Tp / U + 1), num(Tp / U + .1), num(Math.abs(Tp / U - .1))]; }
+        else { q = `${dk(Tp / U)} : ${n}`; T = x; hint = `Del som med hele tal. Kommaet i svaret kommer samme sted, som når du deler løs.`; cands = [num(x / U * 10), num(x / U / 10), num(Tp / U - n), num(Tp / U * n), num(x / U + .1), num(x / U + 1)]; }
+      }
+      const ans = num(T / U);
+      const step = (T % 10 === 0 || U === 10) ? .1 : .05;
+      const near = () => num(T / U + R(-6, 6) * step);
+      return { task: `Regn ${q}`, ans, wrong: pickWrong(ans, cands, count(l) - 1, near), hint, explain: `${q} = <b>${dk(T / U)}</b>.` };
+    }
+  },
+};
+// ==/GEN==
+
+/* ---------------- state ---------------- */
+const KEY = 'meteorskjoldet-v3';
+const DEF = () => ({ crys: 0, maxSh: 3, wave: 1, sk: {}, topics: SKILLS.map(s => s.id), calm: false, laser: 'cyan', owned: ['cyan'], slow: 0, radar: 0, seen: false });
+let S = DEF();
+try { S = Object.assign(DEF(), JSON.parse(localStorage.getItem(KEY) || '{}') || {}); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const lv = id => (S.sk[id] || (S.sk[id] = { l: 0, st: 0, mi: 0 }));
+function record(id, first) {
+  const s = lv(id);
+  if (first) { s.st++; s.mi = 0; if (s.st >= 3 && s.l < 3) { s.l++; s.st = 0; } }
+  else { s.st = 0; s.mi++; if (s.mi >= 2 && s.l > 0) { s.l--; s.mi = 0; } }
+}
+const WAVE = 8;   // meteors per wave
+const LASER = { cyan: ['#5fe0d0', 'Cyan laser'], pink: ['#ff7ac8', 'Pink laser'], gul: ['#ffd34d', 'Gul laser'], groen: ['#7be37b', 'Grøn laser'], hvid: ['#ffffff', 'Hvid laser'] };
+
+let G = { on: false, sh: 3, left: WAVE, cur: null, paused: true, last: [], streak: 0, slow: false, radar: false };
+
+/* ---------------- sprites ---------------- */
+const SPR = {"radar":{"w":96,"h":80,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABQCAYAAADm4nCVAAAEJElEQVR42u1dPWgUQRR+e15jFYgYCFtqFTj1cmBjWotDLXJwCZKE0xwWNrb+FgpRFMHCxkITDUkI5iBXqKSwtbAxJzm4TkHIIggKqSzXwttjdzO7M2/2b/bmfdXd3Oxl9vtm3nvfziQBIGQKgyg4DNMs25j+ltUxSIAYSf/S/eT57OBa3fN+5GXL875SmpIWo0iks0nHwH1tpTRlY8QwdCYeQ/pi4woAAKysvhG+xlkZYUIUdSQ/ymyXWRmV0pQdJEKByE9HiKDEXiTyg/Hz15/QtvGxUZQIrJVQIPLZxLPIl+0XthK0roJEZjzmOsyK0GYFiM5+WfKx3+FfBQWa99mCBMgYWuSAr71vh9rOTJxAfcfDp89i+9larQDL6hjN2Qa3n0wClfmO5mzD44y1DUGsmTk+NiolRNB1vNkPoNGzINMs28tvV1GhiFfVhInFIt8/+7USIEwEmZyAjfks8rUTgCdCmBhLT54DAMC9mzfQoSaIfC0FcEQAAOAJ4cb7dx8AAODipQvC1zjJnx5HMyqjPkEDR4oRQ4R0HvFaC8AiKIoYWNK1D0EiIWp6fgYW5upQq/7fD56enwEAgPb6FgAAbO+0YG2jBe31rUib8vQ0NARrGy3Y3mlBrVofEO8mPw7QsyAOatU6bO+0POQ7qyIO0ApAihAn+WgBeAeWosRCXVHEkM+rDpqzDXsYRXCHnbhDEOUAQfItq2NYVsfw54TUVkD/se4gBPnLsrRCEPbcZpSxOWWo+9q+CHZclVABexOsGwlqV4X8qNcqkQNUwsjkUVT/g92/UX3AILeZZtkmH8DA+UdXEy1BTbNsO+RTEmYQ//HO68QEcUSIm/xcC8Aj3t+uKnIrQBDBSRDvzPy4S1DyASr7AEzZlnaJJ1vV+MfJK53T8AHFoIE6RosH0X4qor0OmT86oRAk4APcK4d8QMpI2gfQfgBCBOd1Ko8ilo5vDj2xbThCPiBPpWgSPiBwBXw+izuasdftwanSRM76L6J8QD8EpZ+E97o9tBh57i/gA2Bhrp6eAJiZNwz9KQeQDyAo5wOal4MT1vLminCfqMhiHMqcC9rf34X7P7xtr85NovtEhSrjSD0E+W9Itk9UpD0O2g9QwIQltR9AAuTBBxDIBwytD0BVQSJVRFifsPIwDP7SMeo4ZErQWrVuu3NCXDuBRVkSZPuwBu6cLw37DDsO7MO7rHwAhaCMkcmO2LHrt7wN/Vnub//94rFSpaj/Na0A8gHkA3IZgoJCiyohh3yARj6ABBAsQelckAIikA+gHKB3KUr7AeQDyAfQfgDlAPIB5APIBwwfwn7PjecD3NfSv7GSJP/05ElP2/feLgAAOO0P7t72vPd/7gLq986UOB2NhWrjSTwHqHYamU5HE2KDIZOUhgXuWB3X/dLfzcsZ/gGpJvhWHe03ogAAAABJRU5ErkJggg=="]},"radar-ruin":{"w":96,"h":80,"f":["data:image/png;base64,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"]},"drivhus":{"w":96,"h":80,"f":["data:image/png;base64,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"]},"drivhus-ruin":{"w":96,"h":80,"f":["data:image/png;base64,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"]},"bolig":{"w":96,"h":80,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABQCAYAAADm4nCVAAADvElEQVR42u1cv4saQRSe0S3uD0gTXEhh58XEw+YCVtdEyA/SWQVBmxRphECqVAkJgQNJqjQGTIpgd6TymquEpJE7MF53RUC7/AHXHKaQld29/TGzM7O7z/u+Slednfd97715b3aQMQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtg2c8uRLpb2V83q5PCVpi0WZ/JP925v3B7/ZiqoIpCPg5esPK3ckUEMBMkIACABAAAgAQAAIAECAGwdynXBY0+Vcp9YNc2qkT2cTz2fvPn5mj5882rzvttqb1xTE4BSI95Pux9n5ReB1R4w8C8EpEx8nAAUheB7JFyVeVAC3EHkTgVP1+iQC5DEaOFWvTypA3qKBUyW/Xm143g9GQ5IicKrkL8a255rdXJAUoUCW/Ls/PdcXY9vTA4hiMBqyLJ+o0d2K+PN0K7YiCpS8XwS1SpnVKmUyUVDYJvJVhMhKBE6R/LBFOGrsvDZrliqhQddNGzCdTZjtK0PjhK1Vyon6BdP2cpVJ+I12DAzakYzz/rokoSb7BncUJLXXSASIphC3cd1WO/bEWmBKqTa0iRCcstqxfYMpe6UX4VJpb5U0fzuLW9hvo+p6v9cqkS/RN8TNWcRe0QXd0uX1oh6SWV0vOb6KzY69ItFQSKNqka3L8wDVBVu0tMVD+YzBTXi/23tEvD9JXa+rb4jzdJH5izyRC0tF3GTqOTu/EE4/aZeh7vGjCJRJn1HjhInAdZNvmsi08r2/QpKxI+qQgF8ES7eXmaznTe4buUnrttpKdsh03VzU++M821Nv+0o+u7lg896VEkm7/aL0b5Lcc7dfjLQjyO4gXkSjwNLu2Qbr+VvPD4W/++/7K+N9QxQvolFgxXl/mGcvxrZUWF52fqkR0pfvimXvuSZM7KmaCC9BIgxGQ0+DZun0iLTw7MVB6GdHX07SnYwiL9oaselswuzm4tp1nfV8GhiMhlrtiCtjLZ11f5J9+jxWQ2sR2sbscKehTQra+fogpJJYqx/USc57V4z5fjfvacr5OYgEN3YC7BTlZT/wDkXvIhxF2LTDrnl2XGk47ZgjJ+08v27Kgm31p6vpbMIuhZqztlwj5g7BerXB7rx9GPrdv2+Ot27TLM7epCkKu6EZo5DWMRFKC3Ea4zrPChABGcOzBnz7caR1cN3j5fn+sve6d7+KNSAXawAogAA3ew1YLk95vdrQfihVx5keVXx6f5jre222ImROcsmcINZ1RlTl1LLqHEzby01NSvcB3SQipOkA+MNAovgPtmhsoulUnf8AAAAASUVORK5CYII="]},"bolig-ruin":{"w":96,"h":80,"f":["data:image/png;base64,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"]},"sol":{"w":112,"h":80,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABQCAYAAADBTPF9AAACjElEQVR42u2cv0sbYRjHn5P8A9LxhBbcCpVkcJFOFrEZG4iLIk461y6dOrjo0jqnUynp0kIztiI4deuQ0IIgKFjwRvEfCFyni0nuyP16nzc57/OZkvcN38vxzfu8P+6rIgAAAAAAAAAAAAAAM44TvHDdmm9S2PO6Drr3uqoGum7N//7jm1HhRr0pIiLoNlVNrAy/2X3/b6SzWl2UXu8qddvHN48F3bCuBnPjDb1Pq9I6XDF+IXQtjEARkerOmcqF0LU0AqFYVMZreOiXmKmtL+iGddUNzDJRR7a9GJ280aWEAgZiIGAgmIajNAu6mkdpqQ6zX21tiIhIp/01VjjN4XAZdNW3EXEXGr+xpF8MXeZAwEAMBAwEDIR8uG7NN50ZQRdKDak0S7qqBnKURiqNVJqQSiuFruoIFCE9pq1rao4NyjL7QMvbMNNapNIs6gb8+p1vdD9fXo0uoaTHdHXjeHK7PfL++tHn9HMg6HNxeR1t4Hyyz01chYJd/vw9z9XPCJwyS8+eDl6f3B0MTAvah/sxcAbZf7uZ6HMfjr7EGxg+OehHTMRJ29BNylrr9cT+073jySPQ87pOo95USWOhSyrtQehmHWFsIwpAnhLKNqLgMAJnAEooJRQefAn1vK7TaYtvemmMrsUSqrWnKbtu7o181P7G1E2ia2Ejr5RK80VUUl6F040z0VgJJT2mqxtF1CH18NOIOEilWda9+bkg6/Pv9FahpMd0dU3DPtAyCy9vBg9ujY9A0mO6uuobedJjurqUUMBADAQMBKVFDOkxXV01A0mlkUrLfAOk0pgDWcQABkJG8v51EgZOmbjnfnH9GFhwUq2gghWY6ZVXWXQ18jYOv2G7mP43I1Bw/gOdyFJMITrXHgAAAABJRU5ErkJggg=="]},"sol-ruin":{"w":112,"h":80,"f":["data:image/png;base64,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"]},"vand":{"w":80,"h":80,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAC70lEQVR42u2bP2gUQRTG34ZDFAtBbOSUq7QQIgYJFuYQUklic4KCQRuFpDwIaUwtakCE2CnEJnKCAVOpXSBcFDTGkxyksHJPV0G0sBDF5mycsHfZvzM7N29uvw8CmZ3sMPnlvW/ezE2IIAiCIAiCIAiCIMvk6Bi0WBxqq47heQ2n7wGGgdporilP7OTgiBVgHRVoWYBSAcsBppMWnAlocTBNgnSSwuMELgikKYgDtsMTWZHFwpU5QBvgmYY4QJBegL///LXiF1l9tcETIBeIN+buhbZNwSMiKiT9QQFxz+5duY86KYBB0dhrmN1RyEEFlZe7U/vb9x9ERFQ6dFBLdJXLp7e/r9df2g8wTO7nr1iFIYMRqEtc0tZagBw9ECkMgEhheGCePTAW4NLyczYAXfdTZJslwAuVscSDiZ1IFvrY+tLRbrVaVCodDm0jheGB8MDUGhkejex/+mIJZUyc9h0dDnz+88M66kB4IDwwP1u5yZqLvbAqPBshFrhF3mTNpQcTJWs8kE0Kv781msgDxRcA/peIthPXVzraSGEJiDqk676MuA2mDPDI7dnA52/PV4zXgcXiUPvAlTt6/jKLM23PazioA/NUSMtobmx/aN9mc4uODx5L3UdEdG2R2SrcC202tzLv03oivVp/rdUD055IR0WUbJ/SifT8zWiDPlM+JQ0r6ES62wM5nEjjY00AxCqsrQ4EQIk6sNc39fuqDqxcvggPhAfCA7EXzq0HLj96suPZufGzO/exl64mGm/h8cP8HSb4/2szakWuzs5EjhO3y4IHwgPVYf4anwh8vvdZrXcAdZw856aMWVtf6WhneT+wbwByuqGqeh5oBCCnG6oczwMLlGOlWSywF0YEog7sy70wUhgAmafwm3dNUJIF6HkNZ3qq2iYiunt/no3/dbenp6rb840aI+66hsx7sREoJiVAcoDph5YEnJAMvLj3Eq/C/kn6YfqlA6wfVNh8TCrTSej4SFEVlO4LlpCi/gG+x0fVIEMbAwAAAABJRU5ErkJggg=="]},"vand-ruin":{"w":80,"h":80,"f":["data:image/png;base64,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"]},"raket":{"w":28,"h":58,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA6CAYAAACj+Dm/AAABgUlEQVR42mNgGAWDAUhLG/6Xljb8T45eFnIs22chycDAwMDgdILh/9On5xlJ0c9E79BhItd3DAwMDPssJBlIDVomci0j19LBGaS4fEeOLwefDwn5jlRf0t2HjIR8d+fmboKGXDp3BM4OimxkwFcYDO6MP7wsJDb+GBgYGPSMbODsdcvr8aZWkmsLFXVXFD6xjiLLQhV1V4aUo+fQxIxIspSJVMsa5FHFU46ew/A1VRNNw8PRbEElC+/c3M0wx9oIQ3yONWmJhqRUeufmbgYVdSP6ZQtyLBhNNKMWUgzwplKLloskGMU7BH14okafaINQGlKLh0qieRQfx/AoPo4kAwUmzsLbKB4cPiS2eU9O03/gfUgN3+Hz5cD6kJq+w+XLgfMhLXyHzZcD2yHF1wkJjAnDa9D6JavwysM6qSzYBLFlFWJcT8ww2MBWT+g+IXXgjhhzWJAV6RupoOv9//TpecanT88zrl/C8J+Y4MRnDkkNYXJ9O9pMHH4WMtI7W9AdAAAkb6G1FvtHlgAAAABJRU5ErkJggg=="]},"laerer":{"w":18,"h":44,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAsCAYAAABovuiKAAABvUlEQVR42mNkwAG0VZX/o4tdvX2XEZd6RmIMIMZAJlINwaWOiVRDcKlnYqASYEEXONoUA2db1y3BEEMWxxrY2qrK/9E14APWdUtQAp2RgYGB4WZ32v+gWXsZPnzjQ42dHj9EmJRsQpET4PrEsC7NmUG9dBYjiteONsUwaJdsYnjy5BwDAwMDg4yMEYZmZLmjTTEML588xx1GDAwMDMqq+gwMDMxYXQSTwxlGH5bX/0fWADPk5ZPnDOIykgzY5AQiGxmJDmxkg/AFNhOhaMVlCN7oR09PR1cfQGgOdcAwACP6ycki6AYxEVNEEFMCMBFb3hBSx0izgg0ZwNIWepoh2qBvr8/DDdCxjGe4cnwhXI5L1BCrHiZ0A5ANQTaMkBombK4gBqCrp1oJiWLQ8yc3idaIrpY2LhpcBv3as4FB+MZ1osLp+ZObDMI3rqMkWIyi1jW0Datm5LTEwMDAcK45EH/KVlLRIyo93btziXFgAltCUmaQRf+xw9sY0cNjiCXIUYOIN4iYBIhNDYZBL54/IWgQNjXw3C8tbfifgYGB4ed37Jp/fkdtXMHUP316nhGe+7nVHUIpCZ+vNw+sBgAYpsZCbyk5GgAAAABJRU5ErkJggg=="]},"krystal-blaa":{"w":7,"h":7,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAASklEQVR42mNgQALxDy78Z8AG4h9c+L//x4f/yAqYGHCA+AcX/jNhMyr+wYX/CRIKEJ37f3zAahdWYxMkFBgWvHjAwCgtbfgfl70AFqoeqJzBKQcAAAAASUVORK5CYII="]},"robot":{"w":7,"h":9,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAJCAYAAAD+WDajAAAAX0lEQVR42mNgQALS0ob/GbABaWnD//efvf+PrIARJpFy9Bxc4RxrI4anT88zssAEEtg+ICShNBOy0Qpv41CsQpF8ILwIq3sYcvIr/iPTDNi8geFaLUUHY3TF1+4fOAsAZsQfUv0d1IsAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAJCAYAAAD+WDajAAAAZ0lEQVR42mNgQALS0ob/GbABaWnD//efvf+PrIARJpFy9Bxc4RxrI4anT88zssAEEtg+ICShNBOy0Qpv41CsQpF8ILwIq3sYcvIr/iPTOL0A47MwMDAw8LPxm/ArOhgjyZs8ZWBgAABl3R1pvgkFywAAAABJRU5ErkJggg=="]},"rover":{"w":17,"h":10,"f":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAKCAYAAABSfLWiAAAAkElEQVR42mNgQAM3g73+M5AIWNAFJqvYMkhLP8dq0NOn5xmxiaMISksb/k85eg5DUSbfNwYGBgYGY10brAYxIhtw9vIRgk431rXBcBUjzICrhX9JCgftfma4QfAw+ZF0nLTQ7LfB7p3AEHcGBgYGhvVrdjI8fXqekVgxlNi5d+8uhoXEiqHEjrS04X9yxCgGAAzfRkvpcu6+AAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAKCAYAAABSfLWiAAAAjklEQVR42mNgoAX4f9n3P6l6WNAFcpdYMUhLP8Fq0NOn5xmxiaMISksb/k85eg5DUSbfNwYGBgYGY10brAYxIhtw9vIRgk431rXBcBUjzICrhX9JCgftfma4QfAw+ZF0nLTQ7LfB7p3AEHcGBgYGhvVrdjI8fXqekVgxlNi5d+8uhoXEiqHEjrS04X9SxQBXSEdI0ESV0AAAAABJRU5ErkJggg=="]}};
+const IMG = {};
+const ready = Promise.all(Object.entries(SPR).map(([n, s]) => Promise.all(s.f.map(src => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.src = src; }))).then(fr => { IMG[n] = fr; })));
+
+/* ---------------- canvas ---------------- */
+const W = 640, H = 240;
+const cv = document.getElementById('sc'), ctx = cv.getContext('2d');
+let Z = 1;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function resize() {
+  const w = cv.getBoundingClientRect().width || W;
+  Z = Math.max(1, Math.ceil(w * (devicePixelRatio || 1) / W));
+  cv.width = W * Z; cv.height = H * Z; ctx.imageSmoothingEnabled = false;
+  sky();
+}
+addEventListener('resize', resize);
+const px = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x) * Z, Math.round(y) * Z, Math.max(1, Math.round(w)) * Z, Math.max(1, Math.round(h)) * Z); };
+function spr(name, x, y, sc = 1) { const im = IMG[name] && IMG[name][0]; if (im) ctx.drawImage(im, Math.round(x) * Z, Math.round(y) * Z, Math.round(im.width * sc) * Z, Math.round(im.height * sc) * Z); }
+
+// header sky (same as the colony map)
+function sky() {
+  const c = document.getElementById('sky'), r = c.getBoundingClientRect();
+  const w = Math.max(1, Math.ceil(r.width / 3)), h = Math.max(1, Math.ceil(r.height / 3));
+  c.width = w; c.height = h; const g = c.getContext('2d');
+  g.fillStyle = '#15122b'; g.fillRect(0, 0, w, h);
+  let s = 7; const RR = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < w * h / 40; i++) { g.fillStyle = RR() < .2 ? '#ffd34d' : RR() < .5 ? '#8f86c0' : '#ffffff'; g.fillRect(Math.floor(RR() * w), Math.floor(RR() * h), 1, 1); }
+}
+
+// fixed star field + ground details for the scene
+let seed = 11; const SR = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+const STARS = Array.from({ length: 140 }, () => ({ x: Math.floor(SR() * W), y: Math.floor(SR() * 170), c: SR() < .2 ? '#ffd34d' : SR() < .5 ? '#8f86c0' : '#ffffff', p: SR() * 6 }));
+const SPOTS = Array.from({ length: 40 }, () => ({ x: Math.floor(SR() * W), y: 214 + Math.floor(SR() * 24), w: 2 + Math.floor(SR() * 6) }));
+const BUILD = [ { s: 'bolig', x: 18, ruin: false }, { s: 'drivhus', x: 124, ruin: false }, { s: 'vand', x: 232, ruin: false }, { s: 'radar', x: 352, ruin: false }, { s: 'sol', x: 462, ruin: false } ];
+
+// meteor sprite (made once, 16x16)
+const ROCK = (() => {
+  const c = document.createElement('canvas'); c.width = 16; c.height = 16; const g = c.getContext('2d');
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const dx = x - 7.5, dy = y - 7.5, d = dx * dx + dy * dy; if (d > 52) continue;
+    const lit = dx + dy < -3, dark = dx + dy > 5;
+    g.fillStyle = d > 40 ? '#2a2140' : lit ? '#b49a86' : dark ? '#5a4658' : '#8a7070'; g.fillRect(x, y, 1, 1);
+  }
+  g.fillStyle = '#5a4658'; [[5, 5, 2], [9, 8, 3], [4, 10, 2]].forEach(([x, y, s]) => g.fillRect(x, y, s, s));
+  g.fillStyle = '#c9b2a0'; g.fillRect(4, 4, 1, 1); g.fillRect(8, 7, 1, 1);
+  return c;
+})();
+
+const domeY = x => { const u = (x - 320) / 340; return 238 - 160 * Math.sqrt(Math.max(0, 1 - u * u)); };
+let mets = [], parts = [], beams = [], shake = 0, flash = 0, cannon = { a: -Math.PI / 2, to: -Math.PI / 2 }, T0 = performance.now();
+
+function mPos(m) {
+  const t = Math.min(1, m.t), x = m.x0 + (m.x1 - m.x0) * t;
+  const sc = Math.round((1.5 + 2.5 * t) * 2) / 2;
+  const y = 14 + (domeY(x) - 8 * sc - 14) * t;
+  return { x, y, sc };
+}
+
+function render(now) {
+  const tt = (now - T0) / 1000;
+  ctx.save();
+  if (shake > 0 && !reduce) ctx.translate(Math.round((Math.random() - .5) * shake * 6) * Z, Math.round((Math.random() - .5) * shake * 4) * Z);
+  // sky bands
+  const bands = ['#15122b', '#18142f', '#1b1634', '#1f1939', '#231c3f', '#271f45'];
+  bands.forEach((c, i) => px(0, i * 36, W, 36, c));
+  for (const s of STARS) { if (Math.sin(tt * 2 + s.p) > -.6) px(s.x, s.y, 1, 1, s.c); }
+  // moons
+  const moon = (cx, cy, r, a, b) => { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) { if (x * x + y * y > r * r) continue; px(cx + x, cy + y, 1, 1, (x + r * .35) ** 2 + (y - r * .2) ** 2 > r * r * .9 ? b : a); } };
+  moon(560, 34, 12, '#f2e6c4', '#c9b27a'); moon(596, 64, 5, '#ffd1ec', '#d98bb8');
+  // ground
+  px(0, 212, W, 28, '#9a82c0'); px(0, 212, W, 2, '#b7a3d8');
+  for (const s of SPOTS) px(s.x, s.y, s.w, 1, '#8670ad');
+  // buildings
+  for (const b of BUILD) { const im = IMG[b.ruin ? b.s + '-ruin' : b.s]; if (im) spr(b.ruin ? b.s + '-ruin' : b.s, b.x, 214 - im[0].height); }
+  spr('raket', 578, 214 - 58);
+  spr('krystal-blaa', 108, 206); spr('krystal-blaa', 338, 207); spr('krystal-blaa', 612, 205);
+  // shield dome
+  if (G.sh > 0 || flash > 0) {
+    const a = flash > 0 ? 1 : .35 + .1 * G.sh;
+    const col = flash > 0 ? '#ffffff' : G.sh >= 2 ? '#5fe0d0' : '#ff7ac8';
+    ctx.globalAlpha = Math.min(1, a);
+    for (let x = 0; x < W; x += 2) { const y = domeY(x); px(x, y, 2, 2, col); if ((x + Math.floor(tt * 20)) % 24 < 2) px(x, y + 3, 1, 1, col); }
+    ctx.globalAlpha = 1;
+  }
+  // the laser cannon stands in the middle and turns its barrel toward the target
+  cannon.a += (cannon.to - cannon.a) * .35;
+  px(CX - 10, 222, 20, 8, '#241d45'); px(CX - 7, 217, 14, 6, '#3b3266'); px(CX - 4, 214, 8, 4, '#4a4080');
+  for (let i = 0; i <= 13; i++) { const bx = CX + Math.cos(cannon.a) * i, by = CY + Math.sin(cannon.a) * i; px(bx - 1, by - 1, 3, 3, '#3b3266'); }
+  { const t = tip(); px(t.x - 1, t.y - 1, 3, 3, LASER[S.laser][0]); }
+  // meteors
+  for (const m of mets) {
+    if (m.dead) continue;
+    const p = mPos(m), s = 16 * p.sc;
+    // flame trail
+    for (let i = 1; i <= 6; i++) { const f = Math.sin(tt * 30 + i + m.seed) > 0; px(p.x - (m.x1 - m.x0) / 60 * i * p.sc - p.sc * 2, p.y - s / 2 - i * 3 * p.sc, p.sc * (6 - i * .6), p.sc * 3, i < 3 ? (f ? '#ffd34d' : '#ff9f43') : (f ? '#ff9f43' : '#d9534a')); }
+    ctx.drawImage(ROCK, Math.round(p.x - s / 2) * Z, Math.round(p.y - s / 2) * Z, Math.round(s) * Z, Math.round(s) * Z);
+  }
+  // beams
+  for (const b of beams) { ctx.globalAlpha = Math.max(0, b.life / .35); const steps = 40; for (let i = 0; i <= steps; i++) { const x = b.x0 + (b.x1 - b.x0) * i / steps, y = b.y0 + (b.y1 - b.y0) * i / steps; px(x - 1, y - 1, 3, 3, b.c); px(x, y, 1, 1, '#ffffff'); } }
+  ctx.globalAlpha = 1;
+  for (const p of parts) px(p.x, p.y, p.s, p.s, p.c);
+  if (flash > 0) { ctx.globalAlpha = flash * .4; px(0, 0, W, H, '#ffffff'); ctx.globalAlpha = 1; }
+  ctx.restore();
+}
+
+/* ---------------- loop ---------------- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!G.paused) {
+    for (const m of mets) {
+      if (m.dead) continue;
+      m.t += dt / m.dur;
+      // only the meteor of the current task may reach the shield; the rest hover and wait
+      const cap = (G.cur && G.cur.target === m && !S.calm) ? 1 : .9 + m.lane % 2 * .04;
+      if (m.t > cap) m.t = cap;
+    }
+    // a new meteor joins every 12 seconds while there is room
+    G.spawnT = (G.spawnT || 0) + dt;
+    if (G.cur && G.spawnT > 12) { G.spawnT = 0; spawn(0); }
+    if (G.cur && !G.cur.target.dead && G.cur.target.t >= 1) impact();
+  }
+  for (const b of beams) b.life -= dt; beams = beams.filter(b => b.life > 0);
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; p.life -= dt; } parts = parts.filter(p => p.life > 0);
+  shake = Math.max(0, shake - dt * 2.5); flash = Math.max(0, flash - dt * 2);
+  render(now); placeTags();
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- UI refs ---------------- */
+const $ = id => document.getElementById(id);
+const tagsEl = $('tags'), fb = $('fb'), fbT = $('fbT'), fbBtn = $('fbBtn');
+let fbAct = null;
+function say(kind, html, btn, act) { fb.className = 'fb ' + kind; fbT.innerHTML = html; fbBtn.hidden = !btn; if (btn) fbBtn.textContent = btn; fbAct = act || null; }
+fbBtn.onclick = () => { const a = fbAct; fbAct = null; if (a) a(); };
+function hud() {
+  $('sWave').textContent = S.wave; $('sCrys').textContent = S.crys;
+  $('shield').innerHTML = 'Skjold ' + Array.from({ length: S.maxSh }, (_, i) => `<i class="${i < G.sh ? 'on' : ''}"></i>`).join('');
+  $('left').textContent = G.on ? `${WAVE - G.left} / ${WAVE}` : '';
+}
+let banT;
+function banner(t, ms = 1100) { const b = $('banner'); b.textContent = t; b.classList.add('on'); clearTimeout(banT); banT = setTimeout(() => b.classList.remove('on'), ms); }
+
+/* ---------------- tags over meteors ---------------- */
+function placeTags() {
+  for (const m of mets) {
+    if (!m.tag) continue;
+    if (m.dead) { m.tag.remove(); m.tag = null; continue; }
+    const p = mPos(m);
+    m.tag.style.left = (p.x / W * 100) + '%';
+    m.tag.style.top = ((p.y + 8 * p.sc + 5) / H * 100) + '%';
+  }
+}
+
+/* ---------------- game flow ----------------
+   A wave has WAVE meteors of one topic. Up to MAXON fall at the same time.
+   Each meteor carries the answer to its own task. The task at the bottom
+   belongs to one meteor; only that one keeps falling all the way down,
+   the others hover just above the shield and wait for their turn. */
+const MAXON = 4;
+function pickSkill() {
+  let ids = S.topics.filter(id => GEN[id]); if (!ids.length) ids = SKILLS.map(s => s.id);
+  let pool = ids.filter(id => id !== G.last[G.last.length - 1]); if (!pool.length) pool = ids;
+  const w = pool.map(id => 1 + (3 - lv(id).l) * .5);
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r <= 0) return pool[i]; }
+  return pool[pool.length - 1];
+}
+// seconds for a meteor to fall from the top to the shield
+function speed() { return Math.max(34, 50 - (S.wave - 1) * 1.5) + (G.slow ? 18 : 0); }
+const level = () => { const s = lv(G.skill); return (s.l > 0 && Math.random() < .2) ? s.l - 1 : s.l; };
+const alive = () => mets.filter(m => !m.dead);
+const pv = v => { const p = v * 100; return Math.abs(p * 10 - Math.round(p * 10)) < 1e-6 ? pc(v) : 'ca. ' + Math.round(p) + '&nbsp;%'; };
+
+// comparing waves: every meteor is just a number; the task asks for the biggest/smallest one left
+function makeCmp(l) {
+  const mode = l === 0 ? P(['den', 'num']) : l === 1 ? 'fam' : 'mix';
+  const d0 = R(7, 12), n0 = R(1, 3), F = P([[2, 4, 8], [2, 3, 6, 12], [2, 4, 5, 10, 20], [3, 6, 9], [3, 4, 6, 12]]);
+  const dens = l === 2 ? [2, 4, 5, 10, 20, 25] : [3, 4, 5, 6, 8, 10, 20, 25];
+  const gen = () => {
+    if (mode === 'den') { const k = R(1, d0 - 1); return { html: FR(k, d0), v: k / d0 }; }
+    if (mode === 'num') { const d = R(n0 + 1, 15); return { html: FR(n0, d), v: n0 / d }; }
+    if (mode === 'fam') { const d = P(F); let k; do { k = R(1, d - 1); } while (gcd(k, d) !== 1 && d > 2); return { html: FR(k, d), v: k / d }; }
+    const d = P(dens), big = l === 3 && Math.random() < .2; let k; do { k = R(1, big ? 2 * d - 1 : d - 1); } while (k === d);
+    const v = k / d, f = d % 3 !== 0 ? P(['frac', 'dec', 'pct']) : 'frac';
+    return { html: f === 'frac' ? RF(k, d) : inFmt(v, f).html, v };
+  };
+  const hint = mode === 'den' ? 'Brøkerne har samme nævner. Så er den med den største tæller størst.'
+    : mode === 'num' ? 'Brøkerne har samme tæller. Jo mindre nævneren er, jo større er stykkerne.'
+    : mode === 'fam' ? 'Forlæng brøkerne, så de får samme nævner. Så kan du sammenligne tællerne.'
+    : 'Lav alle tallene om til procent (eller decimaltal). Så er de nemme at sammenligne.';
+  return { gen, hint, gap: l >= 3 ? .02 : .04 };
+}
+
+function startWave() {
+  G.on = true; G.sh = S.maxSh; G.left = WAVE; G.spawned = 0; G.streak = 0; G.cur = null;
+  G.slow = S.slow > 0; G.radar = S.radar > 0; S.slow = 0; S.radar = 0;
+  G.skill = pickSkill(); G.last.push(G.skill); if (G.last.length > 5) G.last.shift();
+  G.cmp = G.skill === 'sammenlign' ? makeCmp(lv('sammenlign').l) : null;
+  save();
+  BUILD.forEach(b => b.ruin = false);
+  mets.forEach(m => m.tag && m.tag.remove()); mets = [];
+  const sk = SKILLS.find(x => x.id === G.skill);
+  hud(); banner('Bølge ' + S.wave, 1500);
+  $('opgKick').textContent = sk.navn;
+  $('opg').innerHTML = '<span class="small">Radaren søger …</span>';
+  say('info', `Bølge ${S.wave}: ${sk.navn.toLowerCase()}. ${WAVE} meteorer er på vej.${G.slow || G.radar ? ` Udstyr: ${[G.slow && 'tidsbremse', G.radar && 'radarscanner'].filter(Boolean).join(' og ')}.` : ''}`, null);
+  G.paused = false;
+  spawn(0); spawn(-.06); spawn(-.13);
+  clearTimeout(G.taskT); G.taskT = setTimeout(newTask, 1500);
+}
+
+function spawn(t0 = 0) {
+  if (G.spawned >= WAVE || alive().length >= MAXON) return;
+  const on = alive(), used = new Set(on.map(m => m.lane));
+  let item;
+  for (let t = 0; t < 200; t++) {
+    if (G.cmp) {
+      item = G.cmp.gen();
+      if (on.some(m => Math.abs(m.v - item.v) < G.cmp.gap || m.html === item.html)) { item = null; continue; }
+      // never steal the target of the task that is showing
+      if (G.cur && G.cur.cmpBig !== undefined && (G.cur.cmpBig ? item.v > G.cur.target.v : item.v < G.cur.target.v)) { item = null; continue; }
+    } else {
+      const q = GEN[G.skill](level());
+      if (on.some(m => Math.abs(m.v - q.ans.v) < 1e-9 || m.html === q.ans.html)) continue;
+      item = { html: q.ans.html, v: q.ans.v, q };
+    }
+    if (item) break;
+  }
+  if (!item) return;
+  const lanes = [0, 1, 2, 3, 4].filter(i => !used.has(i)), lane = P(lanes);
+  const x0 = 72 + lane * 124 + R(-10, 10);
+  const m = { t: t0, dur: speed(), x0, x1: x0 + R(-12, 12), seed: Math.random() * 9, lane, ...item };
+  const b = document.createElement('button'); b.className = 'tag'; b.innerHTML = item.html;
+  b.setAttribute('aria-label', 'Meteor med ' + b.textContent.replace(/\s+/g, ' '));
+  b.onclick = () => shoot(m); m.tag = b; tagsEl.appendChild(b);
+  mets.push(m); G.spawned++;
+}
+
+function newTask() {
+  clearTimeout(autoNext); clearTimeout(G.taskT);
+  mets = mets.filter(m => !m.dead || m.tag);
+  if (G.left <= 0) return waveDone();
+  if (!alive().length) spawn(0);
+  const on = alive(); if (!on.length) return waveDone();
+  let task;
+  if (G.cmp) {
+    const big = Math.random() < .6, sorted = [...on].sort((a, b) => b.v - a.v), target = big ? sorted[0] : sorted[sorted.length - 1];
+    task = { task: big ? 'Skyd det <u>største</u> tal' : 'Skyd det <u>mindste</u> tal', target, cmpBig: big, hint: G.cmp.hint,
+      explain: () => 'Fra størst til mindst: ' + [...alive()].sort((a, b) => b.v - a.v).map(m => `${m.html} (${pv(m.v)})`).join(' &gt; ') + '.' };
+  } else {
+    const target = P(on);
+    task = { task: target.q.task, target, hint: target.q.hint, explain: () => target.q.explain };
+  }
+  task.tries = 0; G.cur = task; G.paused = false;
+  mets.forEach(m => m.tag && m.tag.classList.remove('show', 'wrong'));
+  $('opg').innerHTML = task.task;
+  say('info', 'Regn opgaven, og klik på den meteor, der har svaret. Kun den meteor kan bryde igennem skjoldet.', null);
+  hud();
+}
+
+function burst(x, y, big) {
+  const cols = ['#ffd34d', '#ff9f43', '#ffffff', '#b49a86', '#8a7070'];
+  for (let i = 0; i < (big ? 40 : 22); i++) { const a = Math.random() * Math.PI * 2, v = 30 + Math.random() * 90; parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 20, s: 1 + Math.floor(Math.random() * 3), c: P(cols), life: .5 + Math.random() * .6 }); }
+}
+const CX = 320, CY = 216;
+const aimAt = (x, y) => { cannon.to = cannon.a = Math.atan2(y - CY, x - CX); };
+const tip = () => ({ x: CX + Math.cos(cannon.a) * 14, y: CY + Math.sin(cannon.a) * 14 });
+function beam(x1, y1) { aimAt(x1, y1); const t = tip(); beams.push({ x0: t.x, y0: t.y, x1, y1, c: LASER[S.laser][0], life: .35 }); }
+function sparks(x, y) { for (let i = 0; i < 8; i++) { const a = Math.random() * Math.PI * 2; parts.push({ x, y, vx: Math.cos(a) * 50, vy: Math.sin(a) * 50, s: 1, c: '#ffffff', life: .3 }); } }
+
+let cool = 0;
+function shoot(m) {
+  const task = G.cur; if (!task || G.paused || m.dead) return;
+  const now = performance.now(); if (now - cool < 300) return; cool = now;
+  const p = mPos(m);
+  if (m === task.target) {
+    beam(p.x, p.y); m.dead = true; burst(p.x, p.y, true);
+    solved();
+  } else {
+    beam(p.x + 4, p.y + 2); sparks(p.x, p.y);
+    task.tries++; m.tag.classList.remove('wrong'); void m.tag.offsetWidth; m.tag.classList.add('wrong');
+    if (task.tries >= 2 || (G.radar && task.tries >= 1)) task.target.tag && task.target.tag.classList.add('show');
+    if (task.tries === 1) say('help', `Laseren prellede af! ${m.html} er ikke svaret. <b>Tip:</b> ${task.hint}${G.radar ? ' Radarscanneren har sat et grønt mærke på den rigtige meteor.' : ''}`, null);
+    else say('help', `Laseren prellede af igen. ${task.explain()} Skyd den grønne meteor.`, null);
+  }
+}
+
+function solved() {
+  const t = G.cur; G.cur = null; G.paused = true;
+  const first = t.tries === 0;
+  record(G.skill, first);
+  let gain = first ? 3 : t.tries === 1 ? 1 : 0;
+  if (first) { G.streak++; if (G.streak % 3 === 0) gain += 2; } else G.streak = 0;
+  S.crys += gain; G.left--; save(); hud();
+  banner(first ? (G.streak >= 3 && G.streak % 3 === 0 ? `${G.streak} i træk!` : P(['Pletskud!', 'Fuldt hit!', 'Perfekt!', 'Sprængt!'])) : 'Ramt!');
+  const ex = G.cmp ? '' : t.explain();
+  const go = () => { spawn(0); newTask(); };
+  say('good', `${gain ? `+${gain} krystal${gain > 1 ? 'ler' : ''}. ` : ''}${ex}`, G.left > 0 ? 'Næste opgave' : 'Afslut bølgen', go);
+  autoNext = setTimeout(() => { if (fbAct === go) { fbAct = null; go(); } }, first ? 2200 : 5500);
+}
+let autoNext;
+
+function impact() {
+  const t = G.cur; G.cur = null; G.paused = true;
+  const m = t.target, p = mPos(m), ex = t.explain();
+  burst(p.x, p.y, true); m.dead = true;
+  shake = 1; flash = 1; G.sh--; G.streak = 0;
+  const intact = BUILD.filter(b => !b.ruin); if (intact.length) P(intact).ruin = true;
+  record(G.skill, false);
+  G.left--; save(); hud();
+  banner(G.sh > 0 ? 'Skjoldet blev ramt!' : 'Skjoldet er nede!');
+  const go = () => { if (G.sh <= 0) failWave(); else { spawn(0); newTask(); } };
+  say('bad', `Meteoren ramte skjoldet. Svaret var ${m.html}. ${ex}`, G.sh > 0 ? 'Videre' : 'Hvad nu?', go);
+}
+
+function waveDone() {
+  G.on = false; G.paused = true; G.cur = null;
+  $('opg').innerHTML = '<span class="small">Ingen meteorer på radaren.</span>'; $('opgKick').textContent = 'Opgave';
+  const bonus = 5; S.crys += bonus; const w = S.wave; S.wave++; save(); hud();
+  banner('Bølge klaret!', 1600);
+  $('shTitle').textContent = `Bølge ${w} er klaret!`;
+  $('shText').innerHTML = `Kolonien er i sikkerhed. I fik ${bonus} ekstra krystaller for at klare bølgen og har nu <b>${S.crys}</b>. Vil I købe udstyr før næste bølge?`;
+  shop(); setTimeout(() => open('shopP'), 900);
+  say('info', 'Bølgen er klaret.', 'Næste bølge', () => { close('shopP'); startWave(); });
+}
+function failWave() {
+  G.on = false; G.cur = null;
+  mets.forEach(m => { m.dead = true; });
+  say('info', 'Generatoren genstarter.', 'Prøv bølgen igen', () => { close('failP'); startWave(); });
+  open('failP');
+}
+
+/* ---------------- shop ---------------- */
+function shop() {
+  const items = [
+    { id: 'skjold', navn: 'Ekstra skjold', txt: S.maxSh >= 6 ? 'Skjoldet er så stærkt, som det kan blive.' : `Skjoldet kan tåle ét nedslag mere (nu ${S.maxSh}).`, pris: 30 + (S.maxSh - 3) * 15, kan: S.maxSh < 6, k: () => S.maxSh++ },
+    { id: 'bremse', navn: 'Tidsbremse', txt: S.slow ? 'Købt til næste bølge.' : 'Meteorerne flyver langsommere i næste bølge.', pris: 12, kan: !S.slow, k: () => S.slow = 1 },
+    { id: 'radar', navn: 'Radarscanner', txt: S.radar ? 'Købt til næste bølge.' : 'Efter ét forkert skud viser radaren, hvilken meteor der er den rigtige (næste bølge).', pris: 12, kan: !S.radar, k: () => S.radar = 1 },
+  ];
+  $('shop').innerHTML = '';
+  for (const it of items) {
+    const d = document.createElement('div'); d.className = 'item';
+    d.innerHTML = `<div class="d"><b>${it.sw ? `<i class="sw" style="background:${it.sw}"></i>` : ''}${it.navn}</b><span>${it.txt}</span></div>`;
+    const b = document.createElement('button'); b.className = 'btn small';
+    b.textContent = it.use ? 'Brug' : `${it.pris} ◆`;
+    b.disabled = !it.kan || S.crys < it.pris;
+    b.onclick = () => { if (S.crys < it.pris) return; S.crys -= it.pris; it.k(); save(); hud(); shop(); $('shText').innerHTML = `I har nu <b>${S.crys}</b> krystaller.`; };
+    d.appendChild(b); $('shop').appendChild(d);
+  }
+  // laser colours: one row of swatches (20 each, owned ones are free to switch)
+  const d = document.createElement('div'); d.className = 'item';
+  d.innerHTML = `<div class="d"><b>Laserfarve</b><span>Nye farver koster 20 ◆. Farver I ejer, kan I skifte gratis.</span></div>`;
+  const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end';
+  for (const [id, [c, n]] of Object.entries(LASER)) {
+    const own = S.owned.includes(id), b = document.createElement('button');
+    b.className = 'swb' + (S.laser === id ? ' on' : ''); b.style.background = c; b.title = n + (own ? '' : ' (20 krystaller)');
+    b.setAttribute('aria-label', b.title); b.textContent = own ? '' : '20';
+    b.disabled = !own && S.crys < 20;
+    b.onclick = () => { if (!own) { if (S.crys < 20) return; S.crys -= 20; S.owned.push(id); } S.laser = id; save(); hud(); shop(); $('shText').innerHTML = `I har nu <b>${S.crys}</b> krystaller.`; };
+    row.appendChild(b);
+  }
+  d.appendChild(row); $('shop').appendChild(d);
+}
+
+/* ---------------- panels ---------------- */
+let lastFocus;
+function open(id) { lastFocus = document.activeElement; $(id).hidden = false; const b = $(id).querySelector('.act .btn'); b && b.focus(); G.paused = true; }
+function close(id) { $(id).hidden = true; if (G.cur && !document.querySelector('.dim:not([hidden])')) G.paused = false; lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true }); }
+$('inGo').onclick = () => { close('intro'); S.seen = true; save(); startWave(); };
+$('shGo').onclick = () => { close('shopP'); startWave(); };
+$('fGo').onclick = () => { close('failP'); startWave(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('teach').hidden) close('teach'); });
+
+function teachOpen() {
+  $('topics').innerHTML = SKILLS.map(s => `<label><input type="checkbox" value="${s.id}" ${S.topics.includes(s.id) ? 'checked' : ''}><span><b>${s.navn}</b><small>${s.mål}</small></span></label>`).join('');
+  $('calm').checked = !!S.calm; open('teach');
+}
+$('tBtn').onclick = teachOpen; $('tClose').onclick = () => close('teach');
+$('tOk').onclick = () => {
+  const t = [...$('topics').querySelectorAll('input:checked')].map(i => i.value);
+  S.topics = t.length ? t : SKILLS.map(s => s.id); S.calm = $('calm').checked; save(); close('teach');
+};
+$('tReset').onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); };
+
+/* ---------------- start ---------------- */
+say('info', 'Regn opgaven, og klik på meteoren med svaret.', 'Start', () => { if (S.seen) startWave(); else open('intro'); });
+hud();
+ready.then(() => {
+  document.querySelectorAll('canvas.fig').forEach(c => c.getContext('2d').drawImage(IMG.laerer[0], 0, 0));
+  $('cIcon').getContext('2d').drawImage(IMG['krystal-blaa'][0], 0, 0);
+  resize(); requestAnimationFrame(frame);
+});
+if (!S.seen) open('intro');
+</script>
+</body>
+</html>
